@@ -21,18 +21,17 @@ production publisher is currently configured.
 
 ## Signing scope
 
-One approved release requires seven ordered Authenticode operations:
+One approved release requires six ordered Authenticode operations:
 
 1. CodecHost framework identity MSIX;
 2. main application identity MSIX;
-3. fixed per-user application MSI;
-4. fixed per-machine application MSI;
-5. registry-only scope-anchor MSI;
-6. detached WiX Burn engine executable;
-7. reattached final Burn setup executable.
+3. per-user-layout application MSI;
+4. per-machine-layout application MSI;
+5. detached WiX Burn engine executable;
+6. reattached final Burn setup executable.
 
 The MSIX identity packages are installer payloads rather than standalone public
-downloads in the planned channel. The public release set is the two fixed-scope
+downloads in the planned channel. The public release set is the two scope-specific layout
 MSI files, the Burn setup executable, checksums, the release manifest, the SBOM,
 and required license/source notices.
 

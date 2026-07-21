@@ -2,7 +2,7 @@
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
      xmlns:bal="http://wixtoolset.org/schemas/v4/wxs/bal">
   <Bundle Id="koprodev.ezyImageViewer.Setup"
-          Name="ezy Image Viewer Setup"
+          Name="ezy Image Viewer"
           Manufacturer="koprodev"
           Version="$(var.ProductVersion)"
           Copyright="Copyright (c) 2026 koprodev"
@@ -11,8 +11,11 @@
           Compressed="yes"
           DisableModify="button">
     <BootstrapperApplication>
+      <Payload Name="1042\thm.wxl" SourceFile="$(var.KoreanLocalization)" />
+      <Payload Name="1042\license.rtf" SourceFile="$(var.KoreanEula)" />
       <bal:WixStandardBootstrapperApplication Theme="rtfLargeLicense"
                                                ThemeFile="$(var.ThemeFile)"
+                                               LocalizationFile="$(var.BundleLocalization)"
                                                LicenseFile="$(var.EulaRtf)"
                                                LogoFile="$(var.BundleLogo)"
                                                LaunchTarget="ezyImageViewer.exe"
@@ -29,19 +32,16 @@
               bal:Overridable="yes" Persisted="yes" />
     <Variable Name="EzyFileAssociations" Type="numeric" Value="0"
               bal:Overridable="yes" Persisted="yes" />
-
     <Chain>
-      <MsiPackage Id="ScopeAnchor" SourceFile="$(var.ScopeAnchorMsi)"
-                  Visible="no" Vital="yes" />
       <MsiPackage Id="PerUserPackage" SourceFile="$(var.PerUserMsi)"
-                  InstallCondition="WixBundlePlannedScope = 2"
+                  InstallCondition="WixStdBAScope = &quot;PerUser&quot;"
                   Visible="no" Vital="yes">
         <MsiProperty Name="APPLICATIONFOLDER" Value="[PerUserInstallFolder]" />
         <MsiProperty Name="EZY_DESKTOP_SHORTCUT" Value="[EzyDesktopShortcut]" />
         <MsiProperty Name="EZY_FILE_ASSOCIATIONS" Value="[EzyFileAssociations]" />
       </MsiPackage>
       <MsiPackage Id="PerMachinePackage" SourceFile="$(var.PerMachineMsi)"
-                  InstallCondition="WixBundlePlannedScope = 1"
+                  InstallCondition="WixStdBAScope = &quot;PerMachine&quot;"
                   Visible="no" Vital="yes">
         <MsiProperty Name="APPLICATIONFOLDER" Value="[PerMachineInstallFolder]" />
         <MsiProperty Name="EZY_DESKTOP_SHORTCUT" Value="[EzyDesktopShortcut]" />

@@ -14,7 +14,7 @@ read-only artifact verifier는 구현됐지만 production Publisher·서명과 c
 ## 0. 확정 배포 방식
 
 - 공개 채널은 `koprodev/ezy-image-viewer-releases`의 GitHub Releases 한 곳으로 고정한다.
-- 기존 unsigned Basic Portable ZIP과 `v1.0.10-preview.1`의 unsigned Setup/단일 Portable을
+- 기존 unsigned Basic Portable ZIP과 `v1.0.11-preview.1`의 unsigned Setup/단일 Portable을
   명시적 개인 평가·테스트 prerelease로 제공한다.
 - 향후 production 일반 사용자의 기본 다운로드는 scope 선택형 Burn Setup이다. 고정 per-user/per-machine MSI는
   관리자·고급 사용자가 scope를 직접 고를 때 사용하는 보조 자산이다.
@@ -33,10 +33,10 @@ read-only artifact verifier는 구현됐지만 production Publisher·서명과 c
 
 ### 0.2 Installer + 단일 Portable 개인 프리릴리스
 
-`packaging/preview-release.json`은 `v1.0.10-preview.1`의 앱·CodecHost·Portable 버전과
+`packaging/preview-release.json`은 `v1.0.11-preview.1`의 앱·CodecHost·Portable 버전과
 unsigned Publisher를 고정한다. 공개 주 실행 자산은 다음 둘이다.
 
-- `ezyImageViewerSetup-1.0.10-x64-dev-unsigned.exe`: scope 선택형 Burn Setup. 파일 연결은
+- `ezyImageViewerSetup-1.0.11-x64-dev-unsigned.exe`: scope 선택형 Burn Setup. 파일 연결은
   명시적 opt-in이며 기본 앱을 강제하지 않는다.
 - `ezyImageViewer.exe`: 압축된 단일 파일 Portable. WinUI 내장 리소스 확인을 위해 파일명을 유지한다. 레지스트리와
   파일 연결을 등록하지 않고 실행 중 `%TEMP%` 계열에 런타임을 추출한다.
@@ -47,9 +47,9 @@ source commit에 결박된 네 자산의 길이·SHA-256을 기록한다.
 
 ```powershell
 powershell -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File `
-  packaging\build-preview-release.ps1 -OutputDirectory packaging\out\preview-1.0.10
+  packaging\build-preview-release.ps1 -OutputDirectory packaging\out\preview-1.0.11
 powershell -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File `
-  packaging\verify-preview-release.ps1 -OutputDirectory packaging\out\preview-1.0.10
+  packaging\verify-preview-release.ps1 -OutputDirectory packaging\out\preview-1.0.11
 ```
 
 GitHub에서는 `.github/workflows/release-preview.yml`을 protected `main`에서 수동 실행한다.
@@ -214,14 +214,17 @@ restore 실패로 처리한다. 감사 피드에 연결되지 않은 실행을 �
 
 최종 installer는 다음 세 실행 파일을 한 버전 세트로 만든다.
 
-- 고정 `perUser` MSI: `%LocalAppData%\Programs\ezy Image Viewer`, 일반 사용자 등록
-- 고정 `perMachine` MSI: `%ProgramFiles%\ezy Image Viewer`, 상승된 전체 사용자 등록
+- 사용자 우선 dual-purpose MSI: `%LocalAppData%\Programs\ezy Image Viewer`, 일반 사용자 등록
+- 컴퓨터 우선 dual-purpose MSI: `%ProgramFiles%\ezy Image Viewer`, 상승된 전체 사용자 등록
 - Burn Setup: 기본은 현재 사용자이며 scope radio 선택에 따라 위 MSI 하나만 계획
 
-두 MSI를 dual-purpose로 합치지 않는다. Burn chain의 첫 `ScopeAnchor`는 payload가 없는
-registry-only MSI로 bundle planned scope를 확정하며, 앱 MSI는 각각 `WixBundlePlannedScope = 2`
-또는 `= 1`일 때만 설치된다. 시작 메뉴는 기본 켜짐이고 바탕 화면 바로가기와 png/jpg/jpeg/
+두 MSI의 설치 내용과 등록 책임은 분리하되, WiX가 Burn 자체를 configurable-scope로 판정하도록
+각 패키지 scope를 `perUserOrMachine`과 `perMachineOrUser`로 선언한다. WixStdBA의
+`WixStdBAScope` 값에 따라 앱 MSI 하나만 설치된다. 시작 메뉴는 기본 켜짐이고 바탕 화면 바로가기와 png/jpg/jpeg/
 bmp/gif/webp/tif/tiff의 Open With 등록은 기본 꺼짐이다. 확장자 기본 handler 값은 쓰지 않는다.
+`-DevelopmentUnsigned` 빌드는 Windows가 unsigned MSIX identity를 거부하므로 identity 등록 custom
+action을 비활성화한다. 앱 파일·App Paths·바로가기·선택형 파일 연결은 그대로 설치한다. 승인된
+서명으로 만드는 production 빌드만 identity와 CodecHost 등록을 수행한다.
 
 서명하지 않은 개발용 정적 검증 후보는 다음처럼 명시적으로 만든다. 출력 디렉터리는 새 경로여야
 하며 이 명령은 설치·package 등록·인증서 생성·신뢰 저장소 변경을 수행하지 않는다.
@@ -240,7 +243,7 @@ powershell -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File `
 ```
 
 진입점은 foundation stage/verify, manifest·package validation, 결정적 WiX fragment 2회 생성 비교,
-네 WiX 프로젝트 locked restore, MSI·Burn build, MSI COM database verifier와 Burn extraction verifier,
+세 WiX 프로젝트 locked restore, MSI·Burn build, MSI COM database verifier와 Burn extraction verifier,
 SHA-256 생성을 한 번에 수행한다. 출력은 MSI 2개, Setup EXE, `installer-artifacts.json`,
 `SHA256SUMS`, 수정된 Burn theme 원문 `EzyRtfLargeTheme.xml`, MS-RL 원문 `LICENSE-MRL.txt`다.
 마지막 두 파일은 WiX 표준 theme 파생물의 reciprocal source 제공 계약이므로 공개 자산에서
@@ -260,8 +263,8 @@ timestamp는 absolute HTTPS URL이어야 하며 자격 증명이나 fragment를 
 Subject 값과 구분한 exact `O=Microsoft Corporation` RDN, code-signing EKU를 통과해야 한다. 이
 preflight와 인증서 선택은 output·working directory
 생성과 payload staging보다 먼저 실행한다. 스크립트는 package Publisher와 인증서 Subject exact 일치,
-private key, 유효기간, code-signing EKU를 확인하고 identity MSIX 두 개→앱 MSI 두 개→scope anchor
-MSI를 SHA-256 Authenticode로 서명한다. 각 서명 뒤에는 SignTool Windows policy와
+private key, 유효기간, code-signing EKU를 확인하고 identity MSIX 두 개→앱 MSI 두 개를
+SHA-256 Authenticode로 서명한다. 각 서명 뒤에는 SignTool Windows policy와
 `Get-AuthenticodeSignature`의 `Status=Valid`, 선택 인증서 thumbprint exact, RFC 3161 timestamper 존재를
 모두 검사한다. Burn은 WiX 7 CLI로 engine을 detach하고 engine을 서명·검증한 뒤 reattach한 전체
 bundle을 다시 서명·검증한다. production 모드는 승인된 값으로 clean VM 검증 직전에만 실행한다.

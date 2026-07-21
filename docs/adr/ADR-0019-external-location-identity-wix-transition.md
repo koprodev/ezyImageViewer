@@ -48,15 +48,14 @@ WiX 승인은 개발·CI 도입에 대한 사용자 승인이다. OSMF의 조직
 
 ### 2. MSI와 Burn scope
 
-- per-user MSI는 `Scope=perUser`, 기본 `%LocalAppData%\Programs\ezy Image Viewer`, HKCU registry
-  key path, impersonated deferred identity action을 사용한다.
-- per-machine MSI는 `Scope=perMachine`, 기본 `%ProgramFiles%\ezy Image Viewer`, file key path,
-  HKLM과 non-impersonated deferred identity action을 사용한다.
+- per-user layout MSI는 `Scope=perUserOrMachine`, 기본 `%LocalAppData%\Programs\ezy Image Viewer`,
+  HKCU registry key path, impersonated deferred identity action을 사용한다.
+- per-machine layout MSI는 `Scope=perMachineOrUser`, 기본 `%ProgramFiles%\ezy Image Viewer`,
+  file key path, HKLM과 non-impersonated deferred identity action을 사용한다.
 - MSI마다 별도 UpgradeCode와 component GUID 집합을 유지한다. `MajorUpgrade`로 낮은 버전을
   교체하고 downgrade를 차단한다. scope 간 자동 migration은 하지 않는다.
-- Burn chain 첫 항목은 registry-only dual-purpose `ScopeAnchor` MSI다. 이 package가 bundle
-  planned scope를 만들고, 앱 MSI는 각각 `WixBundlePlannedScope = 2`(per-user),
-  `WixBundlePlannedScope = 1`(per-machine)일 때만 계획된다.
+- 두 앱 MSI 자체가 dual-purpose이므로 Burn은 configurable-scope bundle로 판정한다.
+  WixStdBA가 설정하는 `WixStdBAScope` 값에 따라 해당 layout MSI 하나만 계획된다.
 - Burn은 scope별 설치 경로 변수를 따로 보존한다. 하나의 사용자 경로가 상승된 install에
   재사용되지 않는다.
 
@@ -92,8 +91,10 @@ WiX 승인은 개발·CI 도입에 대한 사용자 승인이다. OSMF의 조직
 
 ### 5. 서명과 배포 고지
 
-- 개발 gate는 `-DevelopmentUnsigned`를 명시한 구조 검증 전용이다. 파일 이름과 metadata에
-  unsigned 상태를 남기며 일반 사용자에게 배포하지 않는다.
+- 개발 gate는 `-DevelopmentUnsigned`를 명시하며 파일 이름과 metadata에 unsigned 상태를 남긴다.
+  Windows가 unsigned MSIX identity 등록을 거부하므로 이 빌드는 `EZY_REGISTER_IDENTITY=0`으로
+  identity custom action을 건너뛰고 일반 데스크톱 앱·App Paths·선택형 파일 연결만 설치한다.
+  identity와 CodecHost 등록은 production 서명 빌드에서만 활성화한다.
 - production parameter set은 승인된 current-user code-signing 인증서 thumbprint, HTTPS
   RFC 3161 timestamp URL, 고정 BuildTools 경로를 모두 요구한다. Subject=Publisher, private key,
   유효기간, code-signing EKU를 output 생성 전에 확인한다. 선택된 x64 SignTool 자체도 Windows trust
@@ -111,7 +112,7 @@ WiX 승인은 개발·CI 도입에 대한 사용자 승인이다. OSMF의 조직
 ## 검증 전략과 허용한 경고 억제
 
 `build-wix-installer.ps1`은 foundation stage/verify, 결정적 fragment 재생성 비교, locked restore,
-MSI 2개·scope anchor·Burn build, Windows Installer COM database 검사, Burn extract와 payload
+MSI 2개·Burn build, Windows Installer COM database 검사, Burn extract와 payload
 SHA-512 검사, 공개 artifact SHA-256 생성을 한 진입점으로 묶는다. verifier는 설치나 registry,
 trust store, package registration을 변경하지 않는다.
 
@@ -121,9 +122,8 @@ trust store, package registration을 변경하지 않는다.
 |---|---|
 | ICE03 | Microsoft Windows App SDK XAML MUI version resource의 LCID를 ICE03가 거부. custom action Target 길이와 MSI table 계약은 별도 verifier가 검사 |
 | ICE60 | app-local Material Symbols font를 system FontsFolder에 등록하지 않는 의도적 private font |
-| ICE91 | 고정 per-user MSI에만 적용. 존재하지 않는 per-machine transition을 전제한 경고 |
-| WIX1076/ICE71 | fileless 내부 scope anchor의 Media 경고. 앱 payload MSI에는 적용하지 않음 |
-| WIX1140 | configurable bundle의 기본 registration scope만 보고 조건부 per-machine MSI를 경고. verifier가 dual anchor와 두 planned-scope 조건을 검사 |
+| ICE91 | per-user layout MSI에만 적용. 번들이 선택하지 않는 per-machine transition을 전제한 경고 |
+| WIX1140 | configurable bundle의 기본 registration scope만 보고 조건부 per-machine MSI를 경고. verifier가 두 dual-purpose package와 `WixStdBAScope` 조건을 검사 |
 
 억제 목록을 확대할 때는 해당 행의 실제 원인, 제한된 scope, 대체 검증을 함께 추가해야 한다.
 

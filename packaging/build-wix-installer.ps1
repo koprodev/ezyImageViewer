@@ -38,6 +38,32 @@ function Get-PhysicalFile([string]$Path, [string]$Label, [string]$Extension) {
     return $item
 }
 
+function ConvertTo-Rtf([string]$SourcePath, [string]$DestinationPath) {
+    $text = [IO.File]::ReadAllText($SourcePath, [Text.Encoding]::UTF8)
+    $builder = [Text.StringBuilder]::new()
+    [void]$builder.Append("{\rtf1\ansi\deff0\uc1`r`n{\fonttbl{\f0 Segoe UI;}}`r`n\fs20`r`n")
+    foreach ($character in $text.ToCharArray()) {
+        switch ([int]$character) {
+            13 { continue }
+            10 { [void]$builder.Append("\par`r`n"); continue }
+            92 { [void]$builder.Append('\\'); continue }
+            123 { [void]$builder.Append('\{'); continue }
+            125 { [void]$builder.Append('\}'); continue }
+        }
+        $value = [int]$character
+        if ($value -ge 32 -and $value -le 126) {
+            [void]$builder.Append($character)
+        }
+        else {
+            $signed = if ($value -gt 32767) { $value - 65536 } else { $value }
+            [void]$builder.Append("\u${signed}?")
+        }
+    }
+    [void]$builder.Append("`r`n}`r`n")
+    [IO.File]::WriteAllText($DestinationPath, $builder.ToString(),
+        [Text.ASCIIEncoding]::new())
+}
+
 function Get-WixTool([string]$ProjectPath) {
     $project = Get-Item -LiteralPath ([IO.Path]::GetFullPath($ProjectPath)) -Force `
         -ErrorAction Stop
@@ -110,6 +136,12 @@ $codecHost = Get-PhysicalFile $CodecHostPackage 'CodecHostPackage' '.msix'
 $eula = Get-PhysicalFile $EulaRtf 'EulaRtf' '.rtf'
 $themeSource = Get-PhysicalFile (Join-Path $repositoryRoot `
         'installer\bundle\EzyRtfLargeTheme.xml') 'Burn theme source' '.xml'
+$bundleLocalization = Get-PhysicalFile (Join-Path $repositoryRoot `
+        'installer\bundle\Bundle.en-US.wxl') 'Burn fallback localization' '.wxl'
+$koreanLocalization = Get-PhysicalFile (Join-Path $repositoryRoot `
+        'installer\bundle\Bundle.ko-KR.wxl') 'Burn Korean localization' '.wxl'
+$koreanEulaText = Get-PhysicalFile (Join-Path $repositoryRoot `
+        'installer\assets\EULA.ko-KR.txt') 'Burn Korean EULA source' '.txt'
 $themeLicense = Get-PhysicalFile (Join-Path $repositoryRoot `
         'installer\bundle\LICENSE-MRL.txt') 'Burn theme license' '.txt'
 $signTool = $null
@@ -150,6 +182,9 @@ $perMachineFragment = Join-Path $workingRoot 'Payload.PerMachine.wxs'
 
 try {
     [void][IO.Directory]::CreateDirectory($workingRoot)
+    $koreanEula = Join-Path $workingRoot 'license.ko-KR.rtf'
+    ConvertTo-Rtf $koreanEulaText.FullName $koreanEula
+    [void](Get-PhysicalFile $koreanEula 'Generated Korean EULA' '.rtf')
     & (Join-Path $scriptRoot 'stage-msi-foundation.ps1') `
         -OutputDirectory $foundation -Version $Version `
         -CodecHostVersion $CodecHostVersion -Publisher $Publisher -MinVersion $MinVersion
@@ -195,7 +230,6 @@ try {
     $projects = @(
         'installer\per-user\ezyImageViewer.PerUser.wixproj',
         'installer\per-machine\ezyImageViewer.PerMachine.wixproj',
-        'installer\scope-anchor\ezyImageViewer.ScopeAnchor.wixproj',
         'installer\bundle\ezyImageViewer.Bundle.wixproj'
     )
     foreach ($project in $projects) {
@@ -209,35 +243,28 @@ try {
         'installer\per-user\ezyImageViewer.PerUser.wixproj'
     $perMachineProject = Join-Path $repositoryRoot `
         'installer\per-machine\ezyImageViewer.PerMachine.wixproj'
-    $anchorProject = Join-Path $repositoryRoot `
-        'installer\scope-anchor\ezyImageViewer.ScopeAnchor.wixproj'
+    $enableIdentityRegistration = if ($DevelopmentUnsigned) { '0' } else { '1' }
     Invoke-Checked 'Build per-user MSI' {
         & dotnet build $perUserProject -t:Rebuild -c Release --no-restore `
             "-p:ProductVersion=$productVersion" `
             "-p:GeneratedPayloadSource=$perUserFragment" `
+            "-p:EnableIdentityRegistration=$enableIdentityRegistration" `
             "-p:EulaRtf=$($eula.FullName)" -p:AcceptEula=wix7
     }
     Invoke-Checked 'Build per-machine MSI' {
         & dotnet build $perMachineProject -t:Rebuild -c Release --no-restore `
             "-p:ProductVersion=$productVersion" `
             "-p:GeneratedPayloadSource=$perMachineFragment" `
+            "-p:EnableIdentityRegistration=$enableIdentityRegistration" `
             "-p:EulaRtf=$($eula.FullName)" -p:AcceptEula=wix7
     }
-    Invoke-Checked 'Build scope anchor MSI' {
-        & dotnet build $anchorProject -t:Rebuild -c Release --no-restore `
-            "-p:ProductVersion=$productVersion" -p:AcceptEula=wix7
-    }
-
     $perUserMsi = Join-Path $repositoryRoot `
         "installer\per-user\bin\Release\ezyImageViewer-$productVersion-x64-per-user.msi"
     $perMachineMsi = Join-Path $repositoryRoot `
         "installer\per-machine\bin\Release\ezyImageViewer-$productVersion-x64-per-machine.msi"
-    $anchorMsi = Join-Path $repositoryRoot `
-        "installer\scope-anchor\bin\Release\ezyImageViewer-$productVersion-scope-anchor.msi"
     if (-not $DevelopmentUnsigned) {
         Sign-Artifact $signTool $certificate $TimestampUrl $perUserMsi
         Sign-Artifact $signTool $certificate $TimestampUrl $perMachineMsi
-        Sign-Artifact $signTool $certificate $TimestampUrl $anchorMsi
     }
 
     $metadata = Get-Content -LiteralPath (Join-Path $foundation 'STAGING-METADATA.json') `
@@ -245,7 +272,8 @@ try {
     $expectedFiles = [int]$metadata.payload.fileCount - 1 + 5
     & (Join-Path $scriptRoot 'verify-wix-installer.ps1') `
         -PerUserMsi $perUserMsi -PerMachineMsi $perMachineMsi `
-        -ProductVersion $productVersion -ExpectedPayloadFileCount $expectedFiles
+        -ProductVersion $productVersion -ExpectedPayloadFileCount $expectedFiles `
+        -ExpectedIdentityRegistration $enableIdentityRegistration
     if ($LASTEXITCODE -ne 0) { throw 'WiX MSI verification failed.' }
 
     $bundleProject = Join-Path $repositoryRoot `
@@ -258,9 +286,12 @@ try {
     Invoke-Checked 'Build Burn bundle' {
         & dotnet build $bundleProject -t:Rebuild -c Release --no-restore `
             "-p:ProductVersion=$productVersion" "-p:PerUserMsi=$perUserMsi" `
-            "-p:PerMachineMsi=$perMachineMsi" "-p:ScopeAnchorMsi=$anchorMsi" `
+            "-p:PerMachineMsi=$perMachineMsi" `
             "-p:EulaRtf=$($eula.FullName)" "-p:BundleIcon=$bundleIcon" `
             "-p:BundleLogo=$bundleLogo" "-p:ThemeFile=$themeFile" `
+            "-p:BundleLocalization=$($bundleLocalization.FullName)" `
+            "-p:KoreanLocalization=$($koreanLocalization.FullName)" `
+            "-p:KoreanEula=$koreanEula" `
             -p:AcceptEula=wix7
     }
     $bundle = Join-Path $repositoryRoot `

@@ -32,6 +32,7 @@ Directory.Build.props
 Directory.Packages.props
 EzyImageViewer.slnx
 global.json
+icon.png
 LICENSE
 README.md
 THIRD-PARTY-NOTICES.md

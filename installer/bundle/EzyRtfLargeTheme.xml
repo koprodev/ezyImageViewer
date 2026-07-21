@@ -60,11 +60,9 @@
              DisablePrefix="yes">#(loc.OptionsHeader)</Label>
       <RadioButtons Name="WixStdBAScope">
         <RadioButton X="11" Y="118" Height="20" Width="-11" Value="PerUser"
-                     EnableCondition="WixBundleAuthoredScope = 2 OR WixBundleAuthoredScope = 3"
-                     HideWhenDisabled="yes" FontId="3">#(loc.OptionsPerUserScopeText)</RadioButton>
+                     FontId="3">#(loc.OptionsPerUserScopeText)</RadioButton>
         <RadioButton X="11" Y="138" Height="20" Width="-11" Value="PerMachine"
-                     EnableCondition="WixBundleAuthoredScope = 2 OR WixBundleAuthoredScope = 3"
-                     HideWhenDisabled="yes" FontId="3">#(loc.OptionsPerMachineScopeText)</RadioButton>
+                     FontId="3">#(loc.OptionsPerMachineScopeText)</RadioButton>
       </RadioButtons>
       <Label X="11" Y="166" Width="-11" Height="17" FontId="3"
              DisablePrefix="yes">#(loc.OptionsLocationLabel)</Label>
@@ -85,9 +83,9 @@
         <BrowseDirectoryAction VariableName="PerMachineInstallFolder" />
       </Button>
       <Checkbox Name="EzyDesktopShortcut" X="11" Y="222" Width="-11" Height="20"
-                TabStop="yes" FontId="3">바탕 화면 바로가기 만들기</Checkbox>
+                TabStop="yes" FontId="3">#(loc.OptionsDesktopShortcutText)</Checkbox>
       <Checkbox Name="EzyFileAssociations" X="11" Y="244" Width="-11" Height="20"
-                TabStop="yes" FontId="3">지원 이미지 형식을 연결 목록에 등록하기</Checkbox>
+                TabStop="yes" FontId="3">#(loc.OptionsFileAssociationsText)</Checkbox>
       <Button Name="OptionsOkButton" X="-91" Y="-11" Width="75" Height="23"
               TabStop="yes" FontId="0">
         <Text>#(loc.OptionsOkButton)</Text>

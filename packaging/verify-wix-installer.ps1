@@ -4,7 +4,8 @@ param(
     [Parameter(Mandatory)][string]$PerUserMsi,
     [Parameter(Mandatory)][string]$PerMachineMsi,
     [string]$ProductVersion = '1.0.9',
-    [int]$ExpectedPayloadFileCount = 549
+    [int]$ExpectedPayloadFileCount = 549,
+    [ValidateSet('0', '1')][string]$ExpectedIdentityRegistration = '1'
 )
 
 Set-StrictMode -Version Latest
@@ -104,16 +105,23 @@ function Test-MsiContract(
             "$Scope desktop shortcut must default off."
         Assert-Equal '0' $properties.EZY_FILE_ASSOCIATIONS.Value `
             "$Scope file associations must default off."
+        Assert-Equal $ExpectedIdentityRegistration $properties.EZY_REGISTER_IDENTITY.Value `
+            "$Scope identity registration mode mismatch."
         Assert-Equal $ExpectedUpgradeCode $properties.UpgradeCode.Value `
             "$Scope UpgradeCode mismatch."
         if ($Scope -ceq 'PerUser') {
-            Assert-True (-not $properties.ContainsKey('ALLUSERS')) `
-                'Per-user MSI must not author ALLUSERS.'
+            Assert-Equal '2' $properties.ALLUSERS.Value `
+                'Per-user layout MSI must be dual-purpose.'
+            Assert-Equal '1' $properties.MSIINSTALLPERUSER.Value `
+                'Per-user layout MSI must default to per-user.'
             Assert-Equal 'WixPerUserFolder' $properties.WixAppFolder.Value `
                 'Per-user MSI folder mode mismatch.'
         }
         else {
-            Assert-Equal '1' $properties.ALLUSERS.Value 'Per-machine MSI must set ALLUSERS=1.'
+            Assert-Equal '2' $properties.ALLUSERS.Value `
+                'Per-machine layout MSI must be dual-purpose.'
+            Assert-True (-not $properties.ContainsKey('MSIINSTALLPERUSER')) `
+                'Per-machine layout MSI must default to per-machine.'
             Assert-Equal 'WixPerMachineFolder' $properties.WixAppFolder.Value `
                 'Per-machine MSI folder mode mismatch.'
         }
@@ -227,9 +235,17 @@ function Test-MsiContract(
             "$Scope install rollback sequence mismatch."
         Assert-Equal '4004' $sequence.RegisterIdentity.Sequence `
             "$Scope register sequence mismatch."
-        Assert-Equal 'REMOVE~="ALL"' $sequence.UnregisterIdentity.Condition `
+        Assert-Equal 'EZY_REGISTER_IDENTITY = 1 AND REMOVE~="ALL"' `
+            $sequence.RollbackUnregisterIdentity.Condition `
+            "$Scope uninstall rollback condition mismatch."
+        Assert-Equal 'EZY_REGISTER_IDENTITY = 1 AND REMOVE~="ALL"' `
+            $sequence.UnregisterIdentity.Condition `
             "$Scope uninstall condition mismatch."
-        Assert-Equal 'NOT Installed OR REINSTALL' $sequence.RegisterIdentity.Condition `
+        Assert-Equal 'EZY_REGISTER_IDENTITY = 1 AND NOT Installed' `
+            $sequence.RollbackIdentity.Condition `
+            "$Scope install rollback condition mismatch."
+        Assert-Equal 'EZY_REGISTER_IDENTITY = 1 AND (NOT Installed OR REINSTALL)' `
+            $sequence.RegisterIdentity.Condition `
             "$Scope repair registration condition mismatch."
 
         $associationRoot = if ($Scope -ceq 'PerUser') { '1' } else { '2' }

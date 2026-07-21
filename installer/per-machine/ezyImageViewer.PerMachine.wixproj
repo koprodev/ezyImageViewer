@@ -11,7 +11,8 @@
     <ProductVersion Condition="'$(ProductVersion)' == ''">1.0.0</ProductVersion>
     <GeneratedPayloadSource Condition="'$(GeneratedPayloadSource)' == ''">..\generated\Payload.PerMachine.wxs</GeneratedPayloadSource>
     <EulaRtf Condition="'$(EulaRtf)' == ''">..\assets\EULA.rtf</EulaRtf>
-    <DefineConstants>$(DefineConstants);ProductVersion=$(ProductVersion);InstallerScope=perMachine;IdentityScope=AllUsers;RegistryRoot=HKLM;Impersonate=no;StartMenuRoot=ProgramMenuFolder;DesktopRoot=DesktopFolder;UpgradeCode=63E0CE6E-1713-45D6-B994-0F4B5E7E194E;StartMenuComponentGuid={03403B9F-2F33-4F98-9BA6-674C8C357270};DesktopComponentGuid={B778582C-C294-4E75-A58E-1D125976F64F};FileAssociationComponentGuid={24BC74C2-6426-44DB-A585-1A8ADAC43BC4};ApplicationPathComponentGuid={445FA964-BF82-4E1C-8B93-6E10FC579FD2};EulaRtf=$(EulaRtf)</DefineConstants>
+    <EnableIdentityRegistration Condition="'$(EnableIdentityRegistration)' == ''">1</EnableIdentityRegistration>
+    <DefineConstants>$(DefineConstants);ProductVersion=$(ProductVersion);InstallerScope=perMachineOrUser;InstallerLayout=perMachine;EnableIdentityRegistration=$(EnableIdentityRegistration);IdentityScope=AllUsers;RegistryRoot=HKLM;Impersonate=no;StartMenuRoot=ProgramMenuFolder;DesktopRoot=DesktopFolder;UpgradeCode=63E0CE6E-1713-45D6-B994-0F4B5E7E194E;StartMenuComponentGuid={03403B9F-2F33-4F98-9BA6-674C8C357270};DesktopComponentGuid={B778582C-C294-4E75-A58E-1D125976F64F};FileAssociationComponentGuid={24BC74C2-6426-44DB-A585-1A8ADAC43BC4};ApplicationPathComponentGuid={445FA964-BF82-4E1C-8B93-6E10FC579FD2};EulaRtf=$(EulaRtf)</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\common\Product.wxs" Link="Product.wxs" />

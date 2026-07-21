@@ -1,6 +1,6 @@
 {
     "schemaVersion":  2,
-    "sourceCommit":  "3185f116aed06d312c2fbe92235b7c8428a52677",
+    "sourceCommit":  "0777d7d49c2d8d2b7dd3bd7fa954bb29dbf3fe67",
     "allowlistedPaths":  [
                              ".github/",
                              "EzyImageViewer.App/",
@@ -31,11 +31,12 @@
                              "Directory.Packages.props",
                              "EzyImageViewer.slnx",
                              "global.json",
+                             "icon.png",
                              "LICENSE",
                              "README.md",
                              "THIRD-PARTY-NOTICES.md"
                          ],
-    "payloadFileCount":  354,
+    "payloadFileCount":  356,
     "files":  [
                   {
                       "path":  ".gitattributes",
@@ -71,11 +72,11 @@
                   },
                   {
                       "path":  "docs/adr/ADR-0019-external-location-identity-wix-transition.md",
-                      "sha256":  "18B503B9DD94FFB75A37EE68959C91EF89AAB7B3B123D60BF51AADBEFBC9A1A0"
+                      "sha256":  "69F3F4D5E691740F2DFAEBB267317B4CE5161CD7CBC19578C0BC4747F5409B46"
                   },
                   {
                       "path":  "docs/code-signing-policy.md",
-                      "sha256":  "237D7A98A3D0D8EEF8E836EECBA75D5B3BC33A4C56E467A24B91478A40DA027A"
+                      "sha256":  "BEDB3169BBFE35EE06BB085353F5C25027FB26EB162547269F22B6AF274571B3"
                   },
                   {
                       "path":  "docs/operations.md",
@@ -91,7 +92,7 @@
                   },
                   {
                       "path":  "docs/preview-release-notes.md",
-                      "sha256":  "B71E3A7F9E5E347D70E13B9638CC2DF6B7DAA5792B2EFEB2EC88AFCFE6490E12"
+                      "sha256":  "4BDC2F206A96C8EEC4F489A10182EA28489499DA9FF4321ADE7AC8803986BAB7"
                   },
                   {
                       "path":  "docs/privacy.md",
@@ -99,7 +100,7 @@
                   },
                   {
                       "path":  "docs/release-process.md",
-                      "sha256":  "19F53D05627E93201C0D4446AD23B1608080FF38294077AF2427AA54F90F0AB5"
+                      "sha256":  "CE64DD4AD6F05DE16C54BF700B80397A53777C57A4DA7F6C07CB56BE0FD2F554"
                   },
                   {
                       "path":  "docs/signpath-readiness.md",
@@ -107,7 +108,7 @@
                   },
                   {
                       "path":  "docs/user-guide.md",
-                      "sha256":  "E611EB860B824FB226B6E08B2DB187C20ADBB1BA48D17E806F93EE3D1459FC34"
+                      "sha256":  "E3E734CC7DEEFAA1AF6F8569CB74A421A79B9595C52727E8B7C5911B1413CB97"
                   },
                   {
                       "path":  "EzyImageViewer.App/Activation/ActivationArgsConverter.cs",
@@ -135,7 +136,7 @@
                   },
                   {
                       "path":  "EzyImageViewer.App/Assets/ezyImageViewer.ico",
-                      "sha256":  "C570ADFF17A1179D61AD488B539A5F245E2BC8C75FD0880C6D5886D1F1C797CC"
+                      "sha256":  "E9BD94BB151854800516C7B5E89FAD54FF6056AC7043B49745BDDC9809CA131B"
                   },
                   {
                       "path":  "EzyImageViewer.App/Assets/Fonts/LICENSE-MaterialSymbols.txt",
@@ -1182,20 +1183,36 @@
                       "sha256":  "BAA34E3F0DA733A1B0515AEF5369195A3874AFF6837CCC5E6FBA7A0EAE0ECBE5"
                   },
                   {
+                      "path":  "icon.png",
+                      "sha256":  "5937BC7AC0082A7EC1FB51254C87A18A60A8B074F85979578D8CDFC3AD585757"
+                  },
+                  {
+                      "path":  "installer/assets/EULA.ko-KR.txt",
+                      "sha256":  "A9A33EC36F76D3F9E98F11E4ECF66E08572FFBC3D1150168646820E1CFBAA03E"
+                  },
+                  {
                       "path":  "installer/assets/EULA.rtf",
                       "sha256":  "7990986D27310B39A1F71B877371E50EF9889407420167967FE1B42BA9B34027"
                   },
                   {
+                      "path":  "installer/bundle/Bundle.en-US.wxl",
+                      "sha256":  "B6BBCACFA0D3070A1D9CA8B386E36961FDA9E3AAA49A81D10B4DD963DB3FCDA0"
+                  },
+                  {
+                      "path":  "installer/bundle/Bundle.ko-KR.wxl",
+                      "sha256":  "802B2C1072321AD4D462B36DBA1FB9B29D1CC8DD7A36F45F4368F4CF0C53128C"
+                  },
+                  {
                       "path":  "installer/bundle/Bundle.wxs",
-                      "sha256":  "536B7117F56CA9AA25B94BC98D77B483DA27946118E8FAA0D4C29A9F6E7976BD"
+                      "sha256":  "11EEBBAB627D9E480FCEA6156BADE41D003FDF0E5A6B3FF026061C547D8118F8"
                   },
                   {
                       "path":  "installer/bundle/ezyImageViewer.Bundle.wixproj",
-                      "sha256":  "0FF9CE0D277F34AD815157B5F855F3154004CC7A61FB03C1C25A27490F76AE0F"
+                      "sha256":  "982AECDACDB220A542E96701CBB434DF360B9D0991EB6560A0FDF71141990BA6"
                   },
                   {
                       "path":  "installer/bundle/EzyRtfLargeTheme.xml",
-                      "sha256":  "6CDB6BF1B504E6E69236935532C8AA5E0AB3B855191E47DEACCF46604F26C908"
+                      "sha256":  "78AD0284519333F81C0DA03AEB5EB7AD90CA336F281789AF2D783E4558D37BBC"
                   },
                   {
                       "path":  "installer/bundle/LICENSE-MRL.txt",
@@ -1207,11 +1224,11 @@
                   },
                   {
                       "path":  "installer/common/Product.wxs",
-                      "sha256":  "1ECD6E4748473AFB905EF7BC87627F4059B0014334E0F76F0AD12B95D6EEA33B"
+                      "sha256":  "28158117882B2FC247D9FAA5589113CEB7D8F9633CF65A38C5C258DD6FD3F239"
                   },
                   {
                       "path":  "installer/per-machine/ezyImageViewer.PerMachine.wixproj",
-                      "sha256":  "972633E8F472C05564DFB626EFB73CBBBE94606BD5037B8F4595166C57AE8CA0"
+                      "sha256":  "A040948C6BFEBA317FF1AD3D352B1F1D15CF17FC3D8BE3E447EA1616BEF45E63"
                   },
                   {
                       "path":  "installer/per-machine/packages.lock.json",
@@ -1219,23 +1236,11 @@
                   },
                   {
                       "path":  "installer/per-user/ezyImageViewer.PerUser.wixproj",
-                      "sha256":  "7AC838E8C80EC2B0155A6136BF1EB26ECC9A46D462A2C42D0E237822DD4E4BAB"
+                      "sha256":  "2615933534D9E67F9450D2AA0F2698FD5DEFFCD6C0CEFD3F7F8F4D5714CDE268"
                   },
                   {
                       "path":  "installer/per-user/packages.lock.json",
                       "sha256":  "734B70D7FDB12C6BAEEA7421AB49442EEF9B5DB1B9F9FDBCEFA8F8B4F8F08CDB"
-                  },
-                  {
-                      "path":  "installer/scope-anchor/ezyImageViewer.ScopeAnchor.wixproj",
-                      "sha256":  "E8214FBC7960BD6145651F7396DFCAB1E4C98C70AFADCFB75307A00FF281A07A"
-                  },
-                  {
-                      "path":  "installer/scope-anchor/packages.lock.json",
-                      "sha256":  "469AD450E3EB0A1F5DEBC2CBE139A4560F911BC31FF0BFB5828C1423922000FB"
-                  },
-                  {
-                      "path":  "installer/scope-anchor/ScopeAnchor.wxs",
-                      "sha256":  "7A4CF1F3455AD5D5D476351D11167F9355281BD3B3ACAFE2F7C90744AF3FC7B3"
                   },
                   {
                       "path":  "LICENSE",
@@ -1251,15 +1256,15 @@
                   },
                   {
                       "path":  "packaging/Assets/Square150x150Logo.png",
-                      "sha256":  "A8CF3D34380B13F4AEAF731D47FE951258575C060C8F541B619E9CAA6CEC8D9D"
+                      "sha256":  "14F97334F2C41D08E6C612D2AFCF5050E7C10971AD9586508C107E7F86C084E4"
                   },
                   {
                       "path":  "packaging/Assets/Square44x44Logo.png",
-                      "sha256":  "247DE8E45C790CFE3EB6BC3F1C10AC0132D599EC05BC5ABD99713492FA57F740"
+                      "sha256":  "DFCFFED21A7123BED82BA0FD4BA9A70F6AA60AAF36DD18B5588DD50AE27F7C1F"
                   },
                   {
                       "path":  "packaging/Assets/StoreLogo.png",
-                      "sha256":  "524987714C4BFA4F758B59D268FB1E66DA784715D3F3AABF151B8976E1C07BB9"
+                      "sha256":  "8EDA358D2CE62DD0FACB9D34D06885ED7CC43236790521EAA1924224975BA6C2"
                   },
                   {
                       "path":  "packaging/build-portable-release.ps1",
@@ -1275,7 +1280,7 @@
                   },
                   {
                       "path":  "packaging/build-wix-installer.ps1",
-                      "sha256":  "6020879EAFBDD9C615C722C9255BFC8692A402D16AD3824230DC2F634CE817E1"
+                      "sha256":  "262B0CC603E69BD27CB448E81183D2978B4F8172B806102DEA25B8631695B985"
                   },
                   {
                       "path":  "packaging/CodecHost.AppxManifest.template.xml",
@@ -1296,6 +1301,10 @@
                   {
                       "path":  "packaging/generate-appinstaller.ps1",
                       "sha256":  "4CA00DAD6CC27531059CD0CAE30AA7C5B754EAE9B6C0E894242D6493A988238B"
+                  },
+                  {
+                      "path":  "packaging/generate-brand-assets.ps1",
+                      "sha256":  "DE4438AE6ACBD017DF2C67E25E28949667E3E7DDBC04924BD5BDBCD5EFD9155D"
                   },
                   {
                       "path":  "packaging/generate-external-location-manifests.ps1",
@@ -1351,11 +1360,11 @@
                   },
                   {
                       "path":  "packaging/preview-release.json",
-                      "sha256":  "A5DE12EBC4FCD7B595C0922C8424C1A6CFCBED5B26B0B537E56CE54FE7E81455"
+                      "sha256":  "FB55AC596B596168B8D8AB10AB9CD1A5F484345D3CE2A0F998AF48828957945F"
                   },
                   {
                       "path":  "packaging/public-source-allowlist.txt",
-                      "sha256":  "AF8A501588B2FE47453473C6DBDCC21A512DCDABF55F298611350F55B9BE3446"
+                      "sha256":  "020A86D7CB2F9AB342E6B618D8ED6E5324C970B973074AA0F1FAB5E3C815F590"
                   },
                   {
                       "path":  "packaging/release-helpers.ps1",
@@ -1391,7 +1400,7 @@
                   },
                   {
                       "path":  "packaging/test-msi-foundation-contract.ps1",
-                      "sha256":  "2D1596734F53336DEDC7104A47634B5A9040784D44E0F5A7F29EFB128022EE69"
+                      "sha256":  "013ADCE0862E7368D6C99099B42F595BE4E49DE902BC09CDD24853BB708C039E"
                   },
                   {
                       "path":  "packaging/test-portable-release-contract.ps1",
@@ -1399,7 +1408,7 @@
                   },
                   {
                       "path":  "packaging/test-preview-release-contract.ps1",
-                      "sha256":  "AFC2DA6A3431C5E31BFF3F36C90689B274847AFE8E7385312AD5C229D95797E8"
+                      "sha256":  "F6F1E31B1676EAF1A7CAF70E741362426BCD07C2DC1C37446901AB70E370B190"
                   },
                   {
                       "path":  "packaging/test-publication-readiness-contract.ps1",
@@ -1407,7 +1416,7 @@
                   },
                   {
                       "path":  "packaging/test-public-source-snapshot-contract.ps1",
-                      "sha256":  "8BC756C592DA1C38D5746070ECDE09301965BA79D55CAFDBF55DA1AE28C45857"
+                      "sha256":  "C345836E2D5EA2CA12A9BDDBF8C077A2A086254C556E6818E59BD84FF33612A4"
                   },
                   {
                       "path":  "packaging/verify-appinstaller-release.ps1",
@@ -1439,15 +1448,15 @@
                   },
                   {
                       "path":  "packaging/verify-wix-bundle.ps1",
-                      "sha256":  "3607EE23EF766FC084C9C93FE16B75E71363B0E2E756738DCA42BF4A67161BFA"
+                      "sha256":  "95E1D5D4F36F3085ED2AA17D0A33914A4766C8A57A8E6470E38602FAC78F3B99"
                   },
                   {
                       "path":  "packaging/verify-wix-installer.ps1",
-                      "sha256":  "474EB3932B2CBA4132B1E757055DED0D5AA73FC1665702482799D91D4037F411"
+                      "sha256":  "D863B7369F3B6EB1258A6DE97990FBB339CD1B8CC1D37808BD2BD838B394EDBA"
                   },
                   {
                       "path":  "README.md",
-                      "sha256":  "D1A9709D11935A66EB9B9839BFCCC19042953D016BD598C5CE91C165282E1820"
+                      "sha256":  "3A5F0F4C0DEA20A8E3441E59FC89D9F388C83CB10D42385451B89A3A30F3F1A5"
                   },
                   {
                       "path":  "THIRD-PARTY-NOTICES.md",

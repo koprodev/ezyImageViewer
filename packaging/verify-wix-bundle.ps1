@@ -71,30 +71,33 @@ try {
     Assert-Equal '0' $variables.EzyFileAssociations.Value `
         'Bundle file associations must default off.'
     Assert-Equal 'ezyImageViewer.exe' $variables.LaunchTarget.Value `
-        'Bundle launch target must resolve through the installed App Paths registration.'
+        'Bundle launch target must resolve through the selected scope App Paths registration.'
+    Assert-True (-not $variables.ContainsKey('LaunchArguments')) `
+        'Bundle launch must not depend on package-identity protocol registration.'
     foreach ($name in @('PerUserInstallFolder', 'PerMachineInstallFolder',
             'EzyDesktopShortcut', 'EzyFileAssociations')) {
         Assert-Equal 'yes' $variables[$name].Persisted `
             "Bundle variable '$name' must be persisted."
     }
+    Assert-True (-not $variables.ContainsKey('WixStdBAScope')) `
+        'WixStdBAScope is reserved for WixStdBA and must not be authored as a bundle variable.'
 
     $packages = @($root.SelectNodes('b:Chain/b:MsiPackage', $manifestNamespace))
-    Assert-Equal '3' ([string]$packages.Count) 'Bundle package count mismatch.'
-    Assert-Equal 'ScopeAnchor' $packages[0].Id 'Scope anchor must be first in the chain.'
+    Assert-Equal '2' ([string]$packages.Count) 'Bundle package count mismatch.'
+    Assert-Equal 'PerUserPackage' $packages[0].Id 'Per-user package chain order mismatch.'
     Assert-Equal 'perUserOrMachine' $packages[0].Scope `
-        'Scope anchor must make the bundle configurable.'
-    Assert-Equal 'PerUserPackage' $packages[1].Id 'Per-user package chain order mismatch.'
-    Assert-Equal 'perUser' $packages[1].Scope 'Per-user MSI scope mismatch.'
-    Assert-Equal 'WixBundlePlannedScope = 2' $packages[1].InstallCondition `
+        'Per-user layout MSI must make the bundle configurable and default to per-user.'
+    Assert-Equal 'WixStdBAScope = "PerUser"' $packages[0].InstallCondition `
         'Per-user MSI plan condition mismatch.'
-    Assert-Equal 'PerMachinePackage' $packages[2].Id 'Per-machine package chain order mismatch.'
-    Assert-Equal 'perMachine' $packages[2].Scope 'Per-machine MSI scope mismatch.'
-    Assert-Equal 'WixBundlePlannedScope = 1' $packages[2].InstallCondition `
+    Assert-Equal 'PerMachinePackage' $packages[1].Id 'Per-machine package chain order mismatch.'
+    Assert-Equal 'perMachineOrUser' $packages[1].Scope `
+        'Per-machine layout MSI must remain dual-purpose and default to per-machine.'
+    Assert-Equal 'WixStdBAScope = "PerMachine"' $packages[1].InstallCondition `
         'Per-machine MSI plan condition mismatch.'
 
     foreach ($contract in @(
-            [PSCustomObject]@{ Package = $packages[1]; Folder = '[PerUserInstallFolder]' },
-            [PSCustomObject]@{ Package = $packages[2]; Folder = '[PerMachineInstallFolder]' }
+            [PSCustomObject]@{ Package = $packages[0]; Folder = '[PerUserInstallFolder]' },
+            [PSCustomObject]@{ Package = $packages[1]; Folder = '[PerMachineInstallFolder]' }
         )) {
         $propertyMap = @{}
         foreach ($property in $contract.Package.SelectNodes('b:MsiProperty', $manifestNamespace)) {
@@ -130,6 +133,8 @@ try {
         'Bundle per-user scope choice is missing.'
     Assert-True (@($scopeRadios | Where-Object Value -CEQ 'PerMachine').Count -eq 1) `
         'Bundle per-machine scope choice is missing.'
+    Assert-True (@($scopeRadios | Where-Object { $_.HasAttribute('EnableCondition') }).Count -eq 0) `
+        'Bundle scope choices must not depend on the mixed-package authored scope.'
     foreach ($name in @('PerUserInstallFolder', 'PerMachineInstallFolder')) {
         Assert-True ($null -ne $theme.SelectSingleNode(
                 "//t:Editbox[@Name='$name']", $themeNamespace)) `
@@ -146,6 +151,44 @@ try {
     Assert-True ($null -ne $theme.SelectSingleNode(
             '/t:Theme/t:Window/t:Page[@Name="Success"]/t:Button[@Name="LaunchButton"]',
             $themeNamespace)) 'Bundle success launch button is missing.'
+
+    Add-Type -AssemblyName System.Drawing
+    $logoPath = Join-Path $baDirectory 'logo.png'
+    $logo = [Drawing.Bitmap]::FromFile($logoPath)
+    try {
+        Assert-Equal '150' ([string]$logo.Width) 'Bundle logo width mismatch.'
+        Assert-Equal '150' ([string]$logo.Height) 'Bundle logo height mismatch.'
+        foreach ($point in @(
+                [Drawing.Point]::new(0, 0), [Drawing.Point]::new(149, 0),
+                [Drawing.Point]::new(0, 149), [Drawing.Point]::new(149, 149))) {
+            Assert-True ($logo.GetPixel($point.X, $point.Y).A -le 8) `
+                "Bundle logo corner $($point.X),$($point.Y) is not transparent."
+        }
+    }
+    finally { $logo.Dispose() }
+
+    [xml]$fallbackLocalization = Get-Content -LiteralPath (Join-Path $baDirectory 'thm.wxl') `
+        -Raw -ErrorAction Stop
+    [xml]$koreanLocalization = Get-Content -LiteralPath (Join-Path $baDirectory '1042\thm.wxl') `
+        -Raw -ErrorAction Stop
+    Assert-Equal '1033' $fallbackLocalization.WixLocalization.Language `
+        'Bundle fallback language mismatch.'
+    Assert-Equal '1042' $koreanLocalization.WixLocalization.Language `
+        'Bundle Korean language mismatch.'
+    foreach ($localization in @($fallbackLocalization, $koreanLocalization)) {
+        foreach ($id in @('OptionsDesktopShortcutText', 'OptionsFileAssociationsText',
+                'SuccessLaunchButton')) {
+            Assert-True ($null -ne @($localization.WixLocalization.String |
+                    Where-Object Id -CEQ $id)[0]) `
+                "Bundle localization string '$id' is missing."
+        }
+    }
+    $koreanEula = Get-Content -LiteralPath (Join-Path $baDirectory '1042\license.rtf') `
+        -Raw -ErrorAction Stop
+    Assert-True ($koreanEula.StartsWith('{\rtf1\ansi', [StringComparison]::Ordinal)) `
+        'Bundle Korean license is not RTF.'
+    Assert-True ($koreanEula.Contains('\u')) `
+        'Bundle Korean license does not contain Unicode text.'
 
     $version = $root.SelectSingleNode('b:Registration', $manifestNamespace).Version
     Assert-Equal $ProductVersion $version 'Bundle registration version mismatch.'

@@ -26,13 +26,15 @@
 
     <Property Id="EZY_DESKTOP_SHORTCUT" Secure="yes" Value="0" />
     <Property Id="EZY_FILE_ASSOCIATIONS" Secure="yes" Value="0" />
+    <Property Id="EZY_REGISTER_IDENTITY" Secure="yes"
+              Value="$(var.EnableIdentityRegistration)" />
     <Property Id="ApplicationFolderName" Value="ezy Image Viewer" />
     <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOX" Value="1" />
     <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT"
               Value="설치 후 ezy Image Viewer 실행" />
     <Property Id="WixUnelevatedShellExecTarget" Value="[#ApplicationExecutable]" />
 
-    <?if $(var.InstallerScope) = perUser ?>
+    <?if $(var.InstallerLayout) = perUser ?>
       <Property Id="WixAppFolder" Value="WixPerUserFolder" />
       <WixVariable Id="override WixUISupportPerMachine" Value="0" />
       <StandardDirectory Id="LocalAppDataFolder">
@@ -179,13 +181,13 @@
 
     <InstallExecuteSequence>
       <Custom Action="RollbackUnregisterIdentity" After="InstallInitialize"
-              Condition="REMOVE~=&quot;ALL&quot;" />
+              Condition="EZY_REGISTER_IDENTITY = 1 AND REMOVE~=&quot;ALL&quot;" />
       <Custom Action="UnregisterIdentity" After="RollbackUnregisterIdentity"
-              Condition="REMOVE~=&quot;ALL&quot;" />
+              Condition="EZY_REGISTER_IDENTITY = 1 AND REMOVE~=&quot;ALL&quot;" />
       <Custom Action="RollbackIdentity" After="InstallFiles"
-              Condition="NOT Installed" />
+              Condition="EZY_REGISTER_IDENTITY = 1 AND NOT Installed" />
       <Custom Action="RegisterIdentity" After="RollbackIdentity"
-              Condition="NOT Installed OR REINSTALL" />
+              Condition="EZY_REGISTER_IDENTITY = 1 AND (NOT Installed OR REINSTALL)" />
     </InstallExecuteSequence>
 
     <ui:WixUI Id="WixUI_Advanced" />

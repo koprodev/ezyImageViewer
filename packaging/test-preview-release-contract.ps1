@@ -35,6 +35,13 @@ $singleBuild = Get-ContractText 'packaging/build-single-file-portable.ps1'
 $singleVerify = Get-ContractText 'packaging/verify-single-file-portable.ps1'
 $releaseBuild = Get-ContractText 'packaging/build-preview-release.ps1'
 $releaseVerify = Get-ContractText 'packaging/verify-preview-release.ps1'
+$wixBuild = Get-ContractText 'packaging/build-wix-installer.ps1'
+$bundleSource = Get-ContractText 'installer/bundle/Bundle.wxs'
+$themeSource = Get-ContractText 'installer/bundle/EzyRtfLargeTheme.xml'
+$bundleProject = Get-ContractText 'installer/bundle/ezyImageViewer.Bundle.wixproj'
+$englishLocalization = Get-ContractText 'installer/bundle/Bundle.en-US.wxl'
+$koreanLocalization = Get-ContractText 'installer/bundle/Bundle.ko-KR.wxl'
+[void](Get-ContractText 'installer/assets/EULA.ko-KR.txt')
 $targets = Get-ContractText 'packaging/SingleFilePublish.targets'
 $workflow = Get-ContractText '.github/workflows/release-preview.yml'
 $notes = Get-ContractText 'docs/preview-release-notes.md'
@@ -60,6 +67,27 @@ foreach ($expected in @(
         'Join-Path $scriptRoot ''preview-release.json''')) {
     Assert-Contains $releaseBuild $expected 'Preview release builder'
 }
+foreach ($expected in @('Bundle.en-US.wxl', 'Bundle.ko-KR.wxl', 'EULA.ko-KR.txt',
+        'ConvertTo-Rtf')) {
+    Assert-Contains $wixBuild $expected 'WiX installer builder'
+}
+foreach ($expected in @('WixStdBAScope = &quot;PerUser&quot;',
+        'WixStdBAScope = &quot;PerMachine&quot;', 'LaunchTarget="ezyImageViewer.exe"',
+        '1042\thm.wxl', '1042\license.rtf')) {
+    Assert-Contains $bundleSource $expected 'WiX bundle source'
+}
+foreach ($expected in @('#(loc.OptionsDesktopShortcutText)',
+        '#(loc.OptionsFileAssociationsText)')) {
+    Assert-Contains $themeSource $expected 'WiX bundle theme'
+}
+foreach ($localization in @($englishLocalization, $koreanLocalization)) {
+    foreach ($expected in @('OptionsDesktopShortcutText', 'OptionsFileAssociationsText',
+            'SuccessLaunchButton')) {
+        Assert-Contains $localization $expected 'WiX bundle localization'
+    }
+}
+Assert-Contains $bundleProject '<EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>' `
+    'WiX bundle project'
 foreach ($expected in @(
         'verify-single-file-portable.ps1', 'verify-wix-bundle.ps1',
         'personal-evaluation-and-testing-preview', "'NotSigned'",

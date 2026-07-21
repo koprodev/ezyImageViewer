@@ -30,6 +30,7 @@ try {
     foreach ($requiredPath in @(
         'README.md',
         'LICENSE',
+        'icon.png',
         'EzyImageViewer.slnx',
         'EzyImageViewer.App/EzyImageViewer.App.csproj',
         'installer/bundle/ezyImageViewer.Bundle.wixproj',
@@ -61,7 +62,6 @@ try {
         'ezyImageViewer_개발계획_요건정의서.md',
         'ezy_Image_Viewer_아이콘_시스템_명세.md',
         '배포파일정의서_참고용.md',
-        'icon.png',
         'docs/RTM.md',
         'docs/reviews',
         'docs/spikes',

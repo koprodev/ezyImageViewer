@@ -4,10 +4,11 @@
     <InstallerPlatform>x64</InstallerPlatform>
     <OutputType>Bundle</OutputType>
     <OutputName>ezyImageViewerSetup-$(ProductVersion)-x64</OutputName>
-    <!-- The per-machine MSI is conditioned on the configurable bundle's planned scope. -->
+    <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
+    <!-- The fixed-scope MSIs are selected by WixStdBA's configurable-scope variable. -->
     <SuppressSpecificWarnings>$(SuppressSpecificWarnings);1140</SuppressSpecificWarnings>
     <ProductVersion Condition="'$(ProductVersion)' == ''">1.0.0</ProductVersion>
-    <DefineConstants>$(DefineConstants);ProductVersion=$(ProductVersion);PerUserMsi=$(PerUserMsi);PerMachineMsi=$(PerMachineMsi);ScopeAnchorMsi=$(ScopeAnchorMsi);EulaRtf=$(EulaRtf);BundleIcon=$(BundleIcon);BundleLogo=$(BundleLogo);ThemeFile=$(ThemeFile)</DefineConstants>
+    <DefineConstants>$(DefineConstants);ProductVersion=$(ProductVersion);PerUserMsi=$(PerUserMsi);PerMachineMsi=$(PerMachineMsi);EulaRtf=$(EulaRtf);KoreanEula=$(KoreanEula);BundleLocalization=$(BundleLocalization);KoreanLocalization=$(KoreanLocalization);BundleIcon=$(BundleIcon);BundleLogo=$(BundleLogo);ThemeFile=$(ThemeFile)</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="WixToolset.BootstrapperApplications.wixext" />

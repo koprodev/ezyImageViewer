@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<WixLocalization Culture="ko-KR" Language="1042"
+                 xmlns="http://wixtoolset.org/schemas/v4/wxl">
+  <String Id="Caption" Value="[WixBundleName] 설치" />
+  <String Id="Title" Value="[WixBundleName]" />
+  <String Id="CheckingForUpdatesLabel" Value="업데이트 확인 중" />
+  <String Id="UpdateButton" Value="버전 [WixStdBAUpdateAvailable](으)로 &amp;업데이트" />
+  <String Id="InstallVersion" Value="버전 [WixBundleVersion]" />
+  <String Id="ConfirmCancelMessage" Value="설치를 취소하시겠습니까?" />
+  <String Id="ExecuteUpgradeRelatedBundleMessage" Value="이전 버전" />
+  <String Id="HelpHeader" Value="설치 도움말" />
+  <String Id="HelpText" Value="/install | /repair | /uninstall | /layout [폴더] - 설치, 복구, 제거 또는 로컬 복사본을 만듭니다.&#xA;&#xA;/passive | /quiet - 최소 UI 또는 UI 없이 실행합니다.&#xA;/norestart - 다시 시작 요청을 표시하지 않습니다.&#xA;/log log.txt - 지정한 파일에 로그를 기록합니다." />
+  <String Id="HelpCloseButton" Value="&amp;닫기" />
+  <String Id="InstallAcceptCheckbox" Value="라이선스 사용 조건에 &amp;동의합니다" />
+  <String Id="InstallOptionsButton" Value="&amp;옵션" />
+  <String Id="InstallInstallButton" Value="&amp;설치" />
+  <String Id="InstallCancelButton" Value="&amp;취소" />
+  <String Id="OptionsHeader" Value="설치 옵션" />
+  <String Id="OptionsLocationLabel" Value="설치 위치:" />
+  <String Id="OptionsPerUserScopeText" Value="현재 &amp;사용자만 설치" />
+  <String Id="OptionsPerMachineScopeText" Value="모든 사용자용으로 &amp;설치" />
+  <String Id="OptionsDesktopShortcutText" Value="바탕 화면 바로가기 만들기" />
+  <String Id="OptionsFileAssociationsText" Value="지원 이미지 형식을 연결 프로그램 목록에 등록" />
+  <String Id="OptionsBrowseButton" Value="&amp;찾아보기" />
+  <String Id="OptionsOkButton" Value="&amp;확인" />
+  <String Id="OptionsCancelButton" Value="&amp;취소" />
+  <String Id="ProgressHeader" Value="설치 진행 중" />
+  <String Id="ProgressLabel" Value="처리 중:" />
+  <String Id="OverallProgressPackageText" Value="초기화 중..." />
+  <String Id="ProgressCancelButton" Value="&amp;취소" />
+  <String Id="ModifyHeader" Value="설치 변경" />
+  <String Id="ModifyRepairButton" Value="&amp;복구" />
+  <String Id="ModifyUninstallButton" Value="&amp;제거" />
+  <String Id="ModifyCancelButton" Value="&amp;취소" />
+  <String Id="SuccessHeader" Value="작업 완료" />
+  <String Id="SuccessCacheHeader" Value="캐시를 완료했습니다" />
+  <String Id="SuccessInstallHeader" Value="설치를 완료했습니다" />
+  <String Id="SuccessLayoutHeader" Value="로컬 복사본을 만들었습니다" />
+  <String Id="SuccessModifyHeader" Value="설치 변경을 완료했습니다" />
+  <String Id="SuccessRepairHeader" Value="복구를 완료했습니다" />
+  <String Id="SuccessUninstallHeader" Value="제거를 완료했습니다" />
+  <String Id="SuccessUnsafeUninstallHeader" Value="제거를 완료했습니다" />
+  <String Id="SuccessLaunchButton" Value="&amp;실행" />
+  <String Id="SuccessRestartText" Value="프로그램을 사용하려면 컴퓨터를 다시 시작해야 합니다." />
+  <String Id="SuccessUninstallRestartText" Value="제거를 완료하려면 컴퓨터를 다시 시작해야 합니다." />
+  <String Id="SuccessRestartButton" Value="&amp;다시 시작" />
+  <String Id="SuccessCloseButton" Value="&amp;닫기" />
+  <String Id="FailureHeader" Value="작업 실패" />
+  <String Id="FailureCacheHeader" Value="캐시 실패" />
+  <String Id="FailureInstallHeader" Value="설치 실패" />
+  <String Id="FailureLayoutHeader" Value="로컬 복사본 만들기 실패" />
+  <String Id="FailureModifyHeader" Value="설치 변경 실패" />
+  <String Id="FailureRepairHeader" Value="복구 실패" />
+  <String Id="FailureUninstallHeader" Value="제거 실패" />
+  <String Id="FailureUnsafeUninstallHeader" Value="제거 실패" />
+  <String Id="FailureHyperlinkLogText" Value="설치 중 문제가 발생했습니다. 문제를 해결한 후 다시 시도하십시오. 자세한 내용은 &lt;a href=&quot;#&quot;&gt;로그 파일&lt;/a&gt;을 확인하십시오." />
+  <String Id="FailureRestartText" Value="되돌리기를 완료하려면 컴퓨터를 다시 시작해야 합니다." />
+  <String Id="FailureRestartButton" Value="&amp;다시 시작" />
+  <String Id="FailureCloseButton" Value="&amp;닫기" />
+  <String Id="FilesInUseTitle" Value="사용 중인 파일" />
+  <String Id="FilesInUseLabel" Value="다음 프로그램이 업데이트할 파일을 사용 중입니다:" />
+  <String Id="FilesInUseNetfxCloseRadioButton" Value="프로그램을 &amp;닫습니다." />
+  <String Id="FilesInUseCloseRadioButton" Value="프로그램을 닫고 다시 시작을 시도합니다." />
+  <String Id="FilesInUseDontCloseRadioButton" Value="프로그램을 닫지 않습니다. 컴퓨터를 다시 시작해야 합니다." />
+  <String Id="FilesInUseRetryButton" Value="&amp;다시 시도" />
+  <String Id="FilesInUseIgnoreButton" Value="&amp;무시" />
+  <String Id="FilesInUseExitButton" Value="&amp;끝내기" />
+</WixLocalization>

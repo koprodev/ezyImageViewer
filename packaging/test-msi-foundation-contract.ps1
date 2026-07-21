@@ -288,8 +288,13 @@ try {
             'Assert-EzyArtifactSignature -Path $Path')) `
         'Production WiX build does not verify exact signer and timestamp evidence.'
     Assert-Foundation (
-        ([regex]::Matches($wixBuildScript, 'dotnet build \$[A-Za-z]+Project -t:Rebuild')).Count -eq 4) `
-        'WiX release build must rebuild all four versioned projects.'
+        ([regex]::Matches($wixBuildScript, 'dotnet build \$[A-Za-z]+Project -t:Rebuild')).Count -eq 3) `
+        'WiX release build must rebuild both app MSIs and the bundle.'
+    foreach ($localizedInput in @('Bundle.en-US.wxl', 'Bundle.ko-KR.wxl',
+            'EULA.ko-KR.txt', 'ConvertTo-Rtf')) {
+        Assert-Foundation ($wixBuildScript.Contains($localizedInput)) `
+            "WiX release build is missing localized input '$localizedInput'."
+    }
     $preflightIndex = $wixBuildScript.IndexOf(
         'Assert-EzyProductionTimestampUrl $TimestampUrl',
         [StringComparison]::Ordinal)
