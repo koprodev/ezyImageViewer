@@ -1,0 +1,1416 @@
+{
+    "schemaVersion":  2,
+    "sourceCommit":  "7c327bbce82fb620a2c02cf3a9b16f1ad2b10508",
+    "allowlistedPaths":  [
+                             ".github/",
+                             "EzyImageViewer.App/",
+                             "EzyImageViewer.Capture/",
+                             "EzyImageViewer.CodecHost/",
+                             "EzyImageViewer.CodecProtocol/",
+                             "EzyImageViewer.Core/",
+                             "EzyImageViewer.Imaging/",
+                             "EzyImageViewer.Infrastructure/",
+                             "EzyImageViewer.Rendering/",
+                             "EzyImageViewer.Tests/",
+                             "installer/",
+                             "packaging/",
+                             "docs/adr/ADR-0013-material-symbols-font-icons.md",
+                             "docs/adr/ADR-0019-external-location-identity-wix-transition.md",
+                             "docs/code-signing-policy.md",
+                             "docs/operations.md",
+                             "docs/portable-readme.txt",
+                             "docs/portable-release-notes.md",
+                             "docs/privacy.md",
+                             "docs/release-process.md",
+                             "docs/signpath-readiness.md",
+                             "docs/user-guide.md",
+                             ".gitattributes",
+                             ".gitignore",
+                             "Directory.Build.props",
+                             "Directory.Packages.props",
+                             "EzyImageViewer.slnx",
+                             "global.json",
+                             "LICENSE",
+                             "README.md",
+                             "THIRD-PARTY-NOTICES.md"
+                         ],
+    "payloadFileCount":  344,
+    "files":  [
+                  {
+                      "path":  ".gitattributes",
+                      "sha256":  "55F2A2EF050E05D331B0023E29C392DDBD6A98B5B074BA2EC6FC328AEB84251D"
+                  },
+                  {
+                      "path":  ".github/workflows/ci.yml",
+                      "sha256":  "876D61010ECC2AA25A0E017A6F8987EB318531B4EE937C33E390C41FCB4E62CB"
+                  },
+                  {
+                      "path":  ".github/workflows/release-portable.yml",
+                      "sha256":  "E9061E7E0DB162348C7EE68BF39A18DE3F0F152BAA398DBED6670FC4041F6BCF"
+                  },
+                  {
+                      "path":  ".gitignore",
+                      "sha256":  "E9A917236BD54184BD70F9D65C28DD847504F0850811094D179269B4BE52402A"
+                  },
+                  {
+                      "path":  "Directory.Build.props",
+                      "sha256":  "3B603FD18A63677F182C5350B35E251C747D7C212CF9567F8B5B9ED1E152AEB6"
+                  },
+                  {
+                      "path":  "Directory.Packages.props",
+                      "sha256":  "B432FFAD1E0C6FC1D11B53F010B290E6FFDCE45DDF93A63E05CBA38662D7CD11"
+                  },
+                  {
+                      "path":  "docs/adr/ADR-0013-material-symbols-font-icons.md",
+                      "sha256":  "F30AA941537B2262338F5788FD43DF03FFD32B4EAFE332DAB6D69675D7BA3EA8"
+                  },
+                  {
+                      "path":  "docs/adr/ADR-0019-external-location-identity-wix-transition.md",
+                      "sha256":  "18B503B9DD94FFB75A37EE68959C91EF89AAB7B3B123D60BF51AADBEFBC9A1A0"
+                  },
+                  {
+                      "path":  "docs/code-signing-policy.md",
+                      "sha256":  "2DD7B9756468F330E1BB1EA8BC53A6314F7347F566124C4142A481A1A973A882"
+                  },
+                  {
+                      "path":  "docs/operations.md",
+                      "sha256":  "9CDCC59E0A58010A8A003D4CC2837D7D20EE74F75B8E19C5915A581E9BB983F6"
+                  },
+                  {
+                      "path":  "docs/portable-readme.txt",
+                      "sha256":  "4C7A701E9BC6A9228C2947204796F35E3E1DC85A56BDB36CB382C850A92AC063"
+                  },
+                  {
+                      "path":  "docs/portable-release-notes.md",
+                      "sha256":  "1B77C04DFB323C57DB3A8F673A48529EEAD5B8B26944D2AE8B8645D5EDC2C773"
+                  },
+                  {
+                      "path":  "docs/privacy.md",
+                      "sha256":  "BD63F99CEC82D49884F2868190413E8D0956FC3C32A920010E158A7EDC3F95F6"
+                  },
+                  {
+                      "path":  "docs/release-process.md",
+                      "sha256":  "33E888EEBF84D247A77B1D7E8328360349BFE8FE5500FC6D9B2F73E89C6CEF57"
+                  },
+                  {
+                      "path":  "docs/signpath-readiness.md",
+                      "sha256":  "122BB66D41E9E78ED74A9269AB4A8DEADA6A52B2CF0EAAACFBC1BEDE04D48B55"
+                  },
+                  {
+                      "path":  "docs/user-guide.md",
+                      "sha256":  "B43988D825B0828202FD67A91F6D84EFF40115BF96630084CC833C28688CAD2F"
+                  },
+                  {
+                      "path":  "EzyImageViewer.App/Activation/ActivationArgsConverter.cs",
+                      "sha256":  "F0CFB73DFCCA91B07554290EEDAF13E8938934CE9B26C71D30AE7DB629A8E9A2"
+                  },
+                  {
+                      "path":  "EzyImageViewer.App/app.manifest",
+                      "sha256":  "37E5B3D67538C830D1667B52C369A3FB491D499E6E775B2A28B32EC068CA3618"
+                  },
+                  {
+                      "path":  "EzyImageViewer.App/App.xaml",
+                      "sha256":  "1625BD6CBDF899934CB6E6C9E6D7DD2CE0306E40A78DFEB5995AEEE2EAA14487"
+                  },
+                  {
+                      "path":  "EzyImageViewer.App/App.xaml.cs",
+                      "sha256":  "F998FDB2EF219DC8CA90644F4E42F5DB834E82057AEF5C84681F641EAC5206DE"
+                  },
+                  {
+                      "path":  "EzyImageViewer.App/AppServices.cs",
+                      "sha256":  "796E6AD24E87166D96BDECB144335B2BBD5D34277FED5E7A75346B51C8E202E2"
+                  },
+                  {
+                      "path":  "EzyImageViewer.App/AppStrings.cs",
+                      "sha256":  "EA2FF2B830680372D4FD19EF7CA25108745448DE806089EC4D1E9D46C5231D8F"
+                  },
+                  {
+                      "path":  "EzyImageViewer.App/Assets/ezyImageViewer.ico",
+                      "sha256":  "C570ADFF17A1179D61AD488B539A5F245E2BC8C75FD0880C6D5886D1F1C797CC"
+                  },
+                  {
+                      "path":  "EzyImageViewer.App/Assets/Fonts/LICENSE-MaterialSymbols.txt",
+                      "sha256":  "58D1E17FFE5109A7AE296CAAFCADFDBE6A7D176F0BC4AB01E12A689B0499D8BD"
+                  },
+                  {
+                      "path":  "EzyImageViewer.App/Assets/Fonts/MaterialSymbolsOutlined.ttf",
+                      "sha256":  "0A186BE334A516CF80A4287073B788FEEF8F0FC2C633C74F4FF7828530F35293"
+                  },
+                  {
+                      "path":  "EzyImageViewer.App/CodecHostDependencyResolver.cs",
+                      "sha256":  "7647C0FB29BC742E62C926E14206565E4ABE2C58D0751FF36D4BD3CA2A1B9ABA"
+                  },
+                  {
+                      "path":  "EzyImageViewer.App/EzyImageViewer.App.csproj",
+                      "sha256":  "729A5D510642C7682CA95D912CD9BD5FAC6A344C53064311B99362771EBB4167"
+                  },
+                  {
+                      "path":  "EzyImageViewer.App/packages.lock.json",
+                      "sha256":  "D276DBCE7B26D79FF8932F669DEA773C60BEE31CA12CB5024E1804FC47F359E4"
+                  },
+                  {
+                      "path":  "EzyImageViewer.App/Program.cs",
+                      "sha256":  "7C026B79598DAD6FB80ADB405C60868CB3BA3D09B4A217C923E526DBEE04B9FB"
+                  },
+                  {
+                      "path":  "EzyImageViewer.App/ProjectStore.cs",
+                      "sha256":  "AC5D04A6082DF8318C32D328314D007ADBE8C20DFBC5612AF7CDC9B34EFB48BF"
+                  },
+                  {
+                      "path":  "EzyImageViewer.App/Resources/Icons.xaml",
+                      "sha256":  "7D517904B66A8E9122DD08B2C1C5DEBAADA0E9B029C1C20FD56C0B0A66AFF414"
+                  },
+                  {
+                      "path":  "EzyImageViewer.App/SettingsDialogContent.cs",
+                      "sha256":  "88EF3C2B0E3C2F0D42F44271E55F0EA8427A1631257C2743CED9676A16DFE3E9"
+                  },
+                  {
+                      "path":  "EzyImageViewer.App/Strings/ko-KR/Resources.resw",
+                      "sha256":  "99A39C1E0841835480512958704E0F5680BA5F71AD906EB2CD1FF4385156C951"
+                  },
+                  {
+                      "path":  "EzyImageViewer.App/ViewModels/ViewerViewModel.cs",
+                      "sha256":  "FCD3D3DBA8D40266E989DCDC4CAE3B43672D5FDCA52E026F8B8BD5ACDD5B405B"
+                  },
+                  {
+                      "path":  "EzyImageViewer.App/Views/BenchScenario.cs",
+                      "sha256":  "49E4E6B32A22B0F30E158B608268D3E06B433FB61755CF075775440340B073EB"
+                  },
+                  {
+                      "path":  "EzyImageViewer.App/Views/BenchWindow.xaml",
+                      "sha256":  "9968F2C4DBF734E6018B5C10A0EDE4C374B640E5ADCC9C559F8FAAF1D8F06BA7"
+                  },
+                  {
+                      "path":  "EzyImageViewer.App/Views/BenchWindow.xaml.cs",
+                      "sha256":  "5726B173A6A0416FD0FDDAD314FF3DD96C51DF4DDB7435A5BD5D97AC1DDAF8E2"
+                  },
+                  {
+                      "path":  "EzyImageViewer.App/Views/CanvasTool.cs",
+                      "sha256":  "ABF81F8F1469F217D3D13C993CCC1A26A059F56DB32F40987A817DAD9BCCDB08"
+                  },
+                  {
+                      "path":  "EzyImageViewer.App/Views/ViewerWindow.xaml",
+                      "sha256":  "D3B330BDAF46CD50045CDFA5907AB5A5A48409D4767F811C9D02F6FE8BF8FBA6"
+                  },
+                  {
+                      "path":  "EzyImageViewer.App/Views/ViewerWindow.xaml.cs",
+                      "sha256":  "C375ABBFC73166E4212E849A8D5D6673254C69D274273D1C848CAE9B7E968403"
+                  },
+                  {
+                      "path":  "EzyImageViewer.App/WindowManager.cs",
+                      "sha256":  "C98E1652FD8589315502727E9A9AC3BF015EB374FECE6B301DD77459B81B0ED3"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Capture/Clipboard/DibConverter.cs",
+                      "sha256":  "B737755B78560AF01F23BB1FE5E6734B6771FD66993582CF812044D93295BF83"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Capture/Clipboard/IClipboardBackend.cs",
+                      "sha256":  "9699EA07E03842F3F8AED309298BD26DFA3AFB7A2FF7F65A1D016DF6A0DA18E5"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Capture/Clipboard/WinRtClipboardBackend.cs",
+                      "sha256":  "6FE5890189325EA1BE07C7D8352887555D597AD0FCC444D09A1606E905D005A4"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Capture/EzyImageViewer.Capture.csproj",
+                      "sha256":  "C5D297EF864B00B514A5E413E58C5BC6E883E23FBE3C0FD28AFBEF9F82F6D1DB"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Capture/packages.lock.json",
+                      "sha256":  "E6978585C80C5CE9332F403EB3345F17459A9B5911D1BD2722C7A49960AEFF25"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Capture/Snipping/CaptureCoordinator.cs",
+                      "sha256":  "E03F8768ADC24E4FCFD28BA051E2878F2A49B076B79636C57DD8C8AFA249A0B2"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Capture/Snipping/CaptureFlow.cs",
+                      "sha256":  "9673BC242871E4C8976B9E5863711365E22018C5F07AE3A0D56C469D16E73102"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Capture/Snipping/CaptureLauncher.cs",
+                      "sha256":  "734A9C623CED5F80F4ADAD81AAB584D3BAD7CAA28B3B38DC1EC1994F22128C87"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Capture/Snipping/CaptureTokenReader.cs",
+                      "sha256":  "C7B01BE3E7F358BA062FC8472D88B39D4C4EF53C3A1A6E8719678B730CA77B2E"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Capture/Snipping/ClipboardDuplicateGate.cs",
+                      "sha256":  "23F904EB78A21E19EFFBC0798488317C97E9F1DED70366257038173BFD6CA337"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Capture/Snipping/ClipboardWatcher.cs",
+                      "sha256":  "7FA01239024B038416672D2018704EDE90AF19D4A6DEF1549B8D6BD59E128669"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Capture/Snipping/MessageWindow.cs",
+                      "sha256":  "517231E527BCBDEC403CE70F2A1CB5BF686C7450451D5BD02A9F468982DFA30E"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Capture/Snipping/PackageIdentity.cs",
+                      "sha256":  "E61D37C24D4CB96F9D7560754C94E49AF6634814CE8BD98339EF4A013902ED0D"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Capture/Snipping/SnipProtocol.cs",
+                      "sha256":  "ED1533C1EEEFF7570EDD7170C5715E9A386F92D791ED1553EB3C85241FD6C1F1"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Capture/Snipping/TrayIcon.cs",
+                      "sha256":  "700508FF9E5DED2E66F754EFCB4EBDDF09234CED2C1941F1B75036F883B19F5E"
+                  },
+                  {
+                      "path":  "EzyImageViewer.CodecHost/CodecDocumentProcessor.cs",
+                      "sha256":  "B039685625B2A6B198B63538D2D0564594CD56928304C6615CF0D3FA195D453A"
+                  },
+                  {
+                      "path":  "EzyImageViewer.CodecHost/CodecHostApplication.cs",
+                      "sha256":  "69F562A6E5522D83059973776DD9AC449A981D6E283827C55F5295504BDD493E"
+                  },
+                  {
+                      "path":  "EzyImageViewer.CodecHost/CodecHostPolicy.cs",
+                      "sha256":  "70FD7AE00750BACB4A6A64CE959F2F319DA006F5F51D49725F1BC4F29AD45693"
+                  },
+                  {
+                      "path":  "EzyImageViewer.CodecHost/CodecHostRequestHandler.cs",
+                      "sha256":  "75EF63BED6A8BC8F5F22EA9B55369ED54A9C5586EC26CF94D418E56AB0D2074E"
+                  },
+                  {
+                      "path":  "EzyImageViewer.CodecHost/CodecHostResponse.cs",
+                      "sha256":  "0C93A1FD147A8ED4A61FA2CAC9F6DC2D9E818DEC24F46FEA37DA4DB248E63E4B"
+                  },
+                  {
+                      "path":  "EzyImageViewer.CodecHost/CodecTransportGuard.cs",
+                      "sha256":  "EA00CBF6F082AFCDBB651A60DF1FB3BAC93EBAE9F6C278A22B02B5270C4D882D"
+                  },
+                  {
+                      "path":  "EzyImageViewer.CodecHost/DiagnosticOperationProcessor.cs",
+                      "sha256":  "6465E9C4F6DEDA108585848A9A9A2EA0A3CE62B5AC95C74959C60022348A54F0"
+                  },
+                  {
+                      "path":  "EzyImageViewer.CodecHost/Directory.Build.targets",
+                      "sha256":  "1562A52621ADBD0465B0CB141F05D115D4260A93F9835A7F3E9D994881E08009"
+                  },
+                  {
+                      "path":  "EzyImageViewer.CodecHost/EzyImageViewer.CodecHost.csproj",
+                      "sha256":  "D15AF01E20D52CEB580E37A088541F055590AE9DE77A92B6BF59CF3850DC03FD"
+                  },
+                  {
+                      "path":  "EzyImageViewer.CodecHost/HostExitCode.cs",
+                      "sha256":  "E5DCBF5B51C4E53EBC1C57C9DA7A9CCA00B6ECBA038272756103DC5248D84A2E"
+                  },
+                  {
+                      "path":  "EzyImageViewer.CodecHost/Notices/PDFium/LICENSE.txt",
+                      "sha256":  "8854F4388F1CA13B3AD9BAA42E95F5546B4C0B17109C159256D3ECA7BE39B09B"
+                  },
+                  {
+                      "path":  "EzyImageViewer.CodecHost/Notices/PDFium/licenses/abseil.txt",
+                      "sha256":  "F54FFF0B905DF5B3464527C652A30E903B172D6DCAB4D89B5E6F105D5E4A4603"
+                  },
+                  {
+                      "path":  "EzyImageViewer.CodecHost/Notices/PDFium/licenses/agg23.txt",
+                      "sha256":  "C110D3EA2AD77467CE0DCFF7D3337E6C8BE8049A5103F4B9BD5FD911A77972E5"
+                  },
+                  {
+                      "path":  "EzyImageViewer.CodecHost/Notices/PDFium/licenses/fast_float.txt",
+                      "sha256":  "BF1B57355FECA8FCE77EE95F48002F8D4789FB71B30EC7599C06CDA4901FBB2B"
+                  },
+                  {
+                      "path":  "EzyImageViewer.CodecHost/Notices/PDFium/licenses/freetype.txt",
+                      "sha256":  "F4B133E25DF1F86AD3FFEA453AA0E613F0474F34778DBBB3E437E7B2724937D8"
+                  },
+                  {
+                      "path":  "EzyImageViewer.CodecHost/Notices/PDFium/licenses/icu.txt",
+                      "sha256":  "DE8A5576714C2308536EB4F1CC7908ACF189BC46095EBC6DF134341A6FF21E24"
+                  },
+                  {
+                      "path":  "EzyImageViewer.CodecHost/Notices/PDFium/licenses/lcms.txt",
+                      "sha256":  "5132B7530AE5ACAB7058634DA86470D3D38BB01D70C2B67BA10C96BC62CED1AF"
+                  },
+                  {
+                      "path":  "EzyImageViewer.CodecHost/Notices/PDFium/licenses/libjpeg_turbo.ijg",
+                      "sha256":  "DB16A04128171879C60708D171B88D97345A2DD20F9BFC173680A4497C73F704"
+                  },
+                  {
+                      "path":  "EzyImageViewer.CodecHost/Notices/PDFium/licenses/libjpeg_turbo.md",
+                      "sha256":  "BE2B2B5AB168BCE87BC3E31F2A5C5ADBA4B7F6E9E51D618E958D1D46972EBD95"
+                  },
+                  {
+                      "path":  "EzyImageViewer.CodecHost/Notices/PDFium/licenses/libopenjpeg.txt",
+                      "sha256":  "C5AB0890A737C2DFA7BA675036554F6D17741D98629B0C2A145354D00617E6B2"
+                  },
+                  {
+                      "path":  "EzyImageViewer.CodecHost/Notices/PDFium/licenses/libpng.txt",
+                      "sha256":  "0AD3BFEE8BE10E5519949E7AF492E36BC349376B75FBEB412229A5967E3E9434"
+                  },
+                  {
+                      "path":  "EzyImageViewer.CodecHost/Notices/PDFium/licenses/libtiff.txt",
+                      "sha256":  "92B72BA97E6C2749C2A94BC0EF646B47080217F1E772A482B33CF5A5F98A6506"
+                  },
+                  {
+                      "path":  "EzyImageViewer.CodecHost/Notices/PDFium/licenses/llvm-libc.txt",
+                      "sha256":  "3B6226C32E168C83B891D8D6F0D3C29C2116DC3EF93DC93C307B54F279ECF383"
+                  },
+                  {
+                      "path":  "EzyImageViewer.CodecHost/Notices/PDFium/licenses/pdfium.txt",
+                      "sha256":  "961EACD9633FFF6D051DB7208B755E9210E30EFAC7ADEC3E6A6D52798F0CCF0E"
+                  },
+                  {
+                      "path":  "EzyImageViewer.CodecHost/Notices/PDFium/licenses/simdutf.txt",
+                      "sha256":  "C172A0BA936FF31230FEBB5DAD869E25CB7C1A07480C7A381BE8CF011BB52719"
+                  },
+                  {
+                      "path":  "EzyImageViewer.CodecHost/Notices/PDFium/licenses/zlib.txt",
+                      "sha256":  "02421FCFBFB1D656EF0B6FF4CD3C39F2946F08C3219FA42DB482ADD7CE1F53EA"
+                  },
+                  {
+                      "path":  "EzyImageViewer.CodecHost/packages.lock.json",
+                      "sha256":  "9C39C2A59E327AFCBEF8DD961EAC72EEC86483794107602219244BBB0E77B4C8"
+                  },
+                  {
+                      "path":  "EzyImageViewer.CodecHost/PlatformSupport.cs",
+                      "sha256":  "51E45C062042BF67832FC053E98E20A80468BABE448DBAB0E7A2565F2FE3F8AC"
+                  },
+                  {
+                      "path":  "EzyImageViewer.CodecHost/Program.cs",
+                      "sha256":  "B14D3584A906DA8EE5481A4F831DF891C9CDA090A7C90F27B560ADBBDEB96113"
+                  },
+                  {
+                      "path":  "EzyImageViewer.CodecProtocol/CodecBoundaryLimits.cs",
+                      "sha256":  "6BBFCC1B2825F731389CE701E7FD34188B4F75EAF84736714E4916C29A6DF699"
+                  },
+                  {
+                      "path":  "EzyImageViewer.CodecProtocol/CodecContracts.cs",
+                      "sha256":  "A76B7C090071979F467C82D02F388ED29BA69EA198C3C30D91EEA2102D332D43"
+                  },
+                  {
+                      "path":  "EzyImageViewer.CodecProtocol/CodecWireProtocol.cs",
+                      "sha256":  "4470445417672E2B7991F7771D7C59B0DC13D138571C78E362B1841E430FA893"
+                  },
+                  {
+                      "path":  "EzyImageViewer.CodecProtocol/EzyImageViewer.CodecProtocol.csproj",
+                      "sha256":  "D2E586B2E4F9861AEFA1318F9769A8169432C2A3B94230D139409BCF68F6EB00"
+                  },
+                  {
+                      "path":  "EzyImageViewer.CodecProtocol/packages.lock.json",
+                      "sha256":  "8D84B21D9BEDD16F93B526EC5AA5D9B49B034646D5463195D58BA4617420BC1F"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Core/Activation/ActivationRequest.cs",
+                      "sha256":  "B53FCE96B83EEBD6B34CAB40B5D9576E07C200AD177333E1132D2A53A9DCD35D"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Core/Activation/ActivationRouter.cs",
+                      "sha256":  "F71AE69E155CFFF15C2D78AFA6B12DF07DB00EC5B8B1383A6DBE93F4AAF1ABE1"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Core/Commands/AnnotationCommands.cs",
+                      "sha256":  "4451F637ED27464743982198DA62614604E0D81636271D5E2857D01AB99A075F"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Core/Commands/IEditCommand.cs",
+                      "sha256":  "288346007F5B06695398BFF1C8655D6056AD869CF61106448D5602FBEB49F2AA"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Core/Commands/LayerCommands.cs",
+                      "sha256":  "4F0F299BE530510D6E0837BB1FCDB95738F9AEBD4881C3792A8884DD7D66E544"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Core/Commands/TransformCommand.cs",
+                      "sha256":  "6355063732AD913237058EC0BF0DB047D93BCC1532BC134EF25BFA53BFF3DE10"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Core/Documents/DocumentDiagnostic.cs",
+                      "sha256":  "55FFDF1513E774036259F86F52924DEE6014C1C680E5E0C09E0F41F1CA2C1B3D"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Core/Documents/DocumentEditor.cs",
+                      "sha256":  "0626BA34031317BB928F093148B06617FCB58040E01095CBD73DACF175CF824E"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Core/Documents/DocumentLoadGate.cs",
+                      "sha256":  "7CD3931FF44588BDD4F1BAEB163569D8F5A393C2726424421964062197472515"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Core/Documents/DocumentSession.cs",
+                      "sha256":  "B6439CD0B4BF586E844A73F1902A060F8E6D066D243BA1B1BA4C6862F08DFDDD"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Core/Documents/IDocumentFrameSource.cs",
+                      "sha256":  "A91A06F9911831AA3593B2937B68C8A9F1AEA3680A5E5F92AE2F8391AFD0BA6D"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Core/Documents/ImageDocument.cs",
+                      "sha256":  "90A80CC7B67DD5813D2565F1AEF0822A6E0E405D66517DCFC13C99C799FA01A1"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Core/Documents/Layers/Annotation.cs",
+                      "sha256":  "ACA99EEECF8A79F12B41F51DE805FB67C7BB0AF1A7563DAE41DF403AC9D01089"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Core/Documents/Layers/AnnotationGeometry.cs",
+                      "sha256":  "025E0F48870C9492511C7E84DCBCE9B95CA1218FFC66C8027FF1ACF795CE4E81"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Core/Documents/Layers/AnnotationLayer.cs",
+                      "sha256":  "3875A9E931699C8BEAECFCC8FD223F4C5D91F175F5FC50FE3F64F2B30F7D2402"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Core/Documents/Layers/AnnotationNumbering.cs",
+                      "sha256":  "C7EA4A027006799BFAFFB6D3CC38D6E3B02429F1A1E6532480FDA0A568DBC954"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Core/Documents/Layers/AnnotationValidator.cs",
+                      "sha256":  "012CD80DD8F4CBD46F3EDF2EC1A93667DB824D4C62502D05D8775E75FD7803FF"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Core/Documents/Layers/BackgroundTransform.cs",
+                      "sha256":  "0937C10094E33BEB7AF691E4C9959B11B5DE0163A15F0F927382EB80CC29357B"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Core/Documents/Layers/DocumentState.cs",
+                      "sha256":  "B4EE57951B799985B30FC3BED4A4016183626CC41E9DBB80FD643F0EA1FCF9F6"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Core/Documents/Layers/InkSimplifier.cs",
+                      "sha256":  "4A500DE3850C2D42C00167F5B10C2738F0A6ADFC6D06827392340595C33DEF19"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Core/Documents/Layers/RasterAsset.cs",
+                      "sha256":  "07CD29ADF367A5002E856ADEE21F85FFBAF09F07F81E71AB0FD324954457B683"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Core/Documents/Layers/SelectionGeometry.cs",
+                      "sha256":  "69384A62EB7B9335014AF4D4DA368FAC4234649D52B9C83BEB2DE4BBFF8A0BBA"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Core/Documents/Layers/TransformEvaluator.cs",
+                      "sha256":  "B481F03C45433FB71FF981F816EE5EBED22A31E4BCF2B0F635D66382EC0F7D7D"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Core/Documents/Layers/TransformOp.cs",
+                      "sha256":  "3830B6082C8EF530B31B8D63566C8FBB9389E3D17E9D30BCF23D6D46D2B9916B"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Core/Documents/ProjectContainer.cs",
+                      "sha256":  "ED7561EAD8926B6905E1434EBAF65A680C60B7741FFAC8913887F86C327CAFED"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Core/Documents/Serialization/DocumentStateDto.cs",
+                      "sha256":  "C257DF79ECF141EBB2DE2EF8FB947C73BEE3E6F964B55F4CDD62FE58D7C3FEE2"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Core/Documents/Serialization/DocumentStateSerializer.cs",
+                      "sha256":  "A209BEF642DFF3DD096AFC91832EE7AF71AA0D54901960D5D06B14CEFA5F3CBF"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Core/Documents/Serialization/ProjectDocumentSerializer.cs",
+                      "sha256":  "49DB1B202049452F575C2995AAC89AB3CFB09C39344F4DB54D3F5B323260E037"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Core/EzyImageViewer.Core.csproj",
+                      "sha256":  "3F7B8E9E9DB23EEC78AA5F3A21081ACD75BC08692106EAE6507F1F1A3B4E11D5"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Core/Imaging/DecodedFrame.cs",
+                      "sha256":  "55A1F4F570970EEA50CB12AADD6F0077B2AF5A304DD416BDB7BAF6A49D18C943"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Core/Imaging/FormatSniffer.cs",
+                      "sha256":  "C2651F6F9ED2811B3E74149EBC55FF017A79400EDDD63AFF0C7B959F2ED43046"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Core/Imaging/IImageDecoder.cs",
+                      "sha256":  "1D4DC4F61CD93FBD767893F82149624F3DC8F9665E9185CC1B45A86B45469E91"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Core/Imaging/ImageFormatCatalog.cs",
+                      "sha256":  "4C86D852BF44BBED94E99B039438C805239D0EDF761FA6C98D01CE68C540EAED"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Core/Imaging/InputLimits.cs",
+                      "sha256":  "AC85C4FAE36C2F7197BB9F73132BCCE23B24520CBECF8BAF5E3EEFD960CD030F"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Core/Imaging/PixelSize.cs",
+                      "sha256":  "100E8C0519A8D6A27E6CCB45C2A42935EF909E330CEEC989D5EB077325120240"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Core/Input/CaptureHotkeyPolicy.cs",
+                      "sha256":  "3C6FA400CB0945021F49AAC02F57B080256F289D815F135856B7182146376731"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Core/Navigation/FolderNavigator.cs",
+                      "sha256":  "8AAC5EEE6DEC5E782D9A89775E22439EDFE859D4D11CF8A2019435BE26B961C7"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Core/Navigation/NaturalStringComparer.cs",
+                      "sha256":  "293CF3C3C1B28564AD28436703EF7F4CEF65623384EA9D03F00D21A92073AE94"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Core/packages.lock.json",
+                      "sha256":  "8D84B21D9BEDD16F93B526EC5AA5D9B49B034646D5463195D58BA4617420BC1F"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Imaging/Codecs/CodecPackageDataResetter.cs",
+                      "sha256":  "690B4535C97ECE06B68AF762C1F15C5CE1C1207AE94BB97DB8ADE45C75D22A9A"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Imaging/Codecs/IsolatedCodecHostConfiguration.cs",
+                      "sha256":  "4A8448D8E15F3F7EE2FEF8E43C70F7D2AE40A4283DB8530E95C4387B3D648877"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Imaging/Codecs/IsolatedCodecImageDecoder.cs",
+                      "sha256":  "E4A4AEBB8D0737E2A9D3A21B19219BF27784D43E17AFD4E08EDC94EF2FB7F97D"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Imaging/Codecs/IsolatedDocumentCodecClient.cs",
+                      "sha256":  "B16A8FCC3D2FFFDD49D8C0A7B5850BEF8F435E3FDCE5571370BB0F6FD548360C"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Imaging/Codecs/Isolation/AppContainerCapabilitySet.cs",
+                      "sha256":  "5A394C14CE314D3688EECA78C16C7308C759D43E9B5970FE4EDED5CE415A39A7"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Imaging/Codecs/Isolation/AppContainerProfileAccess.cs",
+                      "sha256":  "2E20833E158E9D20A18B0FD6A2D57209F6D499FE3FA4CB673285831C7961C896"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Imaging/Codecs/Isolation/BoundedPipeReader.cs",
+                      "sha256":  "B7C21F8D323E4D0FA16BF597E961882B23F5C62A63F45CBF40DCF49036E168FC"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Imaging/Codecs/Isolation/ClassicAppContainerProcessLauncher.cs",
+                      "sha256":  "36D37DE2F9A9CE64CF1CA21D16CB3F22A0D1BC982C5BB9E0026A2DE6455B8999"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Imaging/Codecs/Isolation/IsolatedCodecProcessContracts.cs",
+                      "sha256":  "73EB36C39E6ED8AD8391E5A309E4E900F3469AA643CC231A2DFD7ECDAE2C663C"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Imaging/Codecs/Isolation/IsolationNativeMethods.cs",
+                      "sha256":  "EB14F156655A25325296E63F2F3FB8B75744C837C82CAA46F1D77FCD27D5D665"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Imaging/DocumentLoader.cs",
+                      "sha256":  "0358D500B6CC0B471442CC1E2CEAA38160E5FBD7306599B818E2CB95AB27EADA"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Imaging/EzyImageViewer.Imaging.csproj",
+                      "sha256":  "9152E56CB9210E9241BF66C6C38E0A4898E9D3B22A6A53FC55EB7F61496D9C56"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Imaging/packages.lock.json",
+                      "sha256":  "9E1C905559D2ABF9D8D3F9F118692CED77FA1C58B9DB4026F85D9C996EFEC998"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Imaging/PixelAnalysis.cs",
+                      "sha256":  "5B5264177AA2DBB6B8330A23026DEC5D868AFFD065EE0690398177A2965EF74D"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Imaging/Skia/SkiaImageDecoder.cs",
+                      "sha256":  "0F2DF196C661897DC29E56D5B8406BC5E6D10657B89B055BDCD31FD07998AC09"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Imaging/Sources/DocumentFrameSourceFactory.cs",
+                      "sha256":  "1D086AD7507428F993491350C1678A52B59EC01E07AB60F35FFAC5B9D9553DA4"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Imaging/Sources/EncodedSource.cs",
+                      "sha256":  "B5A581229FCAE543C2E43DDAD8541DEF13A5512D0D50B9B1585E61835AF9AED1"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Imaging/Sources/IPageImageDecoder.cs",
+                      "sha256":  "33C760327BF467557C67E327A6B4604FC8B5EAAD13CA9C1B04298C01BA0C7EF9"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Imaging/Sources/PdfDocumentFrameSource.cs",
+                      "sha256":  "BE22647744D2BAF97F4CEBF619B366557236F953F5C3EB2B71B2DEAB27A8CE8B"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Imaging/Sources/SkiaDocumentFrameSource.cs",
+                      "sha256":  "7261E09CBD78F69058189383BDDD7C032A66D10E4776FD651E0A329DEBB71F22"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Imaging/Sources/SvgDocumentFrameSource.cs",
+                      "sha256":  "74794CB403C5BB7A18B0C8154DDBC20E3E416E898B1DF89A023EFDC18B4DCAC7"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Imaging/Sources/WicDocumentFrameSource.cs",
+                      "sha256":  "45FF53F1E7ED97C1D87327CB1422B651C2E6980E99A95DC841308E282CD4382C"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Imaging/Svg/SvgImageDecoder.cs",
+                      "sha256":  "C25905B898BA305F50499A1D002DB1805E9C551B4B4EB14D276AACB84DE42D4C"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Imaging/Wic/WicCodecCatalog.cs",
+                      "sha256":  "B152EB0A7DF37B5FF7BE7B6732D7717FC6AE486990B448FD19C8916B291312FB"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Imaging/Wic/WicImageDecoder.cs",
+                      "sha256":  "2A91C6C3B84C27AF6364E03CD8FD1D22897B930343A0CC82A08BBC27B5963CB9"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Infrastructure/ActivationRoutingPolicy.cs",
+                      "sha256":  "EB9EE1AFB2CE63DF1075F7154795FE71A3D842832F3E1F5BF8F48356AF5000F9"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Infrastructure/AppDataPaths.cs",
+                      "sha256":  "A0DFAB3888C2978A1BD34AE812D0E2EB415940E1D25E8770A0DC022527870CD2"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Infrastructure/AppSettings.cs",
+                      "sha256":  "53B29C1C3013353582EC73041A8E09A1C50EA4CAE9A0D2FAEBE36A5C76F0EAFA"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Infrastructure/AtomicFileWriter.cs",
+                      "sha256":  "EDA01DA494601E0DC2CC433B2728669C66A9B0DAD6433DEFDAD9E3485C8A6BC0"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Infrastructure/CaptureHotkeyUnavailableException.cs",
+                      "sha256":  "72F38440AD38600DFAF9F0665B8BDA9BB6DCA97F38300A6FCA1CF8985500F997"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Infrastructure/DiagnosticLaunchArguments.cs",
+                      "sha256":  "967418BD34EE2EE8995120BC92F94DB35157449C0C6DFB79A7134E4234A8B948"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Infrastructure/EzyImageViewer.Infrastructure.csproj",
+                      "sha256":  "9BEB9171772F6D0B6D94DF1103199D34CC44008660AF80CFBBC14C7474C6F78E"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Infrastructure/FileStoreSynchronization.cs",
+                      "sha256":  "D806D30E5F26DDE8B9D7F0BB65342FC6C6ABFD02E77DA2EC24C0273EB08F2C5F"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Infrastructure/packages.lock.json",
+                      "sha256":  "E389FD22A99314AE4B612E6D51BB263AAD4123F82CAB85833E84EC37CA8DCF57"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Infrastructure/RecentFileCoordinator.cs",
+                      "sha256":  "BE6C0B8628EE188A101DEB4EF572E0E701ADF23DA3AFEAE3B9E630188F9F5974"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Infrastructure/RecentFileStore.cs",
+                      "sha256":  "0587CD52E944D17F56A790B027FFE315C20FE1C980485DC1734B2DF29B7A7092"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Infrastructure/RecoverySessionCoordinator.cs",
+                      "sha256":  "3B1F5C5300B364FA977938D2E53DE9B2C6FCC596D3BF804F244B8999C4ED4982"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Infrastructure/RecoverySourceFallbackPolicy.cs",
+                      "sha256":  "364807141A8CFE8B0C3F3817D3CFE3B35EAEF06B8C6D44D68A0DD3945CC80461"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Infrastructure/RecoveryStore.cs",
+                      "sha256":  "4751DBB54AA836BC8CEAF87AA5287EAAD251AA5D57F6FDE37F7C6ECCA777E65A"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Infrastructure/ReleaseDistributionPolicy.cs",
+                      "sha256":  "A3A75EC35E94CEA85FBF368BB2AB94A671C49387E8127012B4706314B688847F"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Infrastructure/StartupHealthTracker.cs",
+                      "sha256":  "F88780CCD106E9EB6E62354AB6CB8D1487FA29FBE9E1D6C280D930333602F110"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Infrastructure/StructuredLocalLogger.cs",
+                      "sha256":  "B966EECFCE5C549914CF8C08938E715D5D875FA79B62D1F3F7A714E0C42FC6C2"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Infrastructure/StructuredLogService.cs",
+                      "sha256":  "A62CA0BCECE0E35070DCE24F42DA2B73B8C64689B40B1A4F56F5D5D880CDE4A4"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Infrastructure/ViewerLayoutPreferences.cs",
+                      "sha256":  "803CA2BD1B9D09221B7ADFA3BC75F713B566B5794CA9E1B4252620F53EFCCF38"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Rendering/AnnotationRendering.cs",
+                      "sha256":  "58DD22385AB2CCC3275F503EE88E736B1F736D642EB547FEB5599BC5A2F254B9"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Rendering/AnnotationTextRenderer.cs",
+                      "sha256":  "FC176CA173F3BDD076032C09B73CA7419FB8B79CE00D1D14C27E34AB8882F6D1"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Rendering/CropGeometry.cs",
+                      "sha256":  "B0F6DE00435A5FB188BCA97CEDC5904F3AA4B43C16A84C476C09B1E4FC480FC3"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Rendering/CropInteraction.cs",
+                      "sha256":  "5A89EFB5C5F7F9C1882D01ADCEDBF4DB6F76CE3C82154FBC93263D6ED663A27B"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Rendering/DecodedFrameRendering.cs",
+                      "sha256":  "531CDE91B11A48BD312016D6731DBE242B536C7E6241C5D1392D5C9656E0CE08"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Rendering/DocumentComposite.cs",
+                      "sha256":  "5E1E9076CE4260A5E874362F6FE2B868548C38946D04DB15D8500CFDEE340913"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Rendering/DocumentFlattener.cs",
+                      "sha256":  "93D2B3B65B7BB9659BE18A7927C96C2E994E4794AFEFB2393ACD388AD15F13A3"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Rendering/DocumentPixelSampler.cs",
+                      "sha256":  "F82C8E4C31DDB5F669187E8033A85F71CCD6F96D7538D420671F0B7912B640D8"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Rendering/ExportMetadata.cs",
+                      "sha256":  "1A1A146CC04E4CECC6AE842E33A159273916CD2C215DAC6F752584F433B9B0E1"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Rendering/EzyImageViewer.Rendering.csproj",
+                      "sha256":  "2E81233BAD55B6F0E619872F4FF6BCB6DC1DDB70BD54A9090E8594F1881A1E6B"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Rendering/ImageExporter.cs",
+                      "sha256":  "44D67AABEB67A2FE5F57ADC4EC59AC49E995A9CEDFD822D5E76531B4E8DE9F1E"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Rendering/packages.lock.json",
+                      "sha256":  "16C6A1C43C87AD0E427059307D8E821429F2FA1D0606B335765116EA3597F3D9"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Rendering/RasterAssetImageCache.cs",
+                      "sha256":  "9639BEAA11F402A180B850835BFC4159512F0D4B2248AE31AAA77391525B7C8A"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Rendering/ViewerBackgroundRendering.cs",
+                      "sha256":  "F80292B22600A07224D9075BECBEAFB34DF469EE7AC706B9FA05AE66E2FC17FB"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Rendering/ViewTransform.cs",
+                      "sha256":  "43515418F7615DA1F7B060C0002C0B109232094E9D8CFC25F2D3BDA38362C5E7"
+                  },
+                  {
+                      "path":  "EzyImageViewer.slnx",
+                      "sha256":  "10AE34DA5F3DD2F1227B704C662C2CF2BD869ECF57F0ABB25DC08DA0C0D0ACC0"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Activation/ActivationRouterTests.cs",
+                      "sha256":  "652C2E5236584609BCD672FA40EB4F56289BD938A33D28EBCC26BC81F8CC2EF2"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Capture/CaptureCoordinatorTests.cs",
+                      "sha256":  "5C154D017FB3891D5F0D09ED78E50348AE743319622B42505A8329F1F8CABF3F"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Capture/CaptureFlowTests.cs",
+                      "sha256":  "9E8914FFC1DAC6B32C7A16810FE2471C238B91E80E03F4507889D8E01C3CDBA0"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Capture/CaptureTokenReaderTests.cs",
+                      "sha256":  "B2A95AB435CA68A753DFF9D73803AB7E54EEB3A2508014F90D7E96E06F9BEE91"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Capture/ClipboardDuplicateGateTests.cs",
+                      "sha256":  "7457872964E03CC622E7E0E40C08F317DDE4D909F19A0BACC487D0991ACBFF16"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Capture/ClipboardWatcherTests.cs",
+                      "sha256":  "BE1DBB980DC54210E9F786F952B3A95EA1EE9712CE68613A568927446403866C"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Capture/DibConverterTests.cs",
+                      "sha256":  "02E77AD17F8F0AB6B618B98D4B7185F8C4F46618D6E70B36BDD4EDA3AE898579"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Capture/SnipProtocolTests.cs",
+                      "sha256":  "F52B0A7CA8311EF87F9FE47B530607488639E1A519BEAA7484936D4FE897FC58"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Codec/CodecBoundarySecurityTests.cs",
+                      "sha256":  "9012D39894515C509C95B85001FC5E6C83FD1B1C954E1FD8589E52BA85645AC4"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Codec/CodecCorpusManifest.cs",
+                      "sha256":  "357AC31F2D4BF0599D5062E1F98D11A19D48707C67F114910351E7AEC2992F3F"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Codec/CodecCorpusManifestTests.cs",
+                      "sha256":  "B7ADD88B60F388194D7C9FDD02B8BBC3E738F554C6B200516CA45C1BF354817E"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Codec/CodecExternalCorpusTests.cs",
+                      "sha256":  "88F952139D3D0DC86A6DFAF3E113464C499F51AB64364F655D4B7B5F319C05D7"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Codec/CodecHostGateTestClient.cs",
+                      "sha256":  "6A8DDD0EE1F17D7B42D2561DDEC2EFC077C870E86A7EC67582150FA738F28D54"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Codec/CodecHostTestClient.cs",
+                      "sha256":  "A4CC998CAFAA30EAC056FAA3042E25FF865B2EA792E6D3FD2B9806160C4E2F55"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Codec/CodecInstalledCorpusTests.cs",
+                      "sha256":  "47C1A1D95B840BED24DB21325CCF674C3AB24BB921E65339FF302FE52C108816"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Codec/CodecInstalledProductSmokeTests.cs",
+                      "sha256":  "BFEB157FD1109495DD95E93FF25267C6E1CB1E4E7425F6C58E7C27BA7DDE9B53"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Codec/CodecIsolationTests.cs",
+                      "sha256":  "D15B67E3A82C99EE4C922A2F25018005B0D54C1E192A2FD920EF24DEB5221537"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Codec/CodecMalformedInputTests.cs",
+                      "sha256":  "3F0727109E2F450658F0DA6C079D15913466EDC55A56EE4201C01F0189652FF1"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Codec/CodecMutationFuzzGateTests.cs",
+                      "sha256":  "A0D24DEA17C3DBC4FC7D753827FF5E3A408CF3DE35F2169DBB224EEC8EB132B8"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Codec/CodecPackagingContractTests.cs",
+                      "sha256":  "1605C69B1A9226DCC0004B5921EFE155714CB55112D50C0AD9395DD95F0CC98F"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Codec/CodecPerformanceGateTests.cs",
+                      "sha256":  "0DE2B10C016972641A56408F9ED86A1572EFA8D7DE34AD5B977760471EEDD272"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Codec/CodecProtocolTests.cs",
+                      "sha256":  "17E655173D036D698AEF5094512A7E6D647DC84730A593CA8564A9172103F33F"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Codec/CodecSyntheticDocumentFactory.cs",
+                      "sha256":  "0903B5DAB4B2D57B54D4F8A8B7459B53826A8B66E5073CBF6D1391EBD43BFB17"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Codec/ExternalLocationIdentityContractTests.cs",
+                      "sha256":  "66AA7392751A673BB634EE1EFE4E7C35C5DC430A3B8DED9F9DBD19843238A026"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Codec/ReleaseMetadataContractTests.cs",
+                      "sha256":  "4DDB7AC738404715306692847A815546DFD30DA8CFA6EBB82A591AF25263E6D5"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Contracts/IconSystemContractTests.cs",
+                      "sha256":  "9379C959A5845979F5FC582C9B542710FF97E1E70D58970208F12D4B2AC01C4A"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Contracts/SettingsUiContractTests.cs",
+                      "sha256":  "7EBA4ABFA4556187CEB9C50226AD9061083CE095D5E1F3A5ED9D1253162308FA"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Documents/AnnotationLayerModelTests.cs",
+                      "sha256":  "7714E331A21D6E1E2179256C4F81CA2BBCCE608BF4E0018C0D77DD094B6A4B52"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Documents/AnnotationModelTests.cs",
+                      "sha256":  "D2A7FE58E5BDB08C5A3D127FA8B827E4F1476D51494C6E12923B2F1D185415F0"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Documents/AnnotationSerializationTests.cs",
+                      "sha256":  "67CAF8168AFBA49EE26F94B8A51158E73F7CBD36555B1701E8C36F7B7F989DA7"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Documents/DocumentEditorTests.cs",
+                      "sha256":  "79DE8AA1A744B474C534834BB6348B9CCF7A005850CA21C4C0DB1DE785E62F97"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Documents/DocumentLoadGateTests.cs",
+                      "sha256":  "529294AA05058AE896D61D3E93F27F75BFBFC1D5AEBF81D30214DC817BDAD35B"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Documents/DocumentSessionTests.cs",
+                      "sha256":  "72095ACF804CA6FE10E5D1A2DBDE288A564B8094E8105380E67E3C1D769E3E65"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Documents/DocumentStateSerializerTests.cs",
+                      "sha256":  "0D7B2F4B1CC144A45EDAE4B654ED66383963AD1098FCA7FE2F9AB8D8CCDDF22B"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Documents/DocumentStateTests.cs",
+                      "sha256":  "348EC5C6F1A65862045692851B0F4B6725DDA5589F348E2C85896A425D3B839D"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Documents/M4BLayerTests.cs",
+                      "sha256":  "992FCC84D7FEB10CD33A67CE42124797CBCB874C5983101DA13F1105B15C7009"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Documents/ProjectContainerTests.cs",
+                      "sha256":  "F51606C0588F0F60042BDEAE07A2FDC978C29F0256A0A8D6FAACDF5DC8C30075"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Documents/ProtectionAnnotationTests.cs",
+                      "sha256":  "71A798FEA1B316C029550FAD2E514C564064C465AE37C2A25AF22BB502668897"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Documents/TransformCommandTests.cs",
+                      "sha256":  "22DF690492037B1A13510F3A5407363D4D61FE3FB453AAFC681FA132EBBD8AAD"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Documents/TransformEvaluatorTests.cs",
+                      "sha256":  "E345ED8DB280E61F64F2A5BE13E8A6867107158220ECE3A2DB6A00F8BAAA060B"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/EzyImageViewer.Tests.csproj",
+                      "sha256":  "21009657FD5180896C269C6529E356FAA8D2DF0378EEFBB60D3A7AF806FF546A"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Fixtures/Formats/corpus-manifest.json",
+                      "sha256":  "9599DE96C54E1282526717E9EC8C2982414798702CE2EEC43830C50DA836AED8"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Fixtures/Formats/corpus-manifest.schema.json",
+                      "sha256":  "D1D7569763C6747FF110C46063BDCFD86AD1A40286A385E2E7D345786B1E41A0"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Fixtures/Formats/README.md",
+                      "sha256":  "3EB2B48FE8A9EFF377F3971274F8FE3860E147E3988BC26F5EE9EFFEFA3207C1"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Fixtures/Golden/transparent-checkerboard.png",
+                      "sha256":  "BAF040BEF12858BBA0E2B01EC4CCB809601393D8F5C920310AF38778949B8876"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Imaging/CodecPackageDataResetterTests.cs",
+                      "sha256":  "7E4C85B861F80D23D287109FC2FCDBE1624C6C7F9A589FE498164283A13117AF"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Imaging/DecoderIntegrationTests.cs",
+                      "sha256":  "C69FD5CF90B8A33E70DC6D09F09BFC7D9540CAD3C523608AD85AFD8A34EF4863"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Imaging/DocumentLoaderHardeningTests.cs",
+                      "sha256":  "481D7B0EA38BB38925608A6BDD799F60EA03B96106672483470511C24DB0060C"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Imaging/DocumentSequenceTests.cs",
+                      "sha256":  "0DD1700183DC364289A5E988201D200CDF837DCAF897AD0C22BF4677C427F51E"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Imaging/FormatCorpusManifestTests.cs",
+                      "sha256":  "0CA3B1B6157BC4750E4F3CA0B61378D93381FFEEA5C388FEABD6E95F012CECB6"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Imaging/FormatSnifferTests.cs",
+                      "sha256":  "2A3D5A4E17167572C39ACC85EE6FF20F4BA5CC800E8AF38470763DA5B6947415"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Imaging/InputLimitsTests.cs",
+                      "sha256":  "73C5BE8ACDA81CE5AAF3073FAC60D748163B75FABC986D07EEC56DC3B0D8247B"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Imaging/IsolatedCodecDiagnosticTests.cs",
+                      "sha256":  "30C24970471D262EDFF413D385FA7DACB04BD69A96E555BFA7FDE951B3175219"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Imaging/IsolatedCodecProductIntegrationTests.cs",
+                      "sha256":  "065C820C262C177813CE7B5D9F28DC9B7DB8B7CE4EB5D270E2D505A03795E44C"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Imaging/NativeDecoderProductGateTests.cs",
+                      "sha256":  "14E8C38C949745C9A2A406EFA4A0E624A60475328BF964FB7C754186501B0079"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Imaging/RasterFixtureTests.cs",
+                      "sha256":  "B0E410ACDB6A73B5A0824F28B646DBAAFF3DDF2CBEEFBE4B86797AF37EC48581"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Imaging/SkiaOriginTests.cs",
+                      "sha256":  "163A61B9778764EF30C628BAB473A1DBE3891E6F794D8F5018396BA6767B778D"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Imaging/SvgImageDecoderTests.cs",
+                      "sha256":  "33BF47DC021B6CF614832680DC1D808F5BAE58BADFB418B0F0EE765082044401"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Infrastructure/AppDataSecurityTests.cs",
+                      "sha256":  "82FDFE8DB49082394E9B7A36165C3D8266ACBF40E1246FDB1D012DDBD20C7BE3"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Infrastructure/AppSettingsTests.cs",
+                      "sha256":  "21748DCA75FFBF987117742F43081BABEB237F52EE5DABB270BB0FFAA0E7E815"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Infrastructure/AtomicFileWriterTests.cs",
+                      "sha256":  "2801862A9E007215B608B8FE8B200077573C90C11EEF9D3BC9E23052276B5304"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Infrastructure/CaptureHotkeyUnavailableExceptionTests.cs",
+                      "sha256":  "E4FA342D3EBCC80FAEEB82C36A33CDCE6E81759D59BC1CD01DC89B8EDFDA6EBA"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Infrastructure/DiagnosticLaunchArgumentsTests.cs",
+                      "sha256":  "FD915860E5BAD85888C115C224362C328F9D13003693137D9B8827A6D99FA592"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Infrastructure/RecentFileCoordinatorTests.cs",
+                      "sha256":  "76E7758BB4A38541EAF1C7CA39721A3043572B7515B6E70D467BAA51895E9E65"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Infrastructure/RecentFileStoreTests.cs",
+                      "sha256":  "4B77F6E63AC230372D5EEB95B1C228C5FEB96E010620F3016AAFB2BD8CBA707E"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Infrastructure/RecoverySessionCoordinatorTests.cs",
+                      "sha256":  "9448808D70C954AC9B71B5AC934B02440678B3A3303AACE7C2DB86A14382EED8"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Infrastructure/RecoverySourceFallbackPolicyTests.cs",
+                      "sha256":  "E9A609E0C8C9055A68E9E7243F41A7A3A9FE195178C4D4D34CC2521E5144B1C3"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Infrastructure/RecoveryStoreTests.cs",
+                      "sha256":  "8F4C9F6A2A13EFB9B5D97CE62F50B024860A76B6B4DF0048DCB10B735913F171"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Infrastructure/ReleaseDistributionPolicyTests.cs",
+                      "sha256":  "A55B079CD0E90060B68B32A41799006837ACF3E024FDB4C85C4CDC4482C43BF8"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Infrastructure/StartupHealthTrackerTests.cs",
+                      "sha256":  "A9ACF2C1C98BBA0989A5B4C831B1AE416C6D1DF1B38CB727AA23F7298639E7E8"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Infrastructure/StructuredLocalLoggerTests.cs",
+                      "sha256":  "F9067E94CB71D4DE59282EAE7433CEA7E75E509FB7536BB38082CD81292CBB8E"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Infrastructure/StructuredLogServiceTests.cs",
+                      "sha256":  "6099B9B1D2EDF20494D01C12946C1280B9AE11A20F527D23B32044EB99692D0C"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Infrastructure/ViewerLayoutPreferencesTests.cs",
+                      "sha256":  "32966BAD8F2417163481EF77EC25025D2023298BE5055BB8FB0297680A92D791"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Input/CaptureHotkeyPolicyTests.cs",
+                      "sha256":  "F0A7FB0AEA7B0F814411C512F6B79ADA51BB7B1B99924D1A1BAEECA15095A26B"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Navigation/FolderNavigatorTests.cs",
+                      "sha256":  "3ED4C618095E077A534D71B8008464D598B1D3790C5AFDA08C7CA7EC4910BD68"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Navigation/NaturalStringComparerTests.cs",
+                      "sha256":  "8BC45476A9EF84F5F80F0F65C2A87B30EC21DE90C365DFFDF14F4118FD0ECB53"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/packages.lock.json",
+                      "sha256":  "D7E4F8A5E48AC3AB31A2FF6FCCDB89791398BB131AD0D31B97302DD37EB515BC"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Rendering/AnnotationKindsRenderingTests.cs",
+                      "sha256":  "1C2EB410EFC4AAD6AB44EF8814F0D4205A0B9940BB2B22807FE104ADA8EB9213"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Rendering/AnnotationRenderingTests.cs",
+                      "sha256":  "22DF1CA2F6B71546D3B75FEBADB3FCE11A976455C53C4316109520DC66B3A69D"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Rendering/CropGeometryTests.cs",
+                      "sha256":  "97B64BB940B1E6AAA8531A822F5661C810E064201BC98E6F119FDFB9639319CE"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Rendering/CropInteractionTests.cs",
+                      "sha256":  "3AD3653D7FB0510C9CE2C7A8C063052006193295E15B46BE0A5E1A3452DE2164"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Rendering/DocumentCompositeTests.cs",
+                      "sha256":  "4BFC02398673800FDE24880231EA8878623949616EB64F04772AA12064894EAD"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Rendering/ExportMetadataTests.cs",
+                      "sha256":  "A3870C07E7138B438151CE8596706D809D65F57C8AD09DC81E4B5DA0066C5EB7"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Rendering/ExportPipelineTests.cs",
+                      "sha256":  "AD01D82BD6DAE234EEC2F347C359C012DC86BFAAAF07C14AC5EC419C73077FD1"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Rendering/ImageAnnotationRenderingTests.cs",
+                      "sha256":  "466A2DA743DE231F900FEB8622E5AAE609E9DDA05975D7159CF0561FA05322DC"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Rendering/M4CRenderingTests.cs",
+                      "sha256":  "67C21B6EE6E21C6F68F44E6E21BB2F542E5E9D91AEFE2930572C69BCB3D310EF"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Rendering/ProtectionCompositeTests.cs",
+                      "sha256":  "679C8FB40EF6CC8CCCD40686C6617201F5D016890694C3F9303C731F4BCA7436"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Rendering/ViewTransformEditTests.cs",
+                      "sha256":  "AD955FF524E7C0BFD8A0C390045C12302AA3F95F0F8D534439041380DE34F4FF"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Rendering/ViewTransformTests.cs",
+                      "sha256":  "CCA2425655C756694AEA1291592FF2AF3AA6B2E44C669037C0048588D74E3B7E"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Spikes/LargeImageSpikeTests.cs",
+                      "sha256":  "216A0ACD2E85DE21D31AA5D493707A84CFD0A0550A31464E7950DBE98E3F2E1E"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Spikes/PdfRenderSpikeTests.cs",
+                      "sha256":  "08CFB328725FCE6CCB51F599379D3923F005C3743FB660B80AC8167031B45F6E"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Spikes/PsdCompositeSpikeTests.cs",
+                      "sha256":  "8A7BB3BA318EE893112261392A21B387E1C6047B296FC5D93A14AD636B241027"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Spikes/SvgRenderSpikeTests.cs",
+                      "sha256":  "1A374B1E647D5E4E9FB6ED54CE9CB375BB2CFDADDC1DC2C034D1EC7A6538E36D"
+                  },
+                  {
+                      "path":  "EzyImageViewer.Tests/Spikes/WebpEncodeSpikeTests.cs",
+                      "sha256":  "13ADBB974C2E074FB28E7CC890E10265085BB48CEC17292138C9DF21F08A6A5C"
+                  },
+                  {
+                      "path":  "global.json",
+                      "sha256":  "BAA34E3F0DA733A1B0515AEF5369195A3874AFF6837CCC5E6FBA7A0EAE0ECBE5"
+                  },
+                  {
+                      "path":  "installer/assets/EULA.rtf",
+                      "sha256":  "7990986D27310B39A1F71B877371E50EF9889407420167967FE1B42BA9B34027"
+                  },
+                  {
+                      "path":  "installer/bundle/Bundle.wxs",
+                      "sha256":  "536B7117F56CA9AA25B94BC98D77B483DA27946118E8FAA0D4C29A9F6E7976BD"
+                  },
+                  {
+                      "path":  "installer/bundle/ezyImageViewer.Bundle.wixproj",
+                      "sha256":  "0FF9CE0D277F34AD815157B5F855F3154004CC7A61FB03C1C25A27490F76AE0F"
+                  },
+                  {
+                      "path":  "installer/bundle/EzyRtfLargeTheme.xml",
+                      "sha256":  "6CDB6BF1B504E6E69236935532C8AA5E0AB3B855191E47DEACCF46604F26C908"
+                  },
+                  {
+                      "path":  "installer/bundle/LICENSE-MRL.txt",
+                      "sha256":  "DFDF2048787635215A6BAF3B9D461DEE89A2904D246787258A44F072A98D4786"
+                  },
+                  {
+                      "path":  "installer/bundle/packages.lock.json",
+                      "sha256":  "F2B54AED52F07D6D05C105BA7CC4F25EAC52A1C7F439992A740B36187ECA68A9"
+                  },
+                  {
+                      "path":  "installer/common/Product.wxs",
+                      "sha256":  "1ECD6E4748473AFB905EF7BC87627F4059B0014334E0F76F0AD12B95D6EEA33B"
+                  },
+                  {
+                      "path":  "installer/per-machine/ezyImageViewer.PerMachine.wixproj",
+                      "sha256":  "972633E8F472C05564DFB626EFB73CBBBE94606BD5037B8F4595166C57AE8CA0"
+                  },
+                  {
+                      "path":  "installer/per-machine/packages.lock.json",
+                      "sha256":  "734B70D7FDB12C6BAEEA7421AB49442EEF9B5DB1B9F9FDBCEFA8F8B4F8F08CDB"
+                  },
+                  {
+                      "path":  "installer/per-user/ezyImageViewer.PerUser.wixproj",
+                      "sha256":  "7AC838E8C80EC2B0155A6136BF1EB26ECC9A46D462A2C42D0E237822DD4E4BAB"
+                  },
+                  {
+                      "path":  "installer/per-user/packages.lock.json",
+                      "sha256":  "734B70D7FDB12C6BAEEA7421AB49442EEF9B5DB1B9F9FDBCEFA8F8B4F8F08CDB"
+                  },
+                  {
+                      "path":  "installer/scope-anchor/ezyImageViewer.ScopeAnchor.wixproj",
+                      "sha256":  "E8214FBC7960BD6145651F7396DFCAB1E4C98C70AFADCFB75307A00FF281A07A"
+                  },
+                  {
+                      "path":  "installer/scope-anchor/packages.lock.json",
+                      "sha256":  "469AD450E3EB0A1F5DEBC2CBE139A4560F911BC31FF0BFB5828C1423922000FB"
+                  },
+                  {
+                      "path":  "installer/scope-anchor/ScopeAnchor.wxs",
+                      "sha256":  "7A4CF1F3455AD5D5D476351D11167F9355281BD3B3ACAFE2F7C90744AF3FC7B3"
+                  },
+                  {
+                      "path":  "LICENSE",
+                      "sha256":  "665416BF6DADF49997E1ED68934418764641A83FB2213CE543F032C8308C65D6"
+                  },
+                  {
+                      "path":  "packaging/appinstaller-helpers.ps1",
+                      "sha256":  "07250FE07E1C82E40971B3B5F07CF8A1DCD90DA83790BCE9D02E28EA7F2ADC7C"
+                  },
+                  {
+                      "path":  "packaging/AppxManifest.template.xml",
+                      "sha256":  "760ECCA3C75064436611A1A195546CDA3709E6C71AE72BE70B7FD4CDEDE315B0"
+                  },
+                  {
+                      "path":  "packaging/Assets/Square150x150Logo.png",
+                      "sha256":  "A8CF3D34380B13F4AEAF731D47FE951258575C060C8F541B619E9CAA6CEC8D9D"
+                  },
+                  {
+                      "path":  "packaging/Assets/Square44x44Logo.png",
+                      "sha256":  "247DE8E45C790CFE3EB6BC3F1C10AC0132D599EC05BC5ABD99713492FA57F740"
+                  },
+                  {
+                      "path":  "packaging/Assets/StoreLogo.png",
+                      "sha256":  "524987714C4BFA4F758B59D268FB1E66DA784715D3F3AABF151B8976E1C07BB9"
+                  },
+                  {
+                      "path":  "packaging/build-portable-release.ps1",
+                      "sha256":  "0F08B5CEAA4034EADA2435B50978EE05E7FE3F0DF628FAE7140C6A555372D593"
+                  },
+                  {
+                      "path":  "packaging/build-wix-installer.ps1",
+                      "sha256":  "5274A07275CA86D18ECA11DB4A8F3C02C7E3B744AB0B8057AA8415B7F1B37C22"
+                  },
+                  {
+                      "path":  "packaging/CodecHost.AppxManifest.template.xml",
+                      "sha256":  "10A9DC34FDFB2711BBEBDD61F32C92C650F889214AD490AC9BD281B7E2D96D5B"
+                  },
+                  {
+                      "path":  "packaging/ExternalLocation.App.manifest.template.xml",
+                      "sha256":  "42C5F6251D91DE24EE518C928846EFBF100F8E4A18EFFF31E16FADC00134290B"
+                  },
+                  {
+                      "path":  "packaging/ExternalLocation.AppxManifest.template.xml",
+                      "sha256":  "82ECD5BCDF7E6EEC685B4B793B3EB730DFF0DC73D69EB21B709D83B946113B8F"
+                  },
+                  {
+                      "path":  "packaging/external-location-helpers.ps1",
+                      "sha256":  "F569422824D52C3EB7C4327011A811E2B9B0F62877914FFB3AE8CCF3E837E1EC"
+                  },
+                  {
+                      "path":  "packaging/generate-appinstaller.ps1",
+                      "sha256":  "4CA00DAD6CC27531059CD0CAE30AA7C5B754EAE9B6C0E894242D6493A988238B"
+                  },
+                  {
+                      "path":  "packaging/generate-external-location-manifests.ps1",
+                      "sha256":  "3209C04AA2F30AD11724F005BD9B0CD240E766E2F82FCE15AA49EA418B10EC25"
+                  },
+                  {
+                      "path":  "packaging/generate-release-metadata.ps1",
+                      "sha256":  "533D38D250AF53297A0D7FBB6E3A960619404511669A681C659E2FB5715EA0CE"
+                  },
+                  {
+                      "path":  "packaging/generate-wix-payload.ps1",
+                      "sha256":  "6AA368DB2FC50F74D95F2C5A4841CEA3E2D2D0757360EF944E1F7F307D2906E3"
+                  },
+                  {
+                      "path":  "packaging/identity-registration-backend.ps1",
+                      "sha256":  "7F7DB6754FE6AF494D746271ED2C080AFC6FCCC2AEDDF3519CD032A4D0D7ABBA"
+                  },
+                  {
+                      "path":  "packaging/identity-registration-contract.ps1",
+                      "sha256":  "649491145EFC22EDD05977B5418C2B0B8CDC0244F1033D60A48B932EFB2F413E"
+                  },
+                  {
+                      "path":  "packaging/invoke-identity-registration.ps1",
+                      "sha256":  "C35E5941937B2E12724072F0292386185BBA7AB6486DD2CD6F0B9F209D400C49"
+                  },
+                  {
+                      "path":  "packaging/msi-payload-helpers.ps1",
+                      "sha256":  "53D9879DC1834FAB51DE03C1EA3AD731C521D18AAFE862DC0DF8595FEA6971D4"
+                  },
+                  {
+                      "path":  "packaging/MsiPublish.targets",
+                      "sha256":  "9B509E1410B287FFD11DFEBE7205C0A395724FE566AD8899E36D01BB61294638"
+                  },
+                  {
+                      "path":  "packaging/new-public-source-snapshot.ps1",
+                      "sha256":  "9246D289B492C2DCDEA204E51B9195A616C07D0A1A1A87C1EAB0CDFB6A68B0D0"
+                  },
+                  {
+                      "path":  "packaging/pack-codec-host-msix.ps1",
+                      "sha256":  "2AA527752017C03FE5D54B61D8B0E222290C9EBA9F85472A9D8A6F7186FEA2C9"
+                  },
+                  {
+                      "path":  "packaging/pack-msix.ps1",
+                      "sha256":  "6D62F2E312AA11777CCEA120E679D889C45EDE2DB7B2AC575ED1F730BFA67B25"
+                  },
+                  {
+                      "path":  "packaging/portable-release.json",
+                      "sha256":  "6DC2DD67A1BFB028AF05387C1C7E973EF4443B26F31C7F05449B4497787416AE"
+                  },
+                  {
+                      "path":  "packaging/portable-release-helpers.ps1",
+                      "sha256":  "AE41F183B12F41764899B8F433674C626073DCBBE0FAA3ED21F8756423739510"
+                  },
+                  {
+                      "path":  "packaging/public-source-allowlist.txt",
+                      "sha256":  "28901074DD819309BBC8FF44B74BDE49140481907F2183EC98DB811E796087D8"
+                  },
+                  {
+                      "path":  "packaging/release-helpers.ps1",
+                      "sha256":  "BD9CDA5CC408418A63B91FEEF051C842DA72977EA35DC4152AA9A8505690338E"
+                  },
+                  {
+                      "path":  "packaging/stage-msi-foundation.ps1",
+                      "sha256":  "68D5AA8E9706E272177842CE2937ECF965642399A0313D4E5C2BA5547FE0DC31"
+                  },
+                  {
+                      "path":  "packaging/sync-public-source.ps1",
+                      "sha256":  "97C9AA453D946771B02084FA058D93931391C2925F666B77FB4E7B1DAA09383C"
+                  },
+                  {
+                      "path":  "packaging/test-appinstaller-contract.ps1",
+                      "sha256":  "932E77A562C52C48D1139F7163AAD7038AA6DB7246D4BC8D84DF4D35A13094B6"
+                  },
+                  {
+                      "path":  "packaging/test-external-location-contract.ps1",
+                      "sha256":  "83D6466BAE500A17EBA08DC557F9510C823F9EB640ED6B75CE529A9BDDB9AF69"
+                  },
+                  {
+                      "path":  "packaging/test-identity-registration-backend.ps1",
+                      "sha256":  "74C929F29EE077BB1E503418DC0B081F16A835E1D1956A8DED4DE06495D836F0"
+                  },
+                  {
+                      "path":  "packaging/test-msi-foundation-contract.ps1",
+                      "sha256":  "493F7490A47C43AEC6DD9D141C223D29D20FDF470648EA3F1ABDE83F62DCF265"
+                  },
+                  {
+                      "path":  "packaging/test-portable-release-contract.ps1",
+                      "sha256":  "559EB9A5967822F2D41F7EAF138DBD64389BC02FEC3811BDA55A764F532CA2E0"
+                  },
+                  {
+                      "path":  "packaging/test-publication-readiness-contract.ps1",
+                      "sha256":  "6D99CC3D6145DECBB2BDB04D637F651071CAE1002CB83AC29C332E637C3130DB"
+                  },
+                  {
+                      "path":  "packaging/test-public-source-snapshot-contract.ps1",
+                      "sha256":  "042B2A1CCE94025ADE23FA0B2E5C3DABF572F69D640E0C6CE2A241F5A3C8EB12"
+                  },
+                  {
+                      "path":  "packaging/verify-appinstaller-release.ps1",
+                      "sha256":  "C61982F1DCEE10887AED119524058D3B5C5861E55233AF79F40BAD4D3BB0330D"
+                  },
+                  {
+                      "path":  "packaging/verify-external-location-build.ps1",
+                      "sha256":  "4323DC97FFC5241993C72C9849C7AF126B2796C1579ECA51A03EC32BF30191AA"
+                  },
+                  {
+                      "path":  "packaging/verify-msi-foundation.ps1",
+                      "sha256":  "12CCC412AE48CD7BC48A19347558CC388010F1CB482BC7B4AA087B0D6DC07ACB"
+                  },
+                  {
+                      "path":  "packaging/verify-msix-release.ps1",
+                      "sha256":  "E310D1DAE2782D42C8180459E8C497DBCDB9ACF29C1CAD730D65ABBE564D433B"
+                  },
+                  {
+                      "path":  "packaging/verify-portable-release.ps1",
+                      "sha256":  "AF4C5CFCBE97E6E4896888027E873B3CFFE9FE60FF359AC3D68BB5ED69D1E625"
+                  },
+                  {
+                      "path":  "packaging/verify-wix-bundle.ps1",
+                      "sha256":  "3607EE23EF766FC084C9C93FE16B75E71363B0E2E756738DCA42BF4A67161BFA"
+                  },
+                  {
+                      "path":  "packaging/verify-wix-installer.ps1",
+                      "sha256":  "474EB3932B2CBA4132B1E757055DED0D5AA73FC1665702482799D91D4037F411"
+                  },
+                  {
+                      "path":  "README.md",
+                      "sha256":  "8CCA435518825F565F28C2B7812E94E3CA2B18669BF0B27386B108A90676835F"
+                  },
+                  {
+                      "path":  "THIRD-PARTY-NOTICES.md",
+                      "sha256":  "1081832B320ABE89C8C08304328A01C2193B6DD4ED1D9F9A69C5A1A200BD9BE4"
+                  }
+              ]
+}

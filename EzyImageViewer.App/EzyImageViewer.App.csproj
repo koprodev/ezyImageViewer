@@ -1,0 +1,77 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.19041.0</TargetPlatformMinVersion>
+    <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
+    <RootNamespace>EzyImageViewer.App</RootNamespace>
+    <AssemblyName>ezyImageViewer</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- External-location release builds inject a generated fusion manifest whose Publisher
+         must match the signed identity package; normal and full-MSIX builds keep app.manifest. -->
+    <ApplicationManifest Condition="'$(ExternalApplicationManifest)' != ''">$(ExternalApplicationManifest)</ApplicationManifest>
+    <ApplicationIcon>Assets\ezyImageViewer.ico</ApplicationIcon>
+    <Platforms>x64</Platforms>
+    <PlatformTarget>x64</PlatformTarget>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <UseWinUI>true</UseWinUI>
+    <!-- Neutral resource language: without it MRT has no fallback candidate and every string in
+         Strings/ko-KR warns PRI263. -->
+    <DefaultLanguage>ko-KR</DefaultLanguage>
+    <!-- Single-instance decision must run before any window exists (custom Program.Main). -->
+    <DefineConstants>$(DefineConstants);DISABLE_XAML_GENERATED_MAIN</DefineConstants>
+    <!-- Dev loop runs unpackaged; -p:Packaged=true builds the MSIX flavor (Q7=b) which
+         packaging\pack-msix.ps1 lays out and signs. Self-contained WASDK works in both. -->
+    <WindowsPackageType Condition="'$(Packaged)' != 'true'">None</WindowsPackageType>
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EzyImageViewer.Core\EzyImageViewer.Core.csproj" />
+    <ProjectReference Include="..\EzyImageViewer.Rendering\EzyImageViewer.Rendering.csproj" />
+    <ProjectReference Include="..\EzyImageViewer.Imaging\EzyImageViewer.Imaging.csproj" />
+    <ProjectReference Include="..\EzyImageViewer.Capture\EzyImageViewer.Capture.csproj" />
+    <ProjectReference Include="..\EzyImageViewer.Infrastructure\EzyImageViewer.Infrastructure.csproj" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" />
+    <PackageReference Include="SkiaSharp.Views.WinUI" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Assets\ezyImageViewer.ico" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Assets\Fonts\MaterialSymbolsOutlined.ttf" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Assets\Fonts\LICENSE-MaterialSymbols.txt" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\LICENSE" Link="LICENSE.txt" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\THIRD-PARTY-NOTICES.md"
+             Link="THIRD-PARTY-NOTICES.md"
+             CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(ExternalIdentity)' == 'true'">
+    <Content Include="..\packaging\Assets\StoreLogo.png"
+             Link="Assets\StoreLogo.png"
+             CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\packaging\Assets\Square44x44Logo.png"
+             Link="Assets\Square44x44Logo.png"
+             CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\packaging\Assets\Square150x150Logo.png"
+             Link="Assets\Square150x150Logo.png"
+             CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <Target Name="ValidateExternalIdentityBuild" BeforeTargets="PrepareForBuild">
+    <Error Condition="'$(ExternalIdentity)' == 'true' and '$(Packaged)' == 'true'"
+           Text="ExternalIdentity and Packaged build flavors are mutually exclusive." />
+    <Error Condition="'$(ExternalIdentity)' == 'true' and '$(ExternalApplicationManifest)' == ''"
+           Text="ExternalIdentity requires a generated ExternalApplicationManifest." />
+  </Target>
+
+  <Target Name="ValidatePortableBuild" BeforeTargets="PrepareForBuild">
+    <Error Condition="'$(Portable)' == 'true' and ('$(Packaged)' == 'true' or '$(ExternalIdentity)' == 'true')"
+           Text="Portable, Packaged, and ExternalIdentity build flavors are mutually exclusive." />
+    <Error Condition="'$(Portable)' == 'true' and '$(WindowsPackageType)' != 'None'"
+           Text="Portable builds must remain identity-free with WindowsPackageType=None." />
+  </Target>
+
+</Project>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package Name="ezy Image Viewer Setup Scope"
+           Manufacturer="koprodev"
+           Version="$(var.ProductVersion)"
+           Language="1042"
+           Scope="perUserOrMachine"
+           UpgradeCode="8B74FBC1-96A9-4BE6-91C5-489150BD44E4"
+           InstallerVersion="500"
+           Compressed="yes">
+    <Property Id="ARPSYSTEMCOMPONENT" Value="1" />
+    <MajorUpgrade DowngradeErrorMessage="더 최신 버전의 ezy Image Viewer Setup이 이미 설치되어 있습니다." />
+    <Component Id="ScopeAnchorComponent" Directory="TARGETDIR"
+               Guid="4C42D5F8-7244-4F96-98A4-E92298094DD1">
+      <RegistryValue Root="HKMU"
+                     Key="Software\koprodev\ezy Image Viewer\Installer"
+                     Name="BundleScopeAnchor"
+                     Type="string"
+                     Value="$(var.ProductVersion)"
+                     KeyPath="yes" />
+    </Component>
+    <Feature Id="ScopeAnchor" Level="1" AllowAbsent="no">
+      <ComponentRef Id="ScopeAnchorComponent" />
+    </Feature>
+  </Package>
+</Wix>

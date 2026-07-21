@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Dedicated framework identity for the untrusted codec boundary. -->
+<Package
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10">
+
+  <Identity Name="GRTech.ezyImageViewer.CodecHost"
+            Publisher="{{PUBLISHER}}"
+            Version="{{VERSION}}"
+            ProcessorArchitecture="x64" />
+
+  <Properties>
+    <DisplayName>ezy Image Viewer Codec Host</DisplayName>
+    <PublisherDisplayName>grtech-devpro</PublisherDisplayName>
+    <Description>Isolated native document codec runtime for ezy Image Viewer.</Description>
+    <Logo>Assets\StoreLogo.png</Logo>
+    <Framework>true</Framework>
+  </Properties>
+
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.19041.0" MaxVersionTested="10.0.26100.0" />
+  </Dependencies>
+
+  <Resources>
+    <Resource Language="ko-KR" />
+  </Resources>
+
+</Package>

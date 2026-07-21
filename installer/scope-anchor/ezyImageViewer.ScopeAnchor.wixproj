@@ -1,0 +1,12 @@
+<Project Sdk="WixToolset.Sdk/7.0.0">
+  <PropertyGroup>
+    <AcceptEula>wix7</AcceptEula>
+    <InstallerPlatform>x64</InstallerPlatform>
+    <Cultures>ko-KR</Cultures>
+    <OutputType>Package</OutputType>
+    <OutputName>ezyImageViewer-$(ProductVersion)-scope-anchor</OutputName>
+    <ProductVersion Condition="'$(ProductVersion)' == ''">1.0.0</ProductVersion>
+    <DefineConstants>$(DefineConstants);ProductVersion=$(ProductVersion)</DefineConstants>
+    <SuppressSpecificWarnings>$(SuppressSpecificWarnings);1076</SuppressSpecificWarnings>
+  </PropertyGroup>
+</Project>

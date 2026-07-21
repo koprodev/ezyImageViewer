@@ -1,0 +1,172 @@
+# Public-source CI. Production release binaries remain disabled until every release gate passes.
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    runs-on: windows-2025
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
+        with:
+          global-json-file: global.json
+      - name: Restore (locked)
+        run: >-
+          dotnet restore EzyImageViewer.slnx --locked-mode
+          -p:NuGetAuditMode=all -p:WarningsAsErrors=NU1903%3BNU1904
+      - name: Build
+        run: dotnet build EzyImageViewer.slnx -c Release --no-restore
+      - name: Test
+        run: >-
+          dotnet test EzyImageViewer.Tests/EzyImageViewer.Tests.csproj
+          -c Release --no-build --logger trx --results-directory TestResults
+      - name: Publication readiness contracts
+        shell: powershell
+        run: |
+          powershell -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File packaging/test-publication-readiness-contract.ps1
+          powershell -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File packaging/test-public-source-snapshot-contract.ps1
+          powershell -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File packaging/test-portable-release-contract.ps1
+      - name: External-location foundation contracts
+        shell: powershell
+        run: |
+          powershell -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File packaging/test-external-location-contract.ps1
+          powershell -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File packaging/test-msi-foundation-contract.ps1
+          powershell -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File packaging/test-identity-registration-backend.ps1
+      - name: Verify external-location source to artifact
+        shell: powershell
+        run: >-
+          powershell -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass
+          -File packaging/verify-external-location-build.ps1
+          -Version 1.0.0.1 -CodecHostVersion 1.0.0.1
+          -Publisher "CN=ezyImageViewer Dev" -MinVersion 10.0.19041.0
+      - name: Codec security mutation gate
+        env:
+          EZYIMAGEVIEWER_RUN_CODEC_MUTATION_FUZZ: "1"
+        run: >-
+          dotnet test EzyImageViewer.Tests/EzyImageViewer.Tests.csproj
+          -c Release --no-build
+          --filter "FullyQualifiedName~CodecMutationFuzzGateTests"
+          --logger "trx;LogFileName=codec-security.trx"
+          --results-directory TestResults
+      - name: Codec performance qualification telemetry
+        continue-on-error: true
+        env:
+          EZYIMAGEVIEWER_RUN_CODEC_PERFORMANCE: "1"
+        run: >-
+          dotnet test EzyImageViewer.Tests/EzyImageViewer.Tests.csproj
+          -c Release --no-build
+          --filter "FullyQualifiedName~CodecPerformanceGateTests"
+          --logger "trx;LogFileName=codec-performance-qualification.trx"
+          --results-directory TestResults
+      - name: Restore packaged x64 (locked)
+        run: >-
+          dotnet restore EzyImageViewer.App/EzyImageViewer.App.csproj
+          -p:Packaged=true -p:Platform=x64 --locked-mode
+          -p:NuGetAuditMode=all -p:WarningsAsErrors=NU1903%3BNU1904
+      - name: Build packaged x64
+        run: >-
+          dotnet build EzyImageViewer.App/EzyImageViewer.App.csproj
+          -c Release -p:Packaged=true -p:Platform=x64 --no-restore
+      - name: Pack unsigned CI pair
+        shell: powershell
+        run: >-
+          powershell -NoProfile -ExecutionPolicy Bypass
+          -File packaging/pack-msix.ps1
+          -Version 1.0.0.1 -CodecHostVersion 1.0.0.1
+          -Publisher "CN=ezyImageViewer Dev" -NoBuild -SkipSign
+      - name: Verify actual MSIX pair
+        shell: powershell
+        run: >-
+          powershell -NoProfile -ExecutionPolicy Bypass
+          -File packaging/verify-msix-release.ps1
+          -MainPackage packaging/out/ezyImageViewer.msix
+          -CodecHostPackage packaging/out/ezyImageViewer.CodecHost.msix
+          -Version 1.0.0.1 -CodecHostVersion 1.0.0.1
+          -Publisher "CN=ezyImageViewer Dev" -RequireBuildOutputMatch
+      - name: Build and verify unsigned WiX installer set
+        shell: powershell
+        run: >-
+          powershell -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass
+          -File packaging/build-wix-installer.ps1
+          -Version 1.0.0.1 -CodecHostVersion 1.0.0.1
+          -Publisher "CN=ezyImageViewer Dev"
+          -CodecHostPackage packaging/out/ezyImageViewer.CodecHost.msix
+          -EulaRtf installer/assets/EULA.rtf
+          -OutputDirectory installer/out/ci-wix
+          -MinVersion 10.0.19041.0 -DevelopmentUnsigned
+      - name: Generate channel-neutral App Installer
+        shell: powershell
+        run: >-
+          powershell -NoProfile -ExecutionPolicy Bypass
+          -File packaging/generate-appinstaller.ps1
+          -MainPackage packaging/out/ezyImageViewer.msix
+          -CodecHostPackage packaging/out/ezyImageViewer.CodecHost.msix
+          -OutputPath packaging/out/ezyImageViewer.appinstaller
+          -AppInstallerUri https://example.invalid/ezyimageviewer/ezyImageViewer.appinstaller
+          -MainPackageUri https://example.invalid/ezyimageviewer/ezyImageViewer.msix
+          -CodecHostPackageUri https://example.invalid/ezyimageviewer/ezyImageViewer.CodecHost.msix
+      - name: Verify App Installer against actual pair
+        shell: powershell
+        run: >-
+          powershell -NoProfile -ExecutionPolicy Bypass
+          -File packaging/verify-appinstaller-release.ps1
+          -AppInstallerFile packaging/out/ezyImageViewer.appinstaller
+          -MainPackage packaging/out/ezyImageViewer.msix
+          -CodecHostPackage packaging/out/ezyImageViewer.CodecHost.msix
+          -AppInstallerUri https://example.invalid/ezyimageviewer/ezyImageViewer.appinstaller
+          -MainPackageUri https://example.invalid/ezyimageviewer/ezyImageViewer.msix
+          -CodecHostPackageUri https://example.invalid/ezyimageviewer/ezyImageViewer.CodecHost.msix
+      - name: Exercise App Installer fail-closed mutations
+        shell: powershell
+        run: >-
+          powershell -NoProfile -ExecutionPolicy Bypass
+          -File packaging/test-appinstaller-contract.ps1
+          -MainPackage packaging/out/ezyImageViewer.msix
+          -CodecHostPackage packaging/out/ezyImageViewer.CodecHost.msix
+      - name: Generate checksums, manifest and SBOM
+        shell: powershell
+        run: >-
+          powershell -NoProfile -ExecutionPolicy Bypass
+          -File packaging/generate-release-metadata.ps1
+          -Version 1.0.0.1 -CodecHostVersion 1.0.0.1
+          -OutputDirectory packaging/out
+          -MainMsix packaging/out/ezyImageViewer.msix
+          -CodecHostMsix packaging/out/ezyImageViewer.CodecHost.msix
+          -AppInstallerFile packaging/out/ezyImageViewer.appinstaller
+          -MainDepsJson EzyImageViewer.App/bin/packaged/x64/Release/net10.0-windows10.0.26100.0/win-x64/ezyImageViewer.deps.json
+          -CodecHostDepsJson EzyImageViewer.CodecHost/bin/Release/net10.0/win-x64/EzyImageViewer.CodecHost.deps.json
+          -MainProjectAssetsJson EzyImageViewer.App/obj/packaged/project.assets.json
+          -CodecHostProjectAssetsJson EzyImageViewer.CodecHost/obj/project.assets.json
+      - name: Re-verify generated hashes
+        shell: powershell
+        run: >-
+          powershell -NoProfile -ExecutionPolicy Bypass
+          -File packaging/verify-msix-release.ps1
+          -MainPackage packaging/out/ezyImageViewer.msix
+          -CodecHostPackage packaging/out/ezyImageViewer.CodecHost.msix
+          -Version 1.0.0.1 -CodecHostVersion 1.0.0.1
+          -Publisher "CN=ezyImageViewer Dev"
+          -HashesFile packaging/out/SHA256SUMS.txt
+          -AppInstallerFile packaging/out/ezyImageViewer.appinstaller
+          -RequireBuildOutputMatch
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: test-results
+          path: TestResults/**/*.trx
+          if-no-files-found: error
+          retention-days: 14
+      # Unsigned package outputs are validation inputs, not public CI artifacts.

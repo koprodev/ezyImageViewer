@@ -1,0 +1,20 @@
+<Project>
+  <PropertyGroup>
+    <EnableCodecHostDiagnostics Condition="'$(EnableCodecHostDiagnostics)' == '' and '$(Configuration)' == 'Debug'">true</EnableCodecHostDiagnostics>
+    <EnableCodecHostDiagnostics Condition="'$(EnableCodecHostDiagnostics)' == ''">false</EnableCodecHostDiagnostics>
+    <DefineConstants Condition="'$(EnableCodecHostDiagnostics)' == 'true'">$(DefineConstants);CODEC_HOST_DIAGNOSTICS</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(EnableCodecHostDiagnostics)' != 'true'">
+    <Compile Remove="DiagnosticOperationProcessor.cs" />
+  </ItemGroup>
+
+  <Target Name="GetCodecHostBundleFiles"
+          DependsOnTargets="Build"
+          Returns="@(_CodecHostBundleFile)">
+    <ItemGroup>
+      <_CodecHostBundleFile Include="$(TargetDir)**\*"
+                            Exclude="$(TargetDir)**\*.pdb;$(TargetDir)ref\**" />
+    </ItemGroup>
+  </Target>
+</Project>

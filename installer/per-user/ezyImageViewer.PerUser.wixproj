@@ -1,0 +1,23 @@
+<Project Sdk="WixToolset.Sdk/7.0.0">
+  <PropertyGroup>
+    <AcceptEula>wix7</AcceptEula>
+    <InstallerPlatform>x64</InstallerPlatform>
+    <Cultures>ko-KR</Cultures>
+    <OutputType>Package</OutputType>
+    <!-- Windows App SDK XAML MUI version resources contain LCIDs rejected by ICE03. -->
+    <!-- ICE91 assumes an impossible per-machine transition for this fixed per-user package. -->
+    <!-- The app-local Material Symbols font is not registered in the system FontsFolder. -->
+    <SuppressIces>ICE03;ICE60;ICE91</SuppressIces>
+    <OutputName>ezyImageViewer-$(ProductVersion)-x64-per-user</OutputName>
+    <ProductVersion Condition="'$(ProductVersion)' == ''">1.0.0</ProductVersion>
+    <GeneratedPayloadSource Condition="'$(GeneratedPayloadSource)' == ''">..\generated\Payload.PerUser.wxs</GeneratedPayloadSource>
+    <EulaRtf Condition="'$(EulaRtf)' == ''">..\assets\EULA.rtf</EulaRtf>
+    <DefineConstants>$(DefineConstants);ProductVersion=$(ProductVersion);InstallerScope=perUser;IdentityScope=CurrentUser;RegistryRoot=HKCU;Impersonate=yes;StartMenuRoot=ProgramMenuFolder;DesktopRoot=DesktopFolder;UpgradeCode=3397C80C-EF0F-4531-B152-860A092A6437;StartMenuComponentGuid={C3CB5431-9F95-4C38-A851-470FE5E97C09};DesktopComponentGuid={27A31AC0-C451-4D45-9B03-0597BA69882F};FileAssociationComponentGuid={E7DC74C2-5278-4D20-A76E-885055F925F8};ApplicationPathComponentGuid={C90857B2-704A-4C47-9401-2D98339E7E97};EulaRtf=$(EulaRtf)</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\common\Product.wxs" Link="Product.wxs" />
+    <Compile Include="$(GeneratedPayloadSource)" Link="Payload.wxs" />
+    <PackageReference Include="WixToolset.UI.wixext" />
+    <PackageReference Include="WixToolset.Util.wixext" />
+  </ItemGroup>
+</Project>

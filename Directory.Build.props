@@ -1,0 +1,47 @@
+<Project>
+  <PropertyGroup>
+    <Product>ezy Image Viewer</Product>
+    <Company>koprodev</Company>
+    <Copyright>Copyright (c) 2026 koprodev</Copyright>
+    <Version>0.1.0-m0</Version>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Deterministic>true</Deterministic>
+    <AnalysisLevel>10.0</AnalysisLevel>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <InvariantGlobalization>false</InvariantGlobalization>
+  </PropertyGroup>
+
+  <!-- The product and installer support win-x64 only. Keeping the RID graph uniform prevents
+       external publish restores from making referenced-project lock files unusable by CI. -->
+  <PropertyGroup Condition="'$(MSBuildProjectExtension)' == '.csproj'">
+    <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
+  </PropertyGroup>
+
+  <!-- The packaged (MSIX) flavor builds into its own bin/obj tree so pack-msix.ps1 -NoBuild can
+       never lay out a dev-flavor output (ADR-0018); the stock bin/obj must stay glob-excluded
+       or their stale generated sources leak into the compile items. -->
+  <PropertyGroup Condition="'$(Packaged)' == 'true'">
+    <BaseOutputPath>bin\packaged\</BaseOutputPath>
+    <BaseIntermediateOutputPath>obj\packaged\</BaseIntermediateOutputPath>
+    <DefaultItemExcludes>$(DefaultItemExcludes);bin\**;obj\**</DefaultItemExcludes>
+  </PropertyGroup>
+
+  <!-- External-location identity embeds a Publisher-bound fusion manifest and therefore needs
+       an output tree isolated from both the normal dev loop and the full-MSIX flavor. -->
+  <PropertyGroup Condition="'$(ExternalIdentity)' == 'true'">
+    <BaseOutputPath>bin\external\</BaseOutputPath>
+    <BaseIntermediateOutputPath>obj\external\</BaseIntermediateOutputPath>
+    <DefaultItemExcludes>$(DefaultItemExcludes);bin\**;obj\**</DefaultItemExcludes>
+  </PropertyGroup>
+
+  <!-- The identity-free portable preview has its own output tree so its archive can never
+       inherit package identity, installer manifests, or stale development-loop outputs. -->
+  <PropertyGroup Condition="'$(Portable)' == 'true'">
+    <BaseOutputPath>bin\portable\</BaseOutputPath>
+    <BaseIntermediateOutputPath>obj\portable\</BaseIntermediateOutputPath>
+    <DefaultItemExcludes>$(DefaultItemExcludes);bin\**;obj\**</DefaultItemExcludes>
+  </PropertyGroup>
+</Project>

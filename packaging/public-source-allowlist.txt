@@ -1,0 +1,36 @@
+# Product source and tests.
+.github/
+EzyImageViewer.App/
+EzyImageViewer.Capture/
+EzyImageViewer.CodecHost/
+EzyImageViewer.CodecProtocol/
+EzyImageViewer.Core/
+EzyImageViewer.Imaging/
+EzyImageViewer.Infrastructure/
+EzyImageViewer.Rendering/
+EzyImageViewer.Tests/
+installer/
+packaging/
+
+# Public documentation only.
+docs/adr/ADR-0013-material-symbols-font-icons.md
+docs/adr/ADR-0019-external-location-identity-wix-transition.md
+docs/code-signing-policy.md
+docs/operations.md
+docs/portable-readme.txt
+docs/portable-release-notes.md
+docs/privacy.md
+docs/release-process.md
+docs/signpath-readiness.md
+docs/user-guide.md
+
+# Repository build and license files.
+.gitattributes
+.gitignore
+Directory.Build.props
+Directory.Packages.props
+EzyImageViewer.slnx
+global.json
+LICENSE
+README.md
+THIRD-PARTY-NOTICES.md

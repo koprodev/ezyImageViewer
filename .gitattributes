@@ -1,0 +1,9 @@
+* text=auto eol=lf
+
+*.ico binary
+*.png binary
+*.ttf binary
+
+# Freeze upstream third-party notice bytes so their hash-pinned release contract
+# survives eol normalization across clones and CI checkouts.
+EzyImageViewer.CodecHost/Notices/PDFium/** -text -diff

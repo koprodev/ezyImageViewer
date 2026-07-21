@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.19041.0</TargetPlatformMinVersion>
+    <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
+    <RootNamespace>EzyImageViewer.Imaging</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EzyImageViewer.Core\EzyImageViewer.Core.csproj" />
+    <ProjectReference Include="..\EzyImageViewer.CodecProtocol\EzyImageViewer.CodecProtocol.csproj" />
+    <PackageReference Include="SkiaSharp" />
+    <PackageReference Include="Svg.Skia" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="EzyImageViewer.Tests" />
+  </ItemGroup>
+
+</Project>

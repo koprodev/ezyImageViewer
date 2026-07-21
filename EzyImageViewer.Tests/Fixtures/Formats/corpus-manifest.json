@@ -1,0 +1,27 @@
+{
+  "$schema": "corpus-manifest.schema.json",
+  "schemaVersion": 2,
+  "minimumNormalPerExtension": 30,
+  "formats": [
+    { "extension": ".jpg",  "format": "Jpeg", "supportTier": "official", "samples": [] },
+    { "extension": ".jpeg", "format": "Jpeg", "supportTier": "official", "samples": [] },
+    { "extension": ".jfif", "format": "Jpeg", "supportTier": "official", "samples": [] },
+    { "extension": ".png",  "format": "Png", "supportTier": "official", "samples": [] },
+    { "extension": ".bmp",  "format": "Bmp", "supportTier": "official", "samples": [] },
+    { "extension": ".dib",  "format": "Bmp", "supportTier": "official", "samples": [] },
+    { "extension": ".rle",  "format": "Bmp", "supportTier": "official", "samples": [] },
+    { "extension": ".gif",  "format": "Gif", "supportTier": "official", "samples": [] },
+    { "extension": ".tif",  "format": "Tiff", "supportTier": "official", "samples": [] },
+    { "extension": ".tiff", "format": "Tiff", "supportTier": "official", "samples": [] },
+    { "extension": ".ico",  "format": "Ico", "supportTier": "official", "samples": [] },
+    { "extension": ".webp", "format": "WebP", "supportTier": "official", "samples": [] },
+    { "extension": ".avif", "format": "Avif", "supportTier": "conditional", "samples": [] },
+    { "extension": ".heic", "format": "Heif", "supportTier": "conditional", "samples": [] },
+    { "extension": ".heif", "format": "Heif", "supportTier": "conditional", "samples": [] },
+    { "extension": ".hif",  "format": "Heif", "supportTier": "conditional", "samples": [] },
+    { "extension": ".pdf",  "format": "Pdf", "supportTier": "conditional", "samples": [] },
+    { "extension": ".svg",  "format": "Svg", "supportTier": "official", "samples": [] },
+    { "extension": ".svgz", "format": "Svg", "supportTier": "official", "samples": [] },
+    { "extension": ".psd",  "format": "Psd", "supportTier": "limited", "samples": [] }
+  ]
+}

@@ -1,0 +1,17 @@
+<Project>
+  <!-- Native dependency symbols are runtime assets, so standard DebugSymbols properties do not
+       remove them. Filter after publish resolution to keep the copied payload and PublishOutputs
+       inventory identical. -->
+  <Target Name="EzyFilterMsiPublishSymbols" AfterTargets="ComputeFilesToPublish">
+    <ItemGroup>
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)"
+                             Condition="'%(ResolvedFileToPublish.Extension)' == '.pdb'" />
+      <ResolvedFileToPublish Include="$(ProjectPriFullPath)"
+                             Exclude="@(ResolvedFileToPublish)"
+                             Condition="Exists('$(ProjectPriFullPath)')">
+        <RelativePath>$(ProjectPriFileName)</RelativePath>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      </ResolvedFileToPublish>
+    </ItemGroup>
+  </Target>
+</Project>

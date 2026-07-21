@@ -1,0 +1,26 @@
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Latest stable as of 2026-07-16 (dotnet package search). -->
+    <PackageVersion Include="Microsoft.WindowsAppSDK" Version="2.2.0" />
+    <PackageVersion Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.2270" />
+    <PackageVersion Include="SkiaSharp" Version="4.150.1" />
+    <PackageVersion Include="SkiaSharp.HarfBuzz" Version="4.150.1" />
+    <PackageVersion Include="SkiaSharp.Views.WinUI" Version="4.150.1" />
+    <!-- Tests -->
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.8.1" />
+    <PackageVersion Include="xunit" Version="2.9.3" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
+    <!-- M0-B format spike candidates; adoption decided by ADR-0005 -->
+    <PackageVersion Include="PDFtoImage" Version="5.2.1" />
+    <PackageVersion Include="Svg.Skia" Version="5.1.1" />
+    <PackageVersion Include="Magick.NET-Q8-AnyCPU" Version="14.15.0" />
+    <!-- WiX v7 use and explicit wix7 EULA acceptance were approved on 2026-07-19. -->
+    <PackageVersion Include="WixToolset.UI.wixext" Version="7.0.0" />
+    <PackageVersion Include="WixToolset.Util.wixext" Version="7.0.0" />
+    <PackageVersion Include="WixToolset.BootstrapperApplications.wixext" Version="7.0.0" />
+  </ItemGroup>
+</Project>
