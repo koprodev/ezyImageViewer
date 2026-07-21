@@ -1,6 +1,6 @@
 {
     "schemaVersion":  2,
-    "sourceCommit":  "0777d7d49c2d8d2b7dd3bd7fa954bb29dbf3fe67",
+    "sourceCommit":  "9c9461e067a72f62ad6078e14fc918c60537009e",
     "allowlistedPaths":  [
                              ".github/",
                              "EzyImageViewer.App/",
@@ -72,7 +72,7 @@
                   },
                   {
                       "path":  "docs/adr/ADR-0019-external-location-identity-wix-transition.md",
-                      "sha256":  "69F3F4D5E691740F2DFAEBB267317B4CE5161CD7CBC19578C0BC4747F5409B46"
+                      "sha256":  "A5E111C4C19475F9210F9745F2B36CC0213B8B53FF5F03DD887699DFED2A50F3"
                   },
                   {
                       "path":  "docs/code-signing-policy.md",
@@ -80,7 +80,7 @@
                   },
                   {
                       "path":  "docs/operations.md",
-                      "sha256":  "9CDCC59E0A58010A8A003D4CC2837D7D20EE74F75B8E19C5915A581E9BB983F6"
+                      "sha256":  "14A1ED3F66EB8847616234114F2C2FE1C186541D033A415D3C77681FD7ADC160"
                   },
                   {
                       "path":  "docs/portable-readme.txt",
@@ -92,7 +92,7 @@
                   },
                   {
                       "path":  "docs/preview-release-notes.md",
-                      "sha256":  "4BDC2F206A96C8EEC4F489A10182EA28489499DA9FF4321ADE7AC8803986BAB7"
+                      "sha256":  "60829DD6F87EB08E3482CA0F68743126F137A3FC4EDF137F41551BF2BB151BF6"
                   },
                   {
                       "path":  "docs/privacy.md",
@@ -100,7 +100,7 @@
                   },
                   {
                       "path":  "docs/release-process.md",
-                      "sha256":  "CE64DD4AD6F05DE16C54BF700B80397A53777C57A4DA7F6C07CB56BE0FD2F554"
+                      "sha256":  "55C17B1720F64925EC2AB8F34ACAACFDFADA87B508DFD3F90532696FD75C4529"
                   },
                   {
                       "path":  "docs/signpath-readiness.md",
@@ -108,7 +108,7 @@
                   },
                   {
                       "path":  "docs/user-guide.md",
-                      "sha256":  "E3E734CC7DEEFAA1AF6F8569CB74A421A79B9595C52727E8B7C5911B1413CB97"
+                      "sha256":  "1557D281E3E6366656EA1E6FFC42093893108C45ED1A924F3268B2721336D52C"
                   },
                   {
                       "path":  "EzyImageViewer.App/Activation/ActivationArgsConverter.cs",
@@ -1204,7 +1204,7 @@
                   },
                   {
                       "path":  "installer/bundle/Bundle.wxs",
-                      "sha256":  "11EEBBAB627D9E480FCEA6156BADE41D003FDF0E5A6B3FF026061C547D8118F8"
+                      "sha256":  "762BFCE9747D6E0B1C71B12FB3C43B3C57593559DD5523B6941EB9D536C55A60"
                   },
                   {
                       "path":  "installer/bundle/ezyImageViewer.Bundle.wixproj",
@@ -1224,7 +1224,7 @@
                   },
                   {
                       "path":  "installer/common/Product.wxs",
-                      "sha256":  "28158117882B2FC247D9FAA5589113CEB7D8F9633CF65A38C5C258DD6FD3F239"
+                      "sha256":  "CF37C5137C58189B63B8C55AC637530F3F0BAE8EC918790370D10CE1139CE7F1"
                   },
                   {
                       "path":  "installer/per-machine/ezyImageViewer.PerMachine.wixproj",
@@ -1360,7 +1360,7 @@
                   },
                   {
                       "path":  "packaging/preview-release.json",
-                      "sha256":  "FB55AC596B596168B8D8AB10AB9CD1A5F484345D3CE2A0F998AF48828957945F"
+                      "sha256":  "46572C18852FF3ACAE9F023E59E25A627F21ACAECAB4AFCD18D44F9BD1A3F7EE"
                   },
                   {
                       "path":  "packaging/public-source-allowlist.txt",
@@ -1408,7 +1408,7 @@
                   },
                   {
                       "path":  "packaging/test-preview-release-contract.ps1",
-                      "sha256":  "F6F1E31B1676EAF1A7CAF70E741362426BCD07C2DC1C37446901AB70E370B190"
+                      "sha256":  "A55A11087AD4AB4DB9FFAE70A0D22AB8F1B88706AE0602230FEC38C407C2AE18"
                   },
                   {
                       "path":  "packaging/test-publication-readiness-contract.ps1",
@@ -1448,15 +1448,15 @@
                   },
                   {
                       "path":  "packaging/verify-wix-bundle.ps1",
-                      "sha256":  "95E1D5D4F36F3085ED2AA17D0A33914A4766C8A57A8E6470E38602FAC78F3B99"
+                      "sha256":  "06613D8B4461F1163394D8C5C1AE395A180E56334CBB963672C7BEDE1F9D9845"
                   },
                   {
                       "path":  "packaging/verify-wix-installer.ps1",
-                      "sha256":  "D863B7369F3B6EB1258A6DE97990FBB339CD1B8CC1D37808BD2BD838B394EDBA"
+                      "sha256":  "2862A668DF85E1A8E506A8233FFE497B5EBA312F4F6033482F9D1443247CD7F9"
                   },
                   {
                       "path":  "README.md",
-                      "sha256":  "3A5F0F4C0DEA20A8E3441E59FC89D9F388C83CB10D42385451B89A3A30F3F1A5"
+                      "sha256":  "CD8FDC09E56457E083A086C4CB864A1FFCCEC3A2454A330F93F929D60354A704"
                   },
                   {
                       "path":  "THIRD-PARTY-NOTICES.md",

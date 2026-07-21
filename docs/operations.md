@@ -257,7 +257,7 @@ per-user 또는 per-machine MSI를 선택한다. 하나의 MSI에서 `ALLUSERS`�
 
 두 MSI 모두 프로그램 파일과 같은 scope의 `App Paths\ezyImageViewer.exe`를 등록한다. Burn
 완료 화면은 이 이름을 Windows Shell에 전달하므로 per-user·per-machine 실제 경로를 추측하지
-않는다. 시작 메뉴는 기본 생성하며 바탕 화면 바로가기와 지원 이미지의 Open With 후보 등록은
+않는다. 시작 메뉴와 지원 이미지의 Open With 후보 등록은 기본 생성하며 바탕 화면 바로가기는
 사용자 opt-in, 기본 꺼짐이다. installer는 기존 확장자의 기본 앱 값을 덮어쓰지 않는다.
 
 설치·repair·제거 실패를 조사할 때는 먼저 MSI 또는 Burn 로그, Windows 이벤트, 설치 폴더와

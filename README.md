@@ -35,11 +35,11 @@ images.
 
 ## Downloads and updates
 
-The current [Installer + Portable preview](https://github.com/koprodev/ezy-image-viewer-releases/releases/tag/v1.0.11-preview.1)
+The current [Installer + Portable preview](https://github.com/koprodev/ezy-image-viewer-releases/releases/tag/v1.0.12-preview.1)
 provides an unsigned scope-selecting Setup EXE and an unsigned compressed
 single-file Portable EXE. Verify either file against `SHA256SUMS.txt` before
-running it. Setup can optionally register supported image types as Windows
-Open With candidates; it never forces a default handler. Portable installs no
+running it. Setup registers supported image types as Windows Open With
+candidates by default; it never forces a default handler. Portable installs no
 registry entries or shortcuts. Windows SmartScreen may warn for both files.
 
 The earlier folder-based

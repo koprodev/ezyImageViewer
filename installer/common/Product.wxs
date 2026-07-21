@@ -25,7 +25,7 @@
             Message="ezy Image Viewer는 Windows 10 build 19041 이상의 x64 Windows가 필요합니다." />
 
     <Property Id="EZY_DESKTOP_SHORTCUT" Secure="yes" Value="0" />
-    <Property Id="EZY_FILE_ASSOCIATIONS" Secure="yes" Value="0" />
+    <Property Id="EZY_FILE_ASSOCIATIONS" Secure="yes" Value="1" />
     <Property Id="EZY_REGISTER_IDENTITY" Secure="yes"
               Value="$(var.EnableIdentityRegistration)" />
     <Property Id="ApplicationFolderName" Value="ezy Image Viewer" />
@@ -144,7 +144,8 @@
         <Level Value="1" Condition="EZY_DESKTOP_SHORTCUT = 1" />
         <ComponentGroupRef Id="DesktopShortcutComponents" />
       </Feature>
-      <Feature Id="FileAssociations" Title="지원 이미지 형식 등록" Level="2">
+      <!-- A new feature ID prevents upgrades from retaining the pre-1.0.12 absent feature state. -->
+      <Feature Id="ImageOpenWith" Title="지원 이미지 형식 등록" Level="2">
         <Level Value="1" Condition="EZY_FILE_ASSOCIATIONS = 1" />
         <ComponentGroupRef Id="FileAssociationComponents" />
       </Feature>

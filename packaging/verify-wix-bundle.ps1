@@ -68,17 +68,19 @@ try {
         $variables.PerMachineInstallFolder.Value 'Per-machine default bundle path mismatch.'
     Assert-Equal '0' $variables.EzyDesktopShortcut.Value `
         'Bundle desktop shortcut must default off.'
-    Assert-Equal '0' $variables.EzyFileAssociations.Value `
-        'Bundle file associations must default off.'
+    Assert-Equal '1' $variables.EzyFileAssociations.Value `
+        'Bundle file associations must default on.'
     Assert-Equal 'ezyImageViewer.exe' $variables.LaunchTarget.Value `
         'Bundle launch target must resolve through the selected scope App Paths registration.'
     Assert-True (-not $variables.ContainsKey('LaunchArguments')) `
         'Bundle launch must not depend on package-identity protocol registration.'
     foreach ($name in @('PerUserInstallFolder', 'PerMachineInstallFolder',
-            'EzyDesktopShortcut', 'EzyFileAssociations')) {
+            'EzyDesktopShortcut')) {
         Assert-Equal 'yes' $variables[$name].Persisted `
             "Bundle variable '$name' must be persisted."
     }
+    Assert-Equal 'no' $variables.EzyFileAssociations.Persisted `
+        'Bundle file association choice must not preserve a previous release default.'
     Assert-True (-not $variables.ContainsKey('WixStdBAScope')) `
         'WixStdBAScope is reserved for WixStdBA and must not be authored as a bundle variable.'
 

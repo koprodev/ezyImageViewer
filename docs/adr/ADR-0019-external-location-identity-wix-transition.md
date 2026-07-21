@@ -23,7 +23,7 @@ WiX bootstrapper이며 앱 MSI 자체를 dual-purpose로 만들지 않는다.
 | 앱 MSI scope | 고정 per-user MSI와 고정 per-machine MSI 분리 |
 | 일반 설치 UX | Burn에서 현재 사용자/모든 사용자 선택, 기본은 현재 사용자 |
 | WiX | SDK·UI·Util·BootstrapperApplications 7.0.0, `AcceptEula=wix7` 승인 |
-| 파일 연결 | 명시적 opt-in, 기본 꺼짐, 기존 기본 앱 비강제 |
+| 파일 연결 | 기본 등록, 옵션에서 해제 가능, 기존 기본 앱 비강제 |
 
 WiX 승인은 개발·CI 도입에 대한 사용자 승인이다. OSMF의 조직 수익·후원·계약 조건과 제품
 라이선스 법무 판정을 대신하지 않는다.
@@ -79,9 +79,9 @@ WiX 승인은 개발·CI 도입에 대한 사용자 승인이다. OSMF의 조직
 
 ### 4. 사용자 옵션과 설치 후 실행
 
-- 시작 메뉴 바로가기는 기본 켜짐이다. 바탕 화면 바로가기와 파일 연결 feature는 level 2로
-  기본 꺼짐이며 Burn checkbox도 `0`이다.
-- 파일 연결 opt-in은 png, jpg, jpeg, bmp, gif, webp, tif, tiff의 ProgID, OpenWithProgids,
+- 시작 메뉴 바로가기와 파일 연결은 기본 켜짐이다. 바탕 화면 바로가기와 파일 연결 feature는
+  각각 level 2의 property 조건으로 제어하며 Burn checkbox의 기본값은 바탕 화면 `0`, 파일 연결 `1`이다.
+- 파일 연결은 png, jpg, jpeg, bmp, gif, webp, tif, tiff의 ProgID, OpenWithProgids,
   Capabilities, RegisteredApplications만 쓴다. 확장자 기본값은 쓰지 않는다.
 - 두 MSI는 같은 scope의 `App Paths\ezyImageViewer.exe`에 실제 실행 파일 경로를 등록한다.
   Burn WixStdBA의 단일 `LaunchTarget=ezyImageViewer.exe`는 Windows Shell이 이 값을 해석하므로
@@ -93,7 +93,7 @@ WiX 승인은 개발·CI 도입에 대한 사용자 승인이다. OSMF의 조직
 
 - 개발 gate는 `-DevelopmentUnsigned`를 명시하며 파일 이름과 metadata에 unsigned 상태를 남긴다.
   Windows가 unsigned MSIX identity 등록을 거부하므로 이 빌드는 `EZY_REGISTER_IDENTITY=0`으로
-  identity custom action을 건너뛰고 일반 데스크톱 앱·App Paths·선택형 파일 연결만 설치한다.
+  identity custom action을 건너뛰고 일반 데스크톱 앱·App Paths·파일 연결만 설치한다.
   identity와 CodecHost 등록은 production 서명 빌드에서만 활성화한다.
 - production parameter set은 승인된 current-user code-signing 인증서 thumbprint, HTTPS
   RFC 3161 timestamp URL, 고정 BuildTools 경로를 모두 요구한다. Subject=Publisher, private key,
@@ -129,7 +129,7 @@ trust store, package registration을 변경하지 않는다.
 
 ## 결과와 남은 gate
 
-구현 결과는 Windows 10 build 19041+ x64, 분리 MSI, Burn scope 선택, opt-in 파일 연결이라는 사용자
+구현 결과는 Windows 10 build 19041+ x64, 분리 MSI, Burn scope 선택, 기본 등록 파일 연결이라는 사용자
 결정을 소스와 read-only 산출물 계약에 반영한다. MRL source/license도 설치 artifact 집합에 포함한다.
 
 다만 다음은 아직 입증하지 않았다.

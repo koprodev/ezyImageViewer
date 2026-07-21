@@ -30,8 +30,8 @@
               bal:Overridable="yes" Persisted="yes" />
     <Variable Name="EzyDesktopShortcut" Type="numeric" Value="0"
               bal:Overridable="yes" Persisted="yes" />
-    <Variable Name="EzyFileAssociations" Type="numeric" Value="0"
-              bal:Overridable="yes" Persisted="yes" />
+    <Variable Name="EzyFileAssociations" Type="numeric" Value="1"
+              bal:Overridable="yes" Persisted="no" />
     <Chain>
       <MsiPackage Id="PerUserPackage" SourceFile="$(var.PerUserMsi)"
                   InstallCondition="WixStdBAScope = &quot;PerUser&quot;"

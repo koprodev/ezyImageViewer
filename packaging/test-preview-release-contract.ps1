@@ -37,6 +37,7 @@ $releaseBuild = Get-ContractText 'packaging/build-preview-release.ps1'
 $releaseVerify = Get-ContractText 'packaging/verify-preview-release.ps1'
 $wixBuild = Get-ContractText 'packaging/build-wix-installer.ps1'
 $bundleSource = Get-ContractText 'installer/bundle/Bundle.wxs'
+$productSource = Get-ContractText 'installer/common/Product.wxs'
 $themeSource = Get-ContractText 'installer/bundle/EzyRtfLargeTheme.xml'
 $bundleProject = Get-ContractText 'installer/bundle/ezyImageViewer.Bundle.wixproj'
 $englishLocalization = Get-ContractText 'installer/bundle/Bundle.en-US.wxl'
@@ -73,9 +74,11 @@ foreach ($expected in @('Bundle.en-US.wxl', 'Bundle.ko-KR.wxl', 'EULA.ko-KR.txt'
 }
 foreach ($expected in @('WixStdBAScope = &quot;PerUser&quot;',
         'WixStdBAScope = &quot;PerMachine&quot;', 'LaunchTarget="ezyImageViewer.exe"',
-        '1042\thm.wxl', '1042\license.rtf')) {
+        '1042\thm.wxl', '1042\license.rtf',
+        'EzyFileAssociations" Type="numeric" Value="1"')) {
     Assert-Contains $bundleSource $expected 'WiX bundle source'
 }
+Assert-Contains $productSource 'Feature Id="ImageOpenWith"' 'WiX MSI product source'
 foreach ($expected in @('#(loc.OptionsDesktopShortcutText)',
         '#(loc.OptionsFileAssociationsText)')) {
     Assert-Contains $themeSource $expected 'WiX bundle theme'

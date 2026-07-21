@@ -14,7 +14,7 @@ read-only artifact verifier는 구현됐지만 production Publisher·서명과 c
 ## 0. 확정 배포 방식
 
 - 공개 채널은 `koprodev/ezy-image-viewer-releases`의 GitHub Releases 한 곳으로 고정한다.
-- 기존 unsigned Basic Portable ZIP과 `v1.0.11-preview.1`의 unsigned Setup/단일 Portable을
+- 기존 unsigned Basic Portable ZIP과 `v1.0.12-preview.1`의 unsigned Setup/단일 Portable을
   명시적 개인 평가·테스트 prerelease로 제공한다.
 - 향후 production 일반 사용자의 기본 다운로드는 scope 선택형 Burn Setup이다. 고정 per-user/per-machine MSI는
   관리자·고급 사용자가 scope를 직접 고를 때 사용하는 보조 자산이다.
@@ -33,11 +33,11 @@ read-only artifact verifier는 구현됐지만 production Publisher·서명과 c
 
 ### 0.2 Installer + 단일 Portable 개인 프리릴리스
 
-`packaging/preview-release.json`은 `v1.0.11-preview.1`의 앱·CodecHost·Portable 버전과
+`packaging/preview-release.json`은 `v1.0.12-preview.1`의 앱·CodecHost·Portable 버전과
 unsigned Publisher를 고정한다. 공개 주 실행 자산은 다음 둘이다.
 
-- `ezyImageViewerSetup-1.0.11-x64-dev-unsigned.exe`: scope 선택형 Burn Setup. 파일 연결은
-  명시적 opt-in이며 기본 앱을 강제하지 않는다.
+- `ezyImageViewerSetup-1.0.12-x64-dev-unsigned.exe`: scope 선택형 Burn Setup. 지원 이미지
+  형식은 Open With 후보로 기본 등록하며 기본 앱을 강제하지 않는다.
 - `ezyImageViewer.exe`: 압축된 단일 파일 Portable. WinUI 내장 리소스 확인을 위해 파일명을 유지한다. 레지스트리와
   파일 연결을 등록하지 않고 실행 중 `%TEMP%` 계열에 런타임을 추출한다.
 
@@ -47,9 +47,9 @@ source commit에 결박된 네 자산의 길이·SHA-256을 기록한다.
 
 ```powershell
 powershell -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File `
-  packaging\build-preview-release.ps1 -OutputDirectory packaging\out\preview-1.0.11
+  packaging\build-preview-release.ps1 -OutputDirectory packaging\out\preview-1.0.12
 powershell -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File `
-  packaging\verify-preview-release.ps1 -OutputDirectory packaging\out\preview-1.0.11
+  packaging\verify-preview-release.ps1 -OutputDirectory packaging\out\preview-1.0.12
 ```
 
 GitHub에서는 `.github/workflows/release-preview.yml`을 protected `main`에서 수동 실행한다.
@@ -221,9 +221,9 @@ restore 실패로 처리한다. 감사 피드에 연결되지 않은 실행을 �
 두 MSI의 설치 내용과 등록 책임은 분리하되, WiX가 Burn 자체를 configurable-scope로 판정하도록
 각 패키지 scope를 `perUserOrMachine`과 `perMachineOrUser`로 선언한다. WixStdBA의
 `WixStdBAScope` 값에 따라 앱 MSI 하나만 설치된다. 시작 메뉴는 기본 켜짐이고 바탕 화면 바로가기와 png/jpg/jpeg/
-bmp/gif/webp/tif/tiff의 Open With 등록은 기본 꺼짐이다. 확장자 기본 handler 값은 쓰지 않는다.
+bmp/gif/webp/tif/tiff의 Open With 등록은 기본 켜짐이다. 확장자 기본 handler 값은 쓰지 않는다.
 `-DevelopmentUnsigned` 빌드는 Windows가 unsigned MSIX identity를 거부하므로 identity 등록 custom
-action을 비활성화한다. 앱 파일·App Paths·바로가기·선택형 파일 연결은 그대로 설치한다. 승인된
+action을 비활성화한다. 앱 파일·App Paths·바로가기·파일 연결은 그대로 설치한다. 승인된
 서명으로 만드는 production 빌드만 identity와 CodecHost 등록을 수행한다.
 
 서명하지 않은 개발용 정적 검증 후보는 다음처럼 명시적으로 만든다. 출력 디렉터리는 새 경로여야

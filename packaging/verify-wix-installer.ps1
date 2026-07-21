@@ -103,8 +103,8 @@ function Test-MsiContract(
         Assert-Equal $ProductVersion $properties.ProductVersion.Value "$Scope ProductVersion mismatch."
         Assert-Equal '0' $properties.EZY_DESKTOP_SHORTCUT.Value `
             "$Scope desktop shortcut must default off."
-        Assert-Equal '0' $properties.EZY_FILE_ASSOCIATIONS.Value `
-            "$Scope file associations must default off."
+        Assert-Equal '1' $properties.EZY_FILE_ASSOCIATIONS.Value `
+            "$Scope file associations must default on."
         Assert-Equal $ExpectedIdentityRegistration $properties.EZY_REGISTER_IDENTITY.Value `
             "$Scope identity registration mode mismatch."
         Assert-Equal $ExpectedUpgradeCode $properties.UpgradeCode.Value `
@@ -140,8 +140,10 @@ function Test-MsiContract(
         Assert-Equal '1' $featureMap.Core.Level "$Scope Core feature level mismatch."
         Assert-Equal '1' $featureMap.StartMenu.Level "$Scope StartMenu feature level mismatch."
         Assert-Equal '2' $featureMap.Desktop.Level "$Scope Desktop feature must default off."
-        Assert-Equal '2' $featureMap.FileAssociations.Level `
-            "$Scope file associations feature must default off."
+        Assert-Equal '2' $featureMap.ImageOpenWith.Level `
+            "$Scope file associations feature must be controlled by its property condition."
+        Assert-True (-not $featureMap.ContainsKey('FileAssociations')) `
+            "$Scope must not migrate the pre-1.0.12 file association feature state."
 
         $featureConditions = Get-MsiRows $handle.Database 'Condition' `
             @('Feature_', 'Level', 'Condition')
@@ -150,9 +152,9 @@ function Test-MsiContract(
                     $_.Condition -ceq 'EZY_DESKTOP_SHORTCUT = 1'
                 }).Count -eq 1) "$Scope desktop opt-in condition mismatch."
         Assert-True (@($featureConditions | Where-Object {
-                    $_.Feature_ -ceq 'FileAssociations' -and $_.Level -ceq '1' -and
+                    $_.Feature_ -ceq 'ImageOpenWith' -and $_.Level -ceq '1' -and
                     $_.Condition -ceq 'EZY_FILE_ASSOCIATIONS = 1'
-                }).Count -eq 1) "$Scope association opt-in condition mismatch."
+                }).Count -eq 1) "$Scope association selection condition mismatch."
 
         $files = Get-MsiRows $handle.Database 'File' `
             @('File', 'Component_', 'FileName', 'FileSize', 'Version', 'Language')
