@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
+using SkiaSharp;
 using Xunit;
 
 namespace EzyImageViewer.Tests.Contracts;
@@ -341,13 +342,43 @@ public sealed class IconSystemContractTests
         var ttf = RepoFile("EzyImageViewer.App", "Assets", "Fonts", "MaterialSymbolsOutlined.ttf");
         var license = RepoFile("EzyImageViewer.App", "Assets", "Fonts", "LICENSE-MaterialSymbols.txt");
         Assert.Equal(
-            "0A186BE334A516CF80A4287073B788FEEF8F0FC2C633C74F4FF7828530F35293",
+            "6EB4B0BA0D788B9CFB4F22D68A768276142CBC3698177AC2803A0F1F1EB3207F",
             Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(ttf))));
         Assert.Equal(
             "58D1E17FFE5109A7AE296CAAFCADFDBE6A7D176F0BC4AB01E12A689B0499D8BD",
             Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(license))));
         Assert.Contains(@"Assets\Fonts\MaterialSymbolsOutlined.ttf", csproj, StringComparison.Ordinal);
         Assert.Contains(@"Assets\Fonts\LICENSE-MaterialSymbols.txt", csproj, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void MaterialSymbolsSubset_ContainsEveryReferencedGlyph()
+    {
+        var icons = XDocument.Load(RepoFile("EzyImageViewer.App", "Resources", "Icons.xaml"));
+        var glyphs = icons.Root!.Elements()
+            .Where(element => element.Name.LocalName is "FontIconSource" or "String")
+            .Select(element => element.Name.LocalName == "FontIconSource"
+                ? (string?)element.Attribute("Glyph")
+                : element.Value)
+            .Where(glyph => !string.IsNullOrEmpty(glyph))
+            .Select(glyph => Assert.Single(glyph!))
+            .Distinct()
+            .ToArray();
+
+        using var typeface = SKTypeface.FromFile(
+            RepoFile("EzyImageViewer.App", "Assets", "Fonts", "MaterialSymbolsOutlined.ttf"));
+        Assert.NotNull(typeface);
+        Assert.Equal("Material Symbols Outlined", typeface.FamilyName);
+
+        using var font = new SKFont(typeface, 20);
+        foreach (var glyph in glyphs)
+        {
+            var glyphId = font.GetGlyph(glyph);
+            Assert.NotEqual(0, glyphId);
+            using var path = font.GetGlyphPath(glyphId);
+            Assert.NotNull(path);
+            Assert.False(path.IsEmpty);
+        }
     }
 
     [Fact]

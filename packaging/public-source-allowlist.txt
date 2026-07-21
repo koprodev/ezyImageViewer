@@ -19,6 +19,7 @@ docs/code-signing-policy.md
 docs/operations.md
 docs/portable-readme.txt
 docs/portable-release-notes.md
+docs/preview-release-notes.md
 docs/privacy.md
 docs/release-process.md
 docs/signpath-readiness.md

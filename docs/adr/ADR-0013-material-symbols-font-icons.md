@@ -12,7 +12,8 @@ ADR-0012 결정 1은 버튼 아이콘에 FontIcon 사용을 금지했다. 이 AD
 
 1. 아이콘 glyph 소스는 동봉한 Material Symbols Outlined variable font 하나로 통일한다.
    - 자산: `EzyImageViewer.App/Assets/Fonts/MaterialSymbolsOutlined.ttf` (Content·산출물 복사).
-   - 출처 고정: `google/material-design-icons` commit `abd7f5c0e179c83f068c770650bd14ebac5d5a09`, TTF SHA-256 `0A186BE334A516CF80A4287073B788FEEF8F0FC2C633C74F4FF7828530F35293`.
+   - 출처 고정: `google/material-design-icons` commit `abd7f5c0e179c83f068c770650bd14ebac5d5a09`, 원본 TTF SHA-256 `0A186BE334A516CF80A4287073B788FEEF8F0FC2C633C74F4FF7828530F35293`.
+   - 배포 자산은 FontTools 4.63.0으로 기본 인스턴스(FILL 0·wght 400·GRAD 0·opsz 24)와 `Icons.xaml`의 55개 코드포인트만 추출한 10,008-byte subset이다. SHA-256은 `6EB4B0BA0D788B9CFB4F22D68A768276142CBC3698177AC2803A0F1F1EB3207F`이며 `packaging/subset-material-symbols-font.ps1`로 재현한다.
    - 렌더 기본 인스턴스: FILL 0 · wght 400 · GRAD 0 · opsz 24 (variable font default). 시각 크기는 FontSize 20으로 기존 20×20 grid 계약을 승계한다.
 2. 정적 아이콘은 `Icons.xaml`의 `FontIconSource`(`Icon.FontFamily` StaticResource + `Glyph`)로 정의하고, 소비처는 기존 `IconSourceElement + Icon.*` 키 패턴을 유지한다.
 3. 반복·교체되는 동적 아이콘(layer eye/lock, palette check)은 `x:String` glyph 리소스를 `IconSourceFor`가 창별 `FontIconSource` 인스턴스로 변환한다.
@@ -36,7 +37,7 @@ ADR-0012 결정 1은 버튼 아이콘에 FontIcon 사용을 금지했다. 이 AD
 
 ## 결과와 트레이드오프
 
-- 폰트 자산 10.6MB가 추가된다. 배포 크기가 문제되면 M9-B에서 사용 glyph 서브셋을 검토한다(서브셋 시 이 ADR의 SHA-256 provenance를 갱신해야 한다).
+- 전체 variable font 대신 기본 인스턴스 55-glyph subset을 배포해 폰트 자산은 10,643,392 bytes에서 10,008 bytes로 줄었다. 새 아이콘을 추가하면 subset과 SHA-256 계약을 함께 갱신해야 한다.
 - 커스텀 vector 2종과 폰트 glyph가 혼재하지만 매핑 manifest가 예외를 명시적으로 고정한다.
 - FontIcon 계열은 `IsTextScaleFactorEnabled` 기본값 true로 시스템 **텍스트 크기**(display DPI와 별개 축)에 따라 자동 확대될 수 있다. Windows 텍스트 크기 100/150/225% 실측에서 20×20 rail·14×14 palette check·회전 glyph의 clipping/정렬을 확인한 뒤 true 유지 또는 항목별 false를 결정하고 contract로 고정한다. 실측 전 일괄 false는 적용하지 않는다.
 - glyph 시각은 Google 공식 디자인을 그대로 사용해 사용자 시각 선호를 반영하며, 식별성은 아이콘 80% 사람 식별 시험으로 판정한다. 신규 아이콘(M5~M7)은 이름·코드포인트 추가만으로 확장된다.

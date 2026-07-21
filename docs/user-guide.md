@@ -19,11 +19,23 @@
   필요한 작업을 먼저 내보낸 뒤 Windows 설정에서 이전 앱을 제거하고 다시 설치해야 합니다.
 
 정식 서명 후보의 clean VM 설치·업그레이드·제거 검증은 아직 출시 전 gate입니다. 파일 이름에
-`dev-unsigned`가 있는 개발 산출물은 일반 사용자 설치용이 아닙니다.
+`dev-unsigned`가 있는 공개 프리릴리스는 개인 평가·테스트용이며 일반 사용자용 정식판이 아닙니다.
+
+### Installer + 단일 Portable 프리릴리스
+
+`v1.0.10-preview.1`은 두 가지 실행 방식을 제공합니다.
+
+- Setup EXE: 현재 사용자/모든 사용자 설치, 시작 메뉴 및 선택적 바탕 화면·이미지 연결 등록
+- 단일 Portable EXE: 설치와 레지스트리 등록 없이 실행하며 필요한 런타임을 사용자 임시
+  폴더에 풀어 사용
+
+두 파일 모두 unsigned이므로 실행 전 함께 게시된 `SHA256SUMS.txt`와 SHA-256을 대조해야 합니다.
+Portable을 Windows 연결 프로그램으로 직접 선택했다면 EXE를 이동하거나 이름을 바꾸지 마세요.
+Windows에 저장된 경로가 더 이상 유효하지 않게 됩니다.
 
 ### Basic Portable 프리릴리스
 
-현재 공개된 첫 바이너리는 설치 패키지가 아니라 unsigned 평가·테스트용 ZIP입니다.
+기존에 공개된 첫 바이너리는 설치 패키지가 아니라 unsigned 평가·테스트용 ZIP입니다.
 ZIP 전체를 일반 로컬 폴더에 압축 해제하고 `ezyImageViewer.exe`를 실행합니다.
 실행 전 함께 게시된 `SHA256SUMS.txt`와 ZIP의 SHA-256을 대조하세요. 코드 서명이 없어
 Windows SmartScreen이 경고할 수 있습니다.

@@ -991,7 +991,7 @@ $fontLicenseSourcePath = Join-Path $repo 'EzyImageViewer.App\Assets\Fonts\LICENS
 $fontSha256 = Assert-MsixEntryMatchesFile -PackagePath $mainArtifact.FullName `
     -EntryName 'Assets/Fonts/MaterialSymbolsOutlined.ttf' -FilePath $fontSourcePath `
     -PackageLabel 'Main MSIX'
-$expectedFontSha256 = '0A186BE334A516CF80A4287073B788FEEF8F0FC2C633C74F4FF7828530F35293'
+$expectedFontSha256 = '6EB4B0BA0D788B9CFB4F22D68A768276142CBC3698177AC2803A0F1F1EB3207F'
 if (-not [string]::Equals($fontSha256, $expectedFontSha256, [StringComparison]::Ordinal)) {
     throw 'Main MSIX Material Symbols font does not match the pinned SHA-256.'
 }

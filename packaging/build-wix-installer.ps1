@@ -212,19 +212,19 @@ try {
     $anchorProject = Join-Path $repositoryRoot `
         'installer\scope-anchor\ezyImageViewer.ScopeAnchor.wixproj'
     Invoke-Checked 'Build per-user MSI' {
-        & dotnet build $perUserProject -c Release --no-restore `
+        & dotnet build $perUserProject -t:Rebuild -c Release --no-restore `
             "-p:ProductVersion=$productVersion" `
             "-p:GeneratedPayloadSource=$perUserFragment" `
             "-p:EulaRtf=$($eula.FullName)" -p:AcceptEula=wix7
     }
     Invoke-Checked 'Build per-machine MSI' {
-        & dotnet build $perMachineProject -c Release --no-restore `
+        & dotnet build $perMachineProject -t:Rebuild -c Release --no-restore `
             "-p:ProductVersion=$productVersion" `
             "-p:GeneratedPayloadSource=$perMachineFragment" `
             "-p:EulaRtf=$($eula.FullName)" -p:AcceptEula=wix7
     }
     Invoke-Checked 'Build scope anchor MSI' {
-        & dotnet build $anchorProject -c Release --no-restore `
+        & dotnet build $anchorProject -t:Rebuild -c Release --no-restore `
             "-p:ProductVersion=$productVersion" -p:AcceptEula=wix7
     }
 
@@ -256,7 +256,7 @@ try {
         'contracts\package\Assets\Square150x150Logo.png'
     $themeFile = $themeSource.FullName
     Invoke-Checked 'Build Burn bundle' {
-        & dotnet build $bundleProject -c Release --no-restore `
+        & dotnet build $bundleProject -t:Rebuild -c Release --no-restore `
             "-p:ProductVersion=$productVersion" "-p:PerUserMsi=$perUserMsi" `
             "-p:PerMachineMsi=$perMachineMsi" "-p:ScopeAnchorMsi=$anchorMsi" `
             "-p:EulaRtf=$($eula.FullName)" "-p:BundleIcon=$bundleIcon" `

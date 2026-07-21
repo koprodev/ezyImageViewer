@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "releaseVersion": "1.0.10-preview.1",
+  "tag": "v1.0.10-preview.1",
+  "applicationVersion": "1.0.10.0",
+  "productVersion": "1.0.10",
+  "codecHostVersion": "1.0.3.0",
+  "portableVersion": "1.0.10-portable.1",
+  "publisher": "CN=ezyImageViewer Dev",
+  "prerelease": true
+}

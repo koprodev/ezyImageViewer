@@ -41,7 +41,7 @@ ezyImageViewer 자체 코드는 저장소 루트의 `LICENSE`에 있는 MIT Lice
 
 | 구성 요소 | 확인 버전 | 패키지 라이선스 기록 | 원문·출처 |
 |---|---:|---|---|
-| Material Symbols Outlined font | commit `abd7f5c0e179c83f068c770650bd14ebac5d5a09` | Apache-2.0 | 동봉된 [Apache 2.0 원문](EzyImageViewer.App/Assets/Fonts/LICENSE-MaterialSymbols.txt). TTF SHA-256: `0A186BE334A516CF80A4287073B788FEEF8F0FC2C633C74F4FF7828530F35293` ([provenance](docs/adr/ADR-0013-material-symbols-font-icons.md)) |
+| Material Symbols Outlined font subset | commit `abd7f5c0e179c83f068c770650bd14ebac5d5a09` | Apache-2.0 | FontTools 4.63.0으로 기본 인스턴스 55 glyph를 추출했다. 동봉된 [Apache 2.0 원문](EzyImageViewer.App/Assets/Fonts/LICENSE-MaterialSymbols.txt). 배포 TTF SHA-256: `6EB4B0BA0D788B9CFB4F22D68A768276142CBC3698177AC2803A0F1F1EB3207F` ([provenance](docs/adr/ADR-0013-material-symbols-font-icons.md)) |
 | ExCSS | 4.3.1 | MIT | `excss/4.3.1/*.nuspec`; <https://github.com/TylerBrinks/ExCSS> |
 | HarfBuzzSharp, HarfBuzzSharp.NativeAssets.Win32 | 14.2.1.1 | MIT | 각 패키지의 `LICENSE.txt`; native 패키지의 `THIRD-PARTY-NOTICES.txt` |
 | SkiaSharp, SkiaSharp.HarfBuzz, SkiaSharp.NativeAssets.Win32, SkiaSharp.NativeAssets.WinUI, SkiaSharp.Views.WinUI | 4.150.1 | MIT | 각 패키지의 `LICENSE.txt`; native 패키지의 `THIRD-PARTY-NOTICES.txt`. 이 고지에는 libwebp 등 네이티브 전이 구성 요소가 포함되므로 파일 전체를 수집해야 합니다. |

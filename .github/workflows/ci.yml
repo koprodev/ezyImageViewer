@@ -39,6 +39,7 @@ jobs:
           powershell -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File packaging/test-publication-readiness-contract.ps1
           powershell -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File packaging/test-public-source-snapshot-contract.ps1
           powershell -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File packaging/test-portable-release-contract.ps1
+          powershell -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File packaging/test-preview-release-contract.ps1
       - name: External-location foundation contracts
         shell: powershell
         run: |

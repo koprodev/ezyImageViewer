@@ -1,9 +1,10 @@
 # ezy Image Viewer 릴리스 절차
 
-상태: **Basic Portable 평가·테스트 프리릴리스 배포 진행 · production MSI/Burn 및 Store 심사 전**
+상태: **unsigned Installer + Portable 개인 평가·테스트 프리릴리스 · production 서명 및 Store 심사 전**
 
 이 문서는 현재 저장소에서 재현 가능한 후보 산출물 생성·검증 절차를 정의한다.
-현재 첫 공개 바이너리는 설치 기능이 없는 Basic Portable ZIP으로 제한한다.
+현재 공개 바이너리는 기존 Basic Portable ZIP과 사용자 승인된 unsigned Setup/단일 Portable
+개인 평가·테스트 프리릴리스로 제한한다.
 최종 production 배포는 승인된 배포 정책에 따라 WiX MSI와 Burn Setup을 사용한다.
 아래 full MSIX/AppInstaller 절차는 package identity·CodecHost 격리 선행 검증으로 보존한다.
 최종 채널은 고정 scope MSI 두 개와 scope 선택형 Burn Setup이다. WiX 소스·등록 backend와
@@ -13,7 +14,8 @@ read-only artifact verifier는 구현됐지만 production Publisher·서명과 c
 ## 0. 확정 배포 방식
 
 - 공개 채널은 `koprodev/ezy-image-viewer-releases`의 GitHub Releases 한 곳으로 고정한다.
-- 지금은 unsigned Basic Portable ZIP을 명시적 평가·테스트 prerelease로 먼저 제공한다.
+- 기존 unsigned Basic Portable ZIP과 `v1.0.10-preview.1`의 unsigned Setup/단일 Portable을
+  명시적 개인 평가·테스트 prerelease로 제공한다.
 - 향후 production 일반 사용자의 기본 다운로드는 scope 선택형 Burn Setup이다. 고정 per-user/per-machine MSI는
   관리자·고급 사용자가 scope를 직접 고를 때 사용하는 보조 자산이다.
 - 앱은 자동 버전 조회·다운로드·설치를 하지 않으며 사용자가 `업데이트 확인`을 누를 때만 최신
@@ -25,8 +27,34 @@ read-only artifact verifier는 구현됐지만 production Publisher·서명과 c
 - 공개 저장소에는 기존 로컬 Git history가 아니라 검토된 allowlist 기반 clean source snapshot만
   게시하고, 공개 source manifest로 원본 commit·허용 경로·파일·SHA-256을 고정한다.
 - source snapshot과 Basic Portable artifact는 public CI에서 같은 source commit을 기준으로 생성한다.
-- Portable 승인은 SignPath 문의·서명 요청·production installer 공개 승인이 아니다. production 서명·
-  라이선스·notice·clean VM gate 전에는 MSI/MSIX/Burn 산출물을 공개하지 않는다.
+- 2026-07-21 사용자 승인은 검증된 unsigned Burn Setup 하나의 개인 평가·테스트 공개까지
+  확장한다. SignPath 문의·서명 요청·production installer 공개 승인은 아니며 production 서명·
+  라이선스·notice·clean VM gate 전에는 정식 산출물로 표시하지 않는다.
+
+### 0.2 Installer + 단일 Portable 개인 프리릴리스
+
+`packaging/preview-release.json`은 `v1.0.10-preview.1`의 앱·CodecHost·Portable 버전과
+unsigned Publisher를 고정한다. 공개 주 실행 자산은 다음 둘이다.
+
+- `ezyImageViewerSetup-1.0.10-x64-dev-unsigned.exe`: scope 선택형 Burn Setup. 파일 연결은
+  명시적 opt-in이며 기본 앱을 강제하지 않는다.
+- `ezyImageViewer.exe`: 압축된 단일 파일 Portable. WinUI 내장 리소스 확인을 위해 파일명을 유지한다. 레지스트리와
+  파일 연결을 등록하지 않고 실행 중 `%TEMP%` 계열에 런타임을 추출한다.
+
+WiX 수정 theme의 reciprocal source 계약 때문에 `EzyRtfLargeTheme.xml`과
+`LICENSE-MRL.txt`도 공개한다. `preview-release-manifest.json`과 `SHA256SUMS.txt`는 같은
+source commit에 결박된 네 자산의 길이·SHA-256을 기록한다.
+
+```powershell
+powershell -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File `
+  packaging\build-preview-release.ps1 -OutputDirectory packaging\out\preview-1.0.10
+powershell -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File `
+  packaging\verify-preview-release.ps1 -OutputDirectory packaging\out\preview-1.0.10
+```
+
+GitHub에서는 `.github/workflows/release-preview.yml`을 protected `main`에서 수동 실행한다.
+기존 태그가 있으면 덮어쓰지 않고 실패하며, build와 verifier가 모두 성공한 정확한 자산만
+prerelease로 게시한다.
 
 ### 0.1 Basic Portable 평가·테스트 프리릴리스
 

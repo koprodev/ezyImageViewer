@@ -3,9 +3,9 @@
 ezy Image Viewer is an open-source image viewer and editor for Windows 10 build
 19041 or later on x64 PCs. The application is implemented with C# and WinUI 3.
 
-> **Pre-release status:** the Basic Portable ZIP is an unsigned evaluation and
-> testing preview. There is no production-signed public installer yet, and the
-> Portable preview must not be redistributed as a trusted production build.
+> **Pre-release status:** the public downloads are unsigned evaluation and
+> testing previews. There is no production-signed public installer yet, and the
+> preview artifacts must not be redistributed as trusted production builds.
 
 ## Features
 
@@ -35,21 +35,19 @@ images.
 
 ## Downloads and updates
 
-The first public download is the
-[Basic Portable preview](https://github.com/koprodev/ezy-image-viewer-releases/releases/tag/v0.1.0-portable.1).
-Download the ZIP and `SHA256SUMS.txt`, verify the hash, extract the entire ZIP,
-and run `ezyImageViewer.exe`. The archive is unsigned, has no installer or
-package identity, and Windows SmartScreen may warn. It is published only for
-evaluation and testing because the included Windows App SDK WinUI component
-carries Engineering Preview terms that restrict live operating use.
+The current [Installer + Portable preview](https://github.com/koprodev/ezy-image-viewer-releases/releases/tag/v1.0.10-preview.1)
+provides an unsigned scope-selecting Setup EXE and an unsigned compressed
+single-file Portable EXE. Verify either file against `SHA256SUMS.txt` before
+running it. Setup can optionally register supported image types as Windows
+Open With candidates; it never forces a default handler. Portable installs no
+registry entries or shortcuts. Windows SmartScreen may warn for both files.
 
-There is no public production-signed installer yet. The future production
-channel remains a scope-selecting Burn setup executable plus fixed-scope
-per-user and per-machine MSI packages. A Microsoft Store package is the next
-free-distribution path to pursue. Production signing, timestamp verification,
-checksum and SBOM generation, licensing clearance, and clean-VM lifecycle
-testing remain mandatory for those packages. The application does not download
-or install updates automatically.
+The earlier folder-based
+[Basic Portable preview](https://github.com/koprodev/ezy-image-viewer-releases/releases/tag/v0.1.0-portable.1)
+remains available for comparison. Neither release is production signed. The
+included Windows App SDK WinUI component carries Engineering Preview terms that
+restrict live operating use, and clean-VM lifecycle qualification is not
+complete. The application does not download or install updates automatically.
 
 This public repository contains a reviewed clean source snapshot. Local Git
 history and internal collaboration records are not part of that snapshot. The

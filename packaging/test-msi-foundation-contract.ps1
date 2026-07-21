@@ -287,6 +287,9 @@ try {
     Assert-Foundation ($wixBuildScript.Contains(
             'Assert-EzyArtifactSignature -Path $Path')) `
         'Production WiX build does not verify exact signer and timestamp evidence.'
+    Assert-Foundation (
+        ([regex]::Matches($wixBuildScript, 'dotnet build \$[A-Za-z]+Project -t:Rebuild')).Count -eq 4) `
+        'WiX release build must rebuild all four versioned projects.'
     $preflightIndex = $wixBuildScript.IndexOf(
         'Assert-EzyProductionTimestampUrl $TimestampUrl',
         [StringComparison]::Ordinal)

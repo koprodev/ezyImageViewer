@@ -38,7 +38,7 @@ public sealed class ReleaseMetadataContractTests
         Assert.Contains("pkg:generic/google/MaterialSymbolsOutlined@", script,
             StringComparison.Ordinal);
         Assert.Contains(
-            "0A186BE334A516CF80A4287073B788FEEF8F0FC2C633C74F4FF7828530F35293",
+            "6EB4B0BA0D788B9CFB4F22D68A768276142CBC3698177AC2803A0F1F1EB3207F",
             script,
             StringComparison.Ordinal);
         Assert.Contains("Apache-2.0", script, StringComparison.Ordinal);

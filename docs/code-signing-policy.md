@@ -74,6 +74,26 @@ production installer gate. The download page and archive must identify the
 Engineering Preview dependency terms, unsigned SmartScreen behavior, missing
 package identity, and manual removal/update behavior.
 
+## Unsigned installer and single-file Portable preview
+
+The user approved a second narrow exception on 2026-07-21 for personal
+evaluation and testing: one GitHub prerelease may publish an unsigned WiX Burn
+Setup EXE and an unsigned compressed single-file Portable EXE from the same
+public source commit. This exception does not describe either artifact as
+production, trusted, or generally supported.
+
+The Setup release asset is the verified Burn bundle only; its embedded fixed
+per-user and per-machine MSI packages are not duplicated as public downloads.
+The release also carries the modified WiX theme source and Microsoft Reciprocal
+License text. The Portable embeds the project license, third-party notices, and
+runtime license inventory and extracts its runtime to the current user's temp
+directory when launched.
+
+Both executables must remain `NotSigned`, be identified as unsigned in their
+file names or release notes, publish SHA-256 metadata, and pass their existing
+static package verifiers. This exception does not satisfy production signing,
+timestamp, legal clearance, clean-VM lifecycle, or SignPath acceptance gates.
+
 ## Roles and access
 
 The planned single-maintainer mapping is:

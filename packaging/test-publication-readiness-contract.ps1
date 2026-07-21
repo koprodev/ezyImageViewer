@@ -62,6 +62,7 @@ $publicSourceGenerator = Get-RepoText 'packaging/new-public-source-snapshot.ps1'
 $publicSourceSync = Get-RepoText 'packaging/sync-public-source.ps1'
 $workflow = Get-RepoText '.github/workflows/ci.yml'
 $portableWorkflow = Get-RepoText '.github/workflows/release-portable.yml'
+$previewWorkflow = Get-RepoText '.github/workflows/release-preview.yml'
 
 Assert-ContainsLiteral $readme '(docs/privacy.md)' 'README'
 Assert-ContainsLiteral $readme '(docs/code-signing-policy.md)' 'README'
@@ -88,6 +89,8 @@ Assert-ContainsLiteral $readiness 'Microsoft Windows App SDK Engineering Preview
     'SignPath readiness checklist'
 
 Assert-ContainsLiteral $readme 'Basic Portable preview' `
+    'README'
+Assert-ContainsLiteral $readme 'Installer + Portable preview' `
     'README'
 Assert-ContainsLiteral $releaseProcess 'koprodev/ezy-image-viewer-releases' `
     'Release process'
@@ -123,6 +126,12 @@ Assert-ContainsLiteral $portableWorkflow 'StatusCode -eq 404' 'Portable release 
 Assert-ContainsLiteral $portableWorkflow 'verify-portable-release.ps1' 'Portable release workflow'
 Assert-ContainsLiteral $portableWorkflow 'gh release create' 'Portable release workflow'
 Assert-DoesNotContainLiteral $portableWorkflow 'gh release view' 'Portable release workflow'
+Assert-ContainsLiteral $previewWorkflow 'workflow_dispatch:' 'Preview release workflow'
+Assert-ContainsLiteral $previewWorkflow 'contents: write' 'Preview release workflow'
+Assert-ContainsLiteral $previewWorkflow 'build-preview-release.ps1' 'Preview release workflow'
+Assert-ContainsLiteral $previewWorkflow 'verify-preview-release.ps1' 'Preview release workflow'
+Assert-ContainsLiteral $previewWorkflow 'gh release create' 'Preview release workflow'
+Assert-ContainsLiteral $previewWorkflow '--prerelease' 'Preview release workflow'
 
 $uploadArtifactUseCount = [regex]::Matches(
     $workflow,

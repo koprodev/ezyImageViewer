@@ -1,6 +1,6 @@
 {
     "schemaVersion":  2,
-    "sourceCommit":  "7c327bbce82fb620a2c02cf3a9b16f1ad2b10508",
+    "sourceCommit":  "e82d66ad14f946fb0b383fd6353063eb7222c598",
     "allowlistedPaths":  [
                              ".github/",
                              "EzyImageViewer.App/",
@@ -20,6 +20,7 @@
                              "docs/operations.md",
                              "docs/portable-readme.txt",
                              "docs/portable-release-notes.md",
+                             "docs/preview-release-notes.md",
                              "docs/privacy.md",
                              "docs/release-process.md",
                              "docs/signpath-readiness.md",
@@ -34,7 +35,7 @@
                              "README.md",
                              "THIRD-PARTY-NOTICES.md"
                          ],
-    "payloadFileCount":  344,
+    "payloadFileCount":  354,
     "files":  [
                   {
                       "path":  ".gitattributes",
@@ -42,11 +43,15 @@
                   },
                   {
                       "path":  ".github/workflows/ci.yml",
-                      "sha256":  "876D61010ECC2AA25A0E017A6F8987EB318531B4EE937C33E390C41FCB4E62CB"
+                      "sha256":  "00C538281C04098DE7BD0CD1342265BF5CB499A7635733A109DDDFCE545DDD54"
                   },
                   {
                       "path":  ".github/workflows/release-portable.yml",
                       "sha256":  "E9061E7E0DB162348C7EE68BF39A18DE3F0F152BAA398DBED6670FC4041F6BCF"
+                  },
+                  {
+                      "path":  ".github/workflows/release-preview.yml",
+                      "sha256":  "8BFA401E7A0BB9C5CD06E83A0D2239314B060E7BA85638D708E264C2B9E64ECD"
                   },
                   {
                       "path":  ".gitignore",
@@ -62,7 +67,7 @@
                   },
                   {
                       "path":  "docs/adr/ADR-0013-material-symbols-font-icons.md",
-                      "sha256":  "F30AA941537B2262338F5788FD43DF03FFD32B4EAFE332DAB6D69675D7BA3EA8"
+                      "sha256":  "1D6D773FBEFF8E4C69F8BC3440895FAF36B0446EDF436A97A243A2FA00B621DC"
                   },
                   {
                       "path":  "docs/adr/ADR-0019-external-location-identity-wix-transition.md",
@@ -70,7 +75,7 @@
                   },
                   {
                       "path":  "docs/code-signing-policy.md",
-                      "sha256":  "2DD7B9756468F330E1BB1EA8BC53A6314F7347F566124C4142A481A1A973A882"
+                      "sha256":  "237D7A98A3D0D8EEF8E836EECBA75D5B3BC33A4C56E467A24B91478A40DA027A"
                   },
                   {
                       "path":  "docs/operations.md",
@@ -85,20 +90,24 @@
                       "sha256":  "1B77C04DFB323C57DB3A8F673A48529EEAD5B8B26944D2AE8B8645D5EDC2C773"
                   },
                   {
+                      "path":  "docs/preview-release-notes.md",
+                      "sha256":  "B71E3A7F9E5E347D70E13B9638CC2DF6B7DAA5792B2EFEB2EC88AFCFE6490E12"
+                  },
+                  {
                       "path":  "docs/privacy.md",
                       "sha256":  "BD63F99CEC82D49884F2868190413E8D0956FC3C32A920010E158A7EDC3F95F6"
                   },
                   {
                       "path":  "docs/release-process.md",
-                      "sha256":  "33E888EEBF84D247A77B1D7E8328360349BFE8FE5500FC6D9B2F73E89C6CEF57"
+                      "sha256":  "96F9A1F785CD702FCE889758BF9A8DD0C5EA9E83617032A44AC83FCD3DE4B724"
                   },
                   {
                       "path":  "docs/signpath-readiness.md",
-                      "sha256":  "122BB66D41E9E78ED74A9269AB4A8DEADA6A52B2CF0EAAACFBC1BEDE04D48B55"
+                      "sha256":  "1C27D70F7D3A85A90532C259C2BB3F8A9FCC30B167F9197833CD6EDB34A007E6"
                   },
                   {
                       "path":  "docs/user-guide.md",
-                      "sha256":  "B43988D825B0828202FD67A91F6D84EFF40115BF96630084CC833C28688CAD2F"
+                      "sha256":  "E611EB860B824FB226B6E08B2DB187C20ADBB1BA48D17E806F93EE3D1459FC34"
                   },
                   {
                       "path":  "EzyImageViewer.App/Activation/ActivationArgsConverter.cs",
@@ -134,7 +143,7 @@
                   },
                   {
                       "path":  "EzyImageViewer.App/Assets/Fonts/MaterialSymbolsOutlined.ttf",
-                      "sha256":  "0A186BE334A516CF80A4287073B788FEEF8F0FC2C633C74F4FF7828530F35293"
+                      "sha256":  "6EB4B0BA0D788B9CFB4F22D68A768276142CBC3698177AC2803A0F1F1EB3207F"
                   },
                   {
                       "path":  "EzyImageViewer.App/CodecHostDependencyResolver.cs",
@@ -870,7 +879,7 @@
                   },
                   {
                       "path":  "EzyImageViewer.Tests/Codec/CodecPackagingContractTests.cs",
-                      "sha256":  "1605C69B1A9226DCC0004B5921EFE155714CB55112D50C0AD9395DD95F0CC98F"
+                      "sha256":  "37DBEB33391BD9F5893452B44D0725DA312DD7663099187000B95C2EE65F0A3C"
                   },
                   {
                       "path":  "EzyImageViewer.Tests/Codec/CodecPerformanceGateTests.cs",
@@ -890,11 +899,11 @@
                   },
                   {
                       "path":  "EzyImageViewer.Tests/Codec/ReleaseMetadataContractTests.cs",
-                      "sha256":  "4DDB7AC738404715306692847A815546DFD30DA8CFA6EBB82A591AF25263E6D5"
+                      "sha256":  "4BD30E3592E9AAB75948E7EF95BC925261978F80FBE5D13ABC12FDC199D2FA07"
                   },
                   {
                       "path":  "EzyImageViewer.Tests/Contracts/IconSystemContractTests.cs",
-                      "sha256":  "9379C959A5845979F5FC582C9B542710FF97E1E70D58970208F12D4B2AC01C4A"
+                      "sha256":  "1E9A0AB7F0AB90022FBB49D5FE27A8892B6BEC46109E56678B21015F50D76BEB"
                   },
                   {
                       "path":  "EzyImageViewer.Tests/Contracts/SettingsUiContractTests.cs",
@@ -1257,8 +1266,16 @@
                       "sha256":  "0F08B5CEAA4034EADA2435B50978EE05E7FE3F0DF628FAE7140C6A555372D593"
                   },
                   {
+                      "path":  "packaging/build-preview-release.ps1",
+                      "sha256":  "7364DEE3D7F7388851E7DFEDC60D370067739C2594A9C9AFF43A53ABCA680994"
+                  },
+                  {
+                      "path":  "packaging/build-single-file-portable.ps1",
+                      "sha256":  "797BAD4ABF89D9ED47BFC621DCAAAD8618CCAB6F2A8957B90E97DE91B7FE5008"
+                  },
+                  {
                       "path":  "packaging/build-wix-installer.ps1",
-                      "sha256":  "5274A07275CA86D18ECA11DB4A8F3C02C7E3B744AB0B8057AA8415B7F1B37C22"
+                      "sha256":  "6020879EAFBDD9C615C722C9255BFC8692A402D16AD3824230DC2F634CE817E1"
                   },
                   {
                       "path":  "packaging/CodecHost.AppxManifest.template.xml",
@@ -1286,7 +1303,7 @@
                   },
                   {
                       "path":  "packaging/generate-release-metadata.ps1",
-                      "sha256":  "533D38D250AF53297A0D7FBB6E3A960619404511669A681C659E2FB5715EA0CE"
+                      "sha256":  "E23783A89979FF6299AA6D823991A6D1C1E9E12A1D1B2F970361D468E0C9144C"
                   },
                   {
                       "path":  "packaging/generate-wix-payload.ps1",
@@ -1333,16 +1350,28 @@
                       "sha256":  "AE41F183B12F41764899B8F433674C626073DCBBE0FAA3ED21F8756423739510"
                   },
                   {
+                      "path":  "packaging/preview-release.json",
+                      "sha256":  "A5DE12EBC4FCD7B595C0922C8424C1A6CFCBED5B26B0B537E56CE54FE7E81455"
+                  },
+                  {
                       "path":  "packaging/public-source-allowlist.txt",
-                      "sha256":  "28901074DD819309BBC8FF44B74BDE49140481907F2183EC98DB811E796087D8"
+                      "sha256":  "AF8A501588B2FE47453473C6DBDCC21A512DCDABF55F298611350F55B9BE3446"
                   },
                   {
                       "path":  "packaging/release-helpers.ps1",
                       "sha256":  "BD9CDA5CC408418A63B91FEEF051C842DA72977EA35DC4152AA9A8505690338E"
                   },
                   {
+                      "path":  "packaging/SingleFilePublish.targets",
+                      "sha256":  "23BA6EB749D725636FB4010B0D98DDE003DD550B456796C5B09811DF448E7594"
+                  },
+                  {
                       "path":  "packaging/stage-msi-foundation.ps1",
                       "sha256":  "68D5AA8E9706E272177842CE2937ECF965642399A0313D4E5C2BA5547FE0DC31"
+                  },
+                  {
+                      "path":  "packaging/subset-material-symbols-font.ps1",
+                      "sha256":  "9541FE5F6E6C6562EC1D3141C81A67F6CA855CCD58B34A6F58D05CD9BEE89A8F"
                   },
                   {
                       "path":  "packaging/sync-public-source.ps1",
@@ -1362,19 +1391,23 @@
                   },
                   {
                       "path":  "packaging/test-msi-foundation-contract.ps1",
-                      "sha256":  "493F7490A47C43AEC6DD9D141C223D29D20FDF470648EA3F1ABDE83F62DCF265"
+                      "sha256":  "2D1596734F53336DEDC7104A47634B5A9040784D44E0F5A7F29EFB128022EE69"
                   },
                   {
                       "path":  "packaging/test-portable-release-contract.ps1",
                       "sha256":  "559EB9A5967822F2D41F7EAF138DBD64389BC02FEC3811BDA55A764F532CA2E0"
                   },
                   {
+                      "path":  "packaging/test-preview-release-contract.ps1",
+                      "sha256":  "B162A144024D000396988C63ACA88D04ED36E73A14C6261DD7E72C50CFCBA4D3"
+                  },
+                  {
                       "path":  "packaging/test-publication-readiness-contract.ps1",
-                      "sha256":  "6D99CC3D6145DECBB2BDB04D637F651071CAE1002CB83AC29C332E637C3130DB"
+                      "sha256":  "C6E8AEED6813FD622D1C19BAE99CB55727A2AF56599DD5F013F9CB5BBEC7E894"
                   },
                   {
                       "path":  "packaging/test-public-source-snapshot-contract.ps1",
-                      "sha256":  "042B2A1CCE94025ADE23FA0B2E5C3DABF572F69D640E0C6CE2A241F5A3C8EB12"
+                      "sha256":  "8BC756C592DA1C38D5746070ECDE09301965BA79D55CAFDBF55DA1AE28C45857"
                   },
                   {
                       "path":  "packaging/verify-appinstaller-release.ps1",
@@ -1390,11 +1423,19 @@
                   },
                   {
                       "path":  "packaging/verify-msix-release.ps1",
-                      "sha256":  "E310D1DAE2782D42C8180459E8C497DBCDB9ACF29C1CAD730D65ABBE564D433B"
+                      "sha256":  "499383A546927D729E1754982788268DB795623BDD903C390570560960E5A953"
                   },
                   {
                       "path":  "packaging/verify-portable-release.ps1",
                       "sha256":  "AF4C5CFCBE97E6E4896888027E873B3CFFE9FE60FF359AC3D68BB5ED69D1E625"
+                  },
+                  {
+                      "path":  "packaging/verify-preview-release.ps1",
+                      "sha256":  "6A09239AF57D057BD33C8F7EE8F020F4B6C93793F3D619C45ECCCADD48A9483B"
+                  },
+                  {
+                      "path":  "packaging/verify-single-file-portable.ps1",
+                      "sha256":  "27D257DC83E46E518B3A58DCBDE459C4362CC3AF83722C3A8298530DE021F9ED"
                   },
                   {
                       "path":  "packaging/verify-wix-bundle.ps1",
@@ -1406,11 +1447,11 @@
                   },
                   {
                       "path":  "README.md",
-                      "sha256":  "8CCA435518825F565F28C2B7812E94E3CA2B18669BF0B27386B108A90676835F"
+                      "sha256":  "D1A9709D11935A66EB9B9839BFCCC19042953D016BD598C5CE91C165282E1820"
                   },
                   {
                       "path":  "THIRD-PARTY-NOTICES.md",
-                      "sha256":  "1081832B320ABE89C8C08304328A01C2193B6DD4ED1D9F9A69C5A1A200BD9BE4"
+                      "sha256":  "7E644025C495C493F3BCFD454F2FB38B8B693E011B77A06DC5FFEA8E2D255AE3"
                   }
               ]
 }

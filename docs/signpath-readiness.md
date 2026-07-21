@@ -1,7 +1,7 @@
 # SignPath Foundation readiness checklist
 
-Status: **public source repository and CI active; Basic Portable testing prerelease approved; no SignPath application or signing transfer performed**
-Assessment date: 2026-07-19
+Status: **public source repository and CI active; unsigned testing previews approved; no SignPath application or signing transfer performed**
+Assessment date: 2026-07-21
 
 The maintainer selected SignPath Foundation as the preferred zero-monetary-cost
 public-trust path and selected a reviewed clean source snapshot in the same
@@ -12,6 +12,10 @@ unsigned Basic Portable evaluation/testing prerelease. Sending a SignPath
 inquiry, submitting identity or account data, and requesting a signature remain
 separate approval gates.
 
+On 2026-07-21 the user additionally approved one unsigned WiX Setup and
+single-file Portable prerelease for personal evaluation and testing. This is
+not a production release or evidence that SignPath accepted the signing form.
+
 ## Eligibility matrix
 
 | Requirement | Current evidence | Status |
@@ -19,7 +23,7 @@ separate approval gates.
 | Project license | Root `LICENSE` is MIT | Ready for project-owned source |
 | No proprietary component | Several Windows App SDK runtime packages use Microsoft Software License Terms; the SignPath System Library exception has not been confirmed | **Blocked** |
 | Active maintenance | More than 40 private source commits plus current build/test/release work | Public source evidence available |
-| Already released in the form to sign | Public source and an unsigned identity-free Portable testing prerelease exist; it is not the MSI/Burn form planned for signing | **Blocked; interpretation required** |
+| Already released in the form to sign | Public source plus unsigned Portable and Burn Setup testing previews exist; the Setup is not production signed or clean-VM qualified | **Blocked; SignPath interpretation required** |
 | Download-page documentation | Public root README and user guide separate the Portable testing preview from future production installers | Ready for Portable publication |
 | Code signing policy | `docs/code-signing-policy.md` is published and linked from the README | Ready for source publication |
 | Privacy disclosure | `docs/privacy.md` publishes the required no-transfer statement and current local-data behavior | Ready for source publication |
@@ -70,9 +74,10 @@ or token-like content.
   completed successfully. This is source and CI evidence, not a production
   binary release or SignPath acceptance.
 
-The public CI does not upload unsigned MSIX, MSI, or Burn EXE validation outputs.
-Only the separately documented identity-free Portable ZIP workflow may publish
-an unsigned testing prerelease. Test-result artifacts remain separate from
+The public CI does not upload unsigned MSIX or standalone MSI validation
+outputs. Two explicitly approved workflows may publish unsigned testing
+prereleases: the original identity-free Portable ZIP and the 2026-07-21 Burn
+Setup plus single-file Portable set. Test-result artifacts remain separate from
 release binaries.
 
 ## License and redistributable blockers

@@ -478,7 +478,7 @@ try {
     }
 
     $fontPath = Join-Path $mainRoot 'Assets\Fonts\MaterialSymbolsOutlined.ttf'
-    $expectedFontHash = '0A186BE334A516CF80A4287073B788FEEF8F0FC2C633C74F4FF7828530F35293'
+    $expectedFontHash = '6EB4B0BA0D788B9CFB4F22D68A768276142CBC3698177AC2803A0F1F1EB3207F'
     $actualFontHash = (Get-FileHash -LiteralPath $fontPath -Algorithm SHA256).Hash.ToUpperInvariant()
     Assert-Equal $actualFontHash $expectedFontHash 'Material Symbols font SHA-256'
     $packagedFontLicense = Join-Path $mainRoot 'Assets\Fonts\LICENSE-MaterialSymbols.txt'

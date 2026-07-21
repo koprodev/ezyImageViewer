@@ -1,0 +1,127 @@
+[CmdletBinding()]
+param(
+    [Parameter(Mandatory)][string]$Version,
+    [Parameter(Mandatory)][string]$OutputDirectory
+)
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
+$scriptRoot = Split-Path -Parent $PSCommandPath
+$repositoryRoot = [IO.Path]::GetFullPath((Join-Path $scriptRoot '..'))
+. (Join-Path $scriptRoot 'msi-payload-helpers.ps1')
+. (Join-Path $scriptRoot 'portable-release-helpers.ps1')
+
+Assert-EzyPortableVersion $Version
+$numericVersion = Get-EzyPortableNumericVersion $Version
+[void](Assert-EzyPortableSourceState $repositoryRoot)
+
+$target = [IO.Path]::GetFullPath($OutputDirectory)
+if ([IO.Directory]::Exists($target) -or [IO.File]::Exists($target)) {
+    throw "OutputDirectory already exists: '$target'."
+}
+$parentPath = [IO.Path]::GetDirectoryName($target)
+if ([string]::IsNullOrWhiteSpace($parentPath)) {
+    throw 'OutputDirectory must have a parent directory.'
+}
+[void][IO.Directory]::CreateDirectory($parentPath)
+$parent = Get-Item -LiteralPath $parentPath -Force
+if (-not $parent.PSIsContainer -or
+    ($parent.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) {
+    throw 'OutputDirectory parent must be a physical directory.'
+}
+
+$targetName = [IO.Path]::GetFileName($target)
+$staging = Join-Path $parent.FullName (
+    ".$targetName.$([Guid]::NewGuid().ToString('N')).staging")
+$folderPayload = Join-Path $staging 'folder-payload'
+$singleOutput = Join-Path $staging 'single-output'
+$applicationProject = Join-Path $repositoryRoot 'EzyImageViewer.App\EzyImageViewer.App.csproj'
+$portableReadme = Join-Path $repositoryRoot 'docs\portable-readme.txt'
+$singleFileTargets = Join-Path $scriptRoot 'SingleFilePublish.targets'
+$fileName = 'ezyImageViewer.exe'
+
+try {
+    [void][IO.Directory]::CreateDirectory($staging)
+
+    $restoreArguments = @(
+        'restore', $applicationProject, '--locked-mode', '--runtime', 'win-x64',
+        '-p:Platform=x64', '-p:Packaged=false', '-p:ExternalIdentity=false',
+        '-p:Portable=true', '-p:NuGetAuditMode=all',
+        '-p:WarningsAsErrors=NU1903%3BNU1904')
+    & dotnet @restoreArguments
+    if ($LASTEXITCODE -ne 0) {
+        throw "dotnet restore failed for the single-file portable flavor ($LASTEXITCODE)."
+    }
+
+    $commonPublishArguments = @(
+        $applicationProject, '-c', 'Release', '--no-restore', '--self-contained', 'true',
+        '-p:Platform=x64', '-p:Packaged=false', '-p:ExternalIdentity=false',
+        '-p:Portable=true', '-p:DebugSymbols=false', '-p:DebugType=None',
+        '-p:CopyOutputSymbolsToPublishDirectory=false', "-p:Version=$Version",
+        "-p:AssemblyVersion=$numericVersion", "-p:FileVersion=$numericVersion",
+        "-p:InformationalVersion=$Version")
+
+    & dotnet publish @commonPublishArguments `
+        "-p:CustomAfterMicrosoftCommonTargets=$(Join-Path $scriptRoot 'MsiPublish.targets')" `
+        -o $folderPayload
+    if ($LASTEXITCODE -ne 0) {
+        throw "folder publish failed for the single-file portable flavor ($LASTEXITCODE)."
+    }
+
+    $intermediateRoot = Join-Path $repositoryRoot 'EzyImageViewer.App\obj\portable\x64\Release'
+    $publishOutputList = Get-EzyMsiPublishOutputListPath $intermediateRoot $folderPayload
+    Assert-EzyMsiPayload $folderPayload $publishOutputList
+    $depsJson = Join-Path $folderPayload 'ezyImageViewer.deps.json'
+    $projectAssets = Join-Path $repositoryRoot 'EzyImageViewer.App\obj\portable\project.assets.json'
+    $licenseIndex = Copy-EzyPortableThirdPartyFiles `
+        -PayloadDirectory $folderPayload -DepsJson $depsJson `
+        -ProjectAssetsJson $projectAssets
+    $licenseRoot = Split-Path -Parent $licenseIndex
+
+    & dotnet publish @commonPublishArguments -t:Rebuild `
+        -p:PublishSingleFile=true `
+        -p:IncludeAllContentForSelfExtract=true `
+        -p:EnableCompressionInSingleFile=true `
+        -p:EnableMsixTooling=true `
+        "-p:EzyPortableLicenseRoot=$licenseRoot" `
+        "-p:EzyPortableReadme=$portableReadme" `
+        "-p:CustomBeforeMicrosoftCommonProps=$singleFileTargets" `
+        -o $singleOutput
+    if ($LASTEXITCODE -ne 0) {
+        throw "single-file publish failed ($LASTEXITCODE)."
+    }
+
+    $sourceExecutable = Join-Path $singleOutput 'ezyImageViewer.exe'
+    if (-not [IO.File]::Exists($sourceExecutable)) {
+        throw 'Single-file publish did not produce ezyImageViewer.exe.'
+    }
+    $unexpectedRuntimeFiles = @(Get-ChildItem -LiteralPath $singleOutput -File -Force |
+        Where-Object { $_.Name -cne 'ezyImageViewer.exe' -and $_.Extension -cne '.pdb' })
+    if ($unexpectedRuntimeFiles.Count -ne 0) {
+        throw "Single-file publish produced unexpected runtime files: $($unexpectedRuntimeFiles.Name -join ', ')."
+    }
+
+    [void][IO.Directory]::CreateDirectory($target)
+    $destination = Join-Path $target $fileName
+    [IO.File]::Copy($sourceExecutable, $destination, $false)
+    $signature = Get-AuthenticodeSignature -LiteralPath $destination
+    if ([string]$signature.Status -cne 'NotSigned') {
+        throw "Portable executable must be unsigned; actual status is '$($signature.Status)'."
+    }
+    $versionInfo = [Diagnostics.FileVersionInfo]::GetVersionInfo($destination)
+    if ([string]$versionInfo.FileVersion -cne $numericVersion) {
+        throw "Portable executable file version mismatch: '$($versionInfo.FileVersion)'."
+    }
+
+    $file = Get-Item -LiteralPath $destination -Force
+    Write-Output "Single-file portable staged: $($file.FullName)"
+    Write-Output "Bytes: $($file.Length)"
+    Write-Output "SHA-256: $((Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash)"
+    Write-Output 'Signature: NotSigned (testing preview)'
+}
+finally {
+    if ([IO.Directory]::Exists($staging)) {
+        [IO.Directory]::Delete($staging, $true)
+    }
+}

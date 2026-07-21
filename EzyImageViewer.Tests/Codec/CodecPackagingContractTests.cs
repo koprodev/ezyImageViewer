@@ -51,6 +51,33 @@ public sealed class CodecPackagingContractTests
     }
 
     [Fact]
+    public void MainAppProject_DoesNotOverrideWindowsAppSdkTransitiveRuntimePackages()
+    {
+        var project = XDocument.Load(Path.Combine(
+            FindRepositoryRoot(),
+            "EzyImageViewer.App",
+            "EzyImageViewer.App.csproj"));
+        var transitivePackages = new[]
+        {
+            "Microsoft.WindowsAppSDK.AI",
+            "Microsoft.WindowsAppSDK.ML",
+            "Microsoft.Windows.AI.MachineLearning",
+            "System.Numerics.Tensors",
+        };
+
+        foreach (var packageName in transitivePackages)
+        {
+            Assert.DoesNotContain(
+                project.Descendants("PackageReference"),
+                element =>
+                    string.Equals(
+                        element.Attribute("Include")?.Value,
+                        packageName,
+                        StringComparison.Ordinal));
+        }
+    }
+
+    [Fact]
     public void MainPackaging_UsesCanonicalPackagedX64Output()
     {
         var script = File.ReadAllText(Path.Combine(
@@ -197,7 +224,7 @@ public sealed class CodecPackagingContractTests
         Assert.Contains("Assets/Fonts/MaterialSymbolsOutlined.ttf", script,
             StringComparison.Ordinal);
         Assert.Contains(
-            "0A186BE334A516CF80A4287073B788FEEF8F0FC2C633C74F4FF7828530F35293",
+            "6EB4B0BA0D788B9CFB4F22D68A768276142CBC3698177AC2803A0F1F1EB3207F",
             script,
             StringComparison.Ordinal);
         Assert.Contains("ArtifactsByName[$name]", script, StringComparison.Ordinal);
