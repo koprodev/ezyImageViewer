@@ -1,6 +1,6 @@
 {
     "schemaVersion":  2,
-    "sourceCommit":  "e82d66ad14f946fb0b383fd6353063eb7222c598",
+    "sourceCommit":  "e925b8394e1061aaff1347094be539512a10f3ba",
     "allowlistedPaths":  [
                              ".github/",
                              "EzyImageViewer.App/",
@@ -51,7 +51,7 @@
                   },
                   {
                       "path":  ".github/workflows/release-preview.yml",
-                      "sha256":  "8BFA401E7A0BB9C5CD06E83A0D2239314B060E7BA85638D708E264C2B9E64ECD"
+                      "sha256":  "48F15C93AB1415A3BAD34526E8BDFDEE22CC895A5C332904338AEFDDEE66398F"
                   },
                   {
                       "path":  ".gitignore",
@@ -99,7 +99,7 @@
                   },
                   {
                       "path":  "docs/release-process.md",
-                      "sha256":  "96F9A1F785CD702FCE889758BF9A8DD0C5EA9E83617032A44AC83FCD3DE4B724"
+                      "sha256":  "CBCE78A17DD7A17F0447E997F372A1641C5CBD89C96746C157CD44455009DA3A"
                   },
                   {
                       "path":  "docs/signpath-readiness.md",
@@ -1399,7 +1399,7 @@
                   },
                   {
                       "path":  "packaging/test-preview-release-contract.ps1",
-                      "sha256":  "B162A144024D000396988C63ACA88D04ED36E73A14C6261DD7E72C50CFCBA4D3"
+                      "sha256":  "A61974373ACAF943760B23D63D3684AA184B3E7D15FCED182FBB4B1EF8392F90"
                   },
                   {
                       "path":  "packaging/test-publication-readiness-contract.ps1",
@@ -1431,11 +1431,11 @@
                   },
                   {
                       "path":  "packaging/verify-preview-release.ps1",
-                      "sha256":  "6A09239AF57D057BD33C8F7EE8F020F4B6C93793F3D619C45ECCCADD48A9483B"
+                      "sha256":  "CB37A43433071ACDC340317B633674DEA014A3CC08FA67B34B0502CCD551FE72"
                   },
                   {
                       "path":  "packaging/verify-single-file-portable.ps1",
-                      "sha256":  "27D257DC83E46E518B3A58DCBDE459C4362CC3AF83722C3A8298530DE021F9ED"
+                      "sha256":  "242CEE03C748F62313B22609B4DD8E5F97473635C76EFF06E77A74BB57160514"
                   },
                   {
                       "path":  "packaging/verify-wix-bundle.ps1",

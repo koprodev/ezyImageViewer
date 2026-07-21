@@ -49,7 +49,7 @@ foreach ($expected in @(
 foreach ($expected in @(
         'DOTNET_BUNDLE_EXTRACT_BASE_DIR', "'Ready'", 'THIRD-PARTY-LICENSES',
         'Microsoft.WindowsAppSDK.WinUI', "'ezyImageViewer.exe'", "'NotSigned'", '.Arguments =',
-        '.EnvironmentVariables[')) {
+        '.EnvironmentVariables[', 'SkipRuntimeSmoke')) {
     Assert-Contains $singleVerify $expected 'Single-file portable verifier'
 }
 foreach ($expected in @(
@@ -63,7 +63,7 @@ foreach ($expected in @(
         'verify-single-file-portable.ps1', 'verify-wix-bundle.ps1',
         'personal-evaluation-and-testing-preview', "'NotSigned'",
         'Join-Path $scriptRoot ''preview-release.json''',
-        '[StringComparer]::Ordinal.Compare')) {
+        '[StringComparer]::Ordinal.Compare', 'SkipPortableRuntimeSmoke')) {
     Assert-Contains $releaseVerify $expected 'Preview release verifier'
 }
 foreach ($expected in @(
@@ -74,7 +74,7 @@ foreach ($expected in @(
 foreach ($expected in @(
         'workflow_dispatch:', 'permissions:', 'contents: write',
         'build-preview-release.ps1', 'verify-preview-release.ps1',
-        'gh release create', '--prerelease')) {
+        '-SkipPortableRuntimeSmoke', 'gh release create', '--prerelease')) {
     Assert-Contains $workflow $expected 'Preview release workflow'
 }
 foreach ($expected in @(

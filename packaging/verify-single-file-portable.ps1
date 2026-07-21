@@ -1,7 +1,8 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)][string]$Version,
-    [Parameter(Mandatory)][string]$ExecutablePath
+    [Parameter(Mandatory)][string]$ExecutablePath,
+    [switch]$SkipRuntimeSmoke
 )
 
 Set-StrictMode -Version Latest
@@ -26,6 +27,13 @@ if ([string]$signature.Status -cne 'NotSigned') {
 $versionInfo = [Diagnostics.FileVersionInfo]::GetVersionInfo($executable.FullName)
 if ([string]$versionInfo.FileVersion -cne $numericVersion) {
     throw "Single-file portable version mismatch: '$($versionInfo.FileVersion)'."
+}
+if ($SkipRuntimeSmoke) {
+    Write-Output 'Single-file portable static verification passed.'
+    Write-Output "Version: $Version"
+    Write-Output "Executable bytes: $($executable.Length)"
+    Write-Output 'Runtime smoke: skipped for a non-interactive build agent'
+    return
 }
 
 $workRoot = Join-Path ([IO.Path]::GetTempPath()) (
