@@ -43,13 +43,14 @@ foreach ($expected in @(
         '-p:PublishSingleFile=true', '-p:IncludeAllContentForSelfExtract=true',
         '-p:EnableCompressionInSingleFile=true', '-p:EnableMsixTooling=true',
         '-t:Rebuild', '-p:CustomBeforeMicrosoftCommonProps=', 'Copy-EzyPortableThirdPartyFiles',
-        'SingleFilePublish.targets', "'ezyImageViewer.exe'", "'NotSigned'")) {
+        'WindowsAppSDK.manifest', '[IO.File]::Delete', 'SingleFilePublish.targets',
+        "'ezyImageViewer.exe'", "'NotSigned'")) {
     Assert-Contains $singleBuild $expected 'Single-file portable builder'
 }
 foreach ($expected in @(
         'DOTNET_BUNDLE_EXTRACT_BASE_DIR', "'Ready'", 'THIRD-PARTY-LICENSES',
         'Microsoft.WindowsAppSDK.WinUI', "'ezyImageViewer.exe'", "'NotSigned'", '.Arguments =',
-        '.EnvironmentVariables[', 'SkipRuntimeSmoke')) {
+        '.EnvironmentVariables[')) {
     Assert-Contains $singleVerify $expected 'Single-file portable verifier'
 }
 foreach ($expected in @(
@@ -63,7 +64,7 @@ foreach ($expected in @(
         'verify-single-file-portable.ps1', 'verify-wix-bundle.ps1',
         'personal-evaluation-and-testing-preview', "'NotSigned'",
         'Join-Path $scriptRoot ''preview-release.json''',
-        '[StringComparer]::Ordinal.Compare', 'SkipPortableRuntimeSmoke')) {
+        '[StringComparer]::Ordinal.Compare')) {
     Assert-Contains $releaseVerify $expected 'Preview release verifier'
 }
 foreach ($expected in @(
@@ -74,7 +75,7 @@ foreach ($expected in @(
 foreach ($expected in @(
         'workflow_dispatch:', 'permissions:', 'contents: write',
         'build-preview-release.ps1', 'verify-preview-release.ps1',
-        '-SkipPortableRuntimeSmoke', 'gh release create', '--prerelease')) {
+        'gh release create', '--prerelease')) {
     Assert-Contains $workflow $expected 'Preview release workflow'
 }
 foreach ($expected in @(

@@ -54,9 +54,8 @@ powershell -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File `
 
 GitHub에서는 `.github/workflows/release-preview.yml`을 protected `main`에서 수동 실행한다.
 기존 태그가 있으면 덮어쓰지 않고 실패하며, build와 verifier가 모두 성공한 정확한 자산만
-prerelease로 게시한다. 화면 세션이 없는 GitHub 호스팅 러너에서는 Portable의 정적 계약만
-검증하고, 게시 직후 실제 다운로드한 `ezyImageViewer.exe`를 대화형 Windows 환경에서
-`verify-single-file-portable.ps1`로 실행 검증해야 릴리스를 완료한 것으로 본다.
+prerelease로 게시한다. 게시 직후 실제 다운로드한 `ezyImageViewer.exe`도 대화형 Windows
+환경에서 `verify-single-file-portable.ps1`로 다시 검증해야 릴리스를 완료한 것으로 본다.
 
 ### 0.1 Basic Portable 평가·테스트 프리릴리스
 

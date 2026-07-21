@@ -68,7 +68,6 @@ jobs:
           powershell -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass
           -File packaging/verify-preview-release.ps1
           -OutputDirectory preview-release
-          -SkipPortableRuntimeSmoke
       - name: Publish GitHub prerelease
         shell: powershell
         run: |

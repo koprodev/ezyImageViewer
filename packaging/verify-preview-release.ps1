@@ -1,8 +1,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)][string]$OutputDirectory,
-    [string]$ContractPath,
-    [switch]$SkipPortableRuntimeSmoke
+    [string]$ContractPath
 )
 
 Set-StrictMode -Version Latest
@@ -94,14 +93,8 @@ if ($artifactMap.Count -ne 4) {
 }
 
 $portablePath = Join-Path $output.FullName $portableName
-$portableVerifyArguments = @{
-    Version = [string]$contract.portableVersion
-    ExecutablePath = $portablePath
-}
-if ($SkipPortableRuntimeSmoke) {
-    $portableVerifyArguments.SkipRuntimeSmoke = $true
-}
-& (Join-Path $scriptRoot 'verify-single-file-portable.ps1') @portableVerifyArguments
+& (Join-Path $scriptRoot 'verify-single-file-portable.ps1') `
+    -Version ([string]$contract.portableVersion) -ExecutablePath $portablePath
 if ($LASTEXITCODE -ne 0) { throw 'Single-file portable verification failed.' }
 
 $setupPath = Join-Path $output.FullName $setupName

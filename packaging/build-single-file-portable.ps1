@@ -79,6 +79,16 @@ try {
         -ProjectAssetsJson $projectAssets
     $licenseRoot = Split-Path -Parent $licenseIndex
 
+    # The folder publish writes a non-redirecting RegFree WinRT manifest. Remove only
+    # those generated files so the single-file publish recreates them with loadFrom.
+    $manifestDirectory = Join-Path (Split-Path -Parent $publishOutputList) 'Manifests'
+    foreach ($generatedName in @('WindowsAppSDK.manifest', 'app.manifest')) {
+        $generatedManifest = Join-Path $manifestDirectory $generatedName
+        if ([IO.File]::Exists($generatedManifest)) {
+            [IO.File]::Delete($generatedManifest)
+        }
+    }
+
     & dotnet publish @commonPublishArguments -t:Rebuild `
         -p:PublishSingleFile=true `
         -p:IncludeAllContentForSelfExtract=true `

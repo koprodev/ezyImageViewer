@@ -1,6 +1,6 @@
 {
     "schemaVersion":  2,
-    "sourceCommit":  "e925b8394e1061aaff1347094be539512a10f3ba",
+    "sourceCommit":  "3185f116aed06d312c2fbe92235b7c8428a52677",
     "allowlistedPaths":  [
                              ".github/",
                              "EzyImageViewer.App/",
@@ -51,7 +51,7 @@
                   },
                   {
                       "path":  ".github/workflows/release-preview.yml",
-                      "sha256":  "48F15C93AB1415A3BAD34526E8BDFDEE22CC895A5C332904338AEFDDEE66398F"
+                      "sha256":  "8BFA401E7A0BB9C5CD06E83A0D2239314B060E7BA85638D708E264C2B9E64ECD"
                   },
                   {
                       "path":  ".gitignore",
@@ -99,7 +99,7 @@
                   },
                   {
                       "path":  "docs/release-process.md",
-                      "sha256":  "CBCE78A17DD7A17F0447E997F372A1641C5CBD89C96746C157CD44455009DA3A"
+                      "sha256":  "19F53D05627E93201C0D4446AD23B1608080FF38294077AF2427AA54F90F0AB5"
                   },
                   {
                       "path":  "docs/signpath-readiness.md",
@@ -1271,7 +1271,7 @@
                   },
                   {
                       "path":  "packaging/build-single-file-portable.ps1",
-                      "sha256":  "797BAD4ABF89D9ED47BFC621DCAAAD8618CCAB6F2A8957B90E97DE91B7FE5008"
+                      "sha256":  "1BEE7B8368BFE266855EEB59104F85436DC0EAA9CC61F385792B2D3CE8F17792"
                   },
                   {
                       "path":  "packaging/build-wix-installer.ps1",
@@ -1399,7 +1399,7 @@
                   },
                   {
                       "path":  "packaging/test-preview-release-contract.ps1",
-                      "sha256":  "A61974373ACAF943760B23D63D3684AA184B3E7D15FCED182FBB4B1EF8392F90"
+                      "sha256":  "AFC2DA6A3431C5E31BFF3F36C90689B274847AFE8E7385312AD5C229D95797E8"
                   },
                   {
                       "path":  "packaging/test-publication-readiness-contract.ps1",
@@ -1431,11 +1431,11 @@
                   },
                   {
                       "path":  "packaging/verify-preview-release.ps1",
-                      "sha256":  "CB37A43433071ACDC340317B633674DEA014A3CC08FA67B34B0502CCD551FE72"
+                      "sha256":  "6A09239AF57D057BD33C8F7EE8F020F4B6C93793F3D619C45ECCCADD48A9483B"
                   },
                   {
                       "path":  "packaging/verify-single-file-portable.ps1",
-                      "sha256":  "242CEE03C748F62313B22609B4DD8E5F97473635C76EFF06E77A74BB57160514"
+                      "sha256":  "27D257DC83E46E518B3A58DCBDE459C4362CC3AF83722C3A8298530DE021F9ED"
                   },
                   {
                       "path":  "packaging/verify-wix-bundle.ps1",
