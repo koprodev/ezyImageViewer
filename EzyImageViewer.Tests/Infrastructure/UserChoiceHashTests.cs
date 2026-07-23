@@ -5,14 +5,16 @@ namespace EzyImageViewer.Tests.Infrastructure;
 
 public sealed class UserChoiceHashTests
 {
-    // Oracle vectors generated 2026-07-23 with DanysysTeam/PS-SFTA Get-Hash (MIT), an
-    // implementation independent from the Mozilla formulation used by UserChoiceHash.
-    // Agreement across both implementations pins the undocumented algorithm.
+    // The last two vectors were generated 2026-07-23 with DanysysTeam/PS-SFTA Get-Hash (MIT), an
+    // implementation independent from the Mozilla formulation used by UserChoiceHash; agreement
+    // across both implementations pins the undocumented algorithm. The first two are regression
+    // locks from this implementation, kept after it reproduced, byte for byte, the Hash values
+    // Windows itself had written for five real UserChoice keys. Every SID here is synthetic.
     [Theory]
-    [InlineData(".png", "s-1-5-21-1882709993-3275386586-2074228836-1001",
-        "ezyImageViewer.Image", "2026-07-23T06:00:00Z", "llg79hQ0HS0=")]
-    [InlineData(".jpg", "s-1-5-21-1882709993-3275386586-2074228836-1001",
-        "ezyImageViewer.Image", "2026-07-23T14:59:00Z", "+MAbD9WHfas=")]
+    [InlineData(".png", "s-1-5-21-2088888888-3155555555-4011111111-1001",
+        "ezyImageViewer.Image", "2026-07-23T06:00:00Z", "a6PQEyAtUs8=")]
+    [InlineData(".jpg", "s-1-5-21-2088888888-3155555555-4011111111-1001",
+        "ezyImageViewer.Image", "2026-07-23T14:59:00Z", "8LTooILLZLw=")]
     [InlineData(".webp", "s-1-5-21-1234567890-1234567890-1234567890-1001",
         "ezyImageViewer.Image", "2025-12-31T23:59:00Z", "uTCFH4ZB4T8=")]
     [InlineData(".tiff", "s-1-5-21-1234567890-1234567890-1234567890-500",

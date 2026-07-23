@@ -100,6 +100,13 @@ internal static class UserChoiceDefaultWriter
         var changed = false;
         foreach (var extension in extensions)
         {
+            // Every dialog save runs this, so extensions already pointing here are left untouched
+            // rather than delete-and-rewritten.
+            if (IsEffectiveDefault(extension, progId))
+            {
+                results.Add(new UserChoiceExtensionResult(extension, UserChoiceStatus.Set));
+                continue;
+            }
             var status = SetOne(extension, sid, progId, out var wrote);
             changed |= wrote;
             results.Add(new UserChoiceExtensionResult(extension, status));

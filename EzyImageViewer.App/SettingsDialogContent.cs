@@ -46,16 +46,15 @@ internal sealed class SettingsDialogContent : Grid
     private readonly Dictionary<string, CheckBox> _extensionBoxes =
         new(StringComparer.OrdinalIgnoreCase);
     private readonly Button _applyAssociations = new();
-#if EZY_UNPACKAGED
-    private readonly Button _setDefaultApp = new();
-#endif
     private readonly TextBlock _associationStatus = new()
     {
         TextWrapping = TextWrapping.Wrap,
         VerticalAlignment = VerticalAlignment.Center,
         Opacity = 0.8,
     };
+    private const int FileAssociationPageIndex = 2;
     private IReadOnlySet<string> _appliedExtensions = new HashSet<string>();
+    private bool _associationPageVisited;
     private bool _associationsAvailable = true;
 
     private sealed record Choice<T>(string Label, T Value)
@@ -74,6 +73,9 @@ internal sealed class SettingsDialogContent : Grid
         _pages.Add(BuildGeneralPage());
         _pages.Add(BuildToolbarGroupPage());
         _pages.Add(BuildFileAssociationPage());
+        System.Diagnostics.Debug.Assert(
+            _pages.Count - 1 == FileAssociationPageIndex,
+            "FileAssociationPageIndex must track the navigation order.");
         _pages.Add(BuildAboutPage());
         _pages.Add(BuildUpdatePage());
         _pages.Add(BuildSupportPage());
@@ -91,7 +93,10 @@ internal sealed class SettingsDialogContent : Grid
         _navigation.SelectionChanged += (_, _) =>
         {
             if (_navigation.SelectedIndex is >= 0 and var index && index < _pages.Count)
+            {
                 _pageHost.Content = _pages[index];
+                _associationPageVisited |= index == FileAssociationPageIndex;
+            }
         };
         AutomationProperties.SetName(_navigation, AppStrings.SettingsTitle);
         SetColumn(_navigation, 0);
@@ -302,15 +307,6 @@ internal sealed class SettingsDialogContent : Grid
                 extension, StringComparer.OrdinalIgnoreCase)));
         actions.Children.Add(SelectionButton(AppStrings.FileAssocSelectAll, _ => true));
         actions.Children.Add(SelectionButton(AppStrings.FileAssocSelectNone, _ => false));
-#if EZY_UNPACKAGED
-        _setDefaultApp.Content = AppStrings.FileAssocSetDefault;
-        AutomationProperties.SetName(_setDefaultApp, AppStrings.FileAssocSetDefault);
-        AutomationProperties.SetHelpText(_setDefaultApp, AppStrings.FileAssocSetDefaultHelp);
-        _setDefaultApp.Margin = new Thickness(0, 8, 0, 0);
-        _setDefaultApp.IsEnabled = _associationsAvailable;
-        _setDefaultApp.Click += (_, _) => SetDefaultApp();
-        actions.Children.Add(_setDefaultApp);
-#endif
         SetColumn(actions, 1);
         body.Children.Add(actions);
         SetRow(body, 2);
@@ -364,8 +360,6 @@ internal sealed class SettingsDialogContent : Grid
                 MinWidth = 0,
             };
             AutomationProperties.SetName(box, extension);
-            box.Checked += (_, _) => UpdateAssociationApplyState();
-            box.Unchecked += (_, _) => UpdateAssociationApplyState();
             _extensionBoxes[extension] = box;
             SetColumn(box, index % columns);
             SetRow(box, index / columns);
@@ -391,55 +385,28 @@ internal sealed class SettingsDialogContent : Grid
         return button;
     }
 
-    /// <summary>Dialog-level save also applies a pending association selection: users expected
-    /// Save to cover the checkboxes, not only the page's own apply button.</summary>
+    /// <summary>Dialog-level save applies associations once the user has opened the file
+    /// association page, and never otherwise: the installer pre-registers candidates, so someone
+    /// who only changed a theme would silently hand over their default image app. Having opened
+    /// the page, the apply runs even when the ticked set is unchanged — those extensions may be
+    /// registered as candidates while the double-click default still is not this app.</summary>
     public void ApplyPendingAssociations()
     {
-        if (!_associationsAvailable)
+        if (!_associationsAvailable || !_associationPageVisited)
             return;
-        var desired = _extensionBoxes
-            .Where(pair => pair.Value.IsChecked == true)
-            .Select(pair => pair.Key)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
-        if (!desired.SetEquals(_appliedExtensions))
-            ApplyAssociations();
+        ApplyAssociations();
     }
 
+    /// <summary>Registers the checked extensions as Open With candidates and, on the unpackaged
+    /// build, switches the double-click default to this app by writing UserChoice. The default
+    /// switch is unsupported by Microsoft, so each extension reports its own outcome and a fully
+    /// blocked OS falls back to the Windows default-apps page.</summary>
     private void ApplyAssociations()
     {
         var desired = _extensionBoxes
             .Where(pair => pair.Value.IsChecked == true)
             .Select(pair => pair.Key)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
-        try
-        {
-            FileAssociationRegistrar.Apply(desired);
-            _appliedExtensions = desired;
-            _associationStatus.Text = AppStrings.FileAssocApplied;
-        }
-        catch (Exception ex) when (ex is System.Security.SecurityException
-            or UnauthorizedAccessException or IOException or InvalidOperationException)
-        {
-            _associationStatus.Text = $"{AppStrings.FileAssocApplyFailed}: {ex.Message}";
-        }
-        UpdateAssociationApplyState();
-    }
-
-#if EZY_UNPACKAGED
-    /// <summary>Experimental: register the checked extensions as candidates, then write UserChoice
-    /// so double-click opens this app. Unsupported by Microsoft; reports per-extension and falls
-    /// back to the Windows settings page when the OS blocks the write.</summary>
-    private void SetDefaultApp()
-    {
-        var desired = _extensionBoxes
-            .Where(pair => pair.Value.IsChecked == true)
-            .Select(pair => pair.Key)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
-        if (desired.Count == 0)
-        {
-            _associationStatus.Text = AppStrings.FileAssocSetDefaultNone;
-            return;
-        }
         try
         {
             FileAssociationRegistrar.Apply(desired);
@@ -453,6 +420,14 @@ internal sealed class SettingsDialogContent : Grid
             return;
         }
 
+        if (desired.Count == 0)
+        {
+            _associationStatus.Text = AppStrings.FileAssocCleared;
+            UpdateAssociationApplyState();
+            return;
+        }
+
+#if EZY_UNPACKAGED
         var outcome = UserChoiceDefaultWriter.SetDefaults(desired);
         if (outcome.Blocked)
         {
@@ -465,6 +440,8 @@ internal sealed class SettingsDialogContent : Grid
         }
         else
         {
+            // Partial failures keep the page open with guidance instead of launching Settings,
+            // which would otherwise pop up on every save that misses a single extension.
             var message = string.Format(
                 CultureInfo.CurrentCulture,
                 AppStrings.FileAssocSetDefaultPartial,
@@ -473,24 +450,18 @@ internal sealed class SettingsDialogContent : Grid
             if (outcome.AnyRestoreFailed)
                 message += " " + AppStrings.FileAssocSetDefaultRestoreFailed;
             _associationStatus.Text = message;
-            LinkRequested?.Invoke(this, FileAssociationPolicy.GetDefaultAppsSettingsUri());
         }
+#else
+        _associationStatus.Text = AppStrings.FileAssocApplied;
+#endif
         UpdateAssociationApplyState();
     }
-#endif
 
     private void UpdateAssociationApplyState()
     {
-        if (!_associationsAvailable)
-        {
-            _applyAssociations.IsEnabled = false;
-            return;
-        }
-        var selected = _extensionBoxes
-            .Where(pair => pair.Value.IsChecked == true)
-            .Select(pair => pair.Key)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
-        _applyAssociations.IsEnabled = !selected.SetEquals(_appliedExtensions);
+        // Always available: apply re-asserts the default even when the checked set is unchanged,
+        // which is how a user recovers a default another app has taken over.
+        _applyAssociations.IsEnabled = _associationsAvailable;
     }
 
     private static string GroupTitle(string key) => key switch

@@ -158,7 +158,7 @@ public sealed class RecentFileStore
             document, RecentFileJsonContext.Default.RecentFileDocument);
         if (bytes.Length > MaximumStoreBytes)
             throw new IOException("The recent-file store exceeded its size limit.");
-        AtomicFileWriter.Write(_path, bytes);
+        AtomicFileWriter.Write(_path, bytes, AtomicFileProtection.CurrentUserAndSystem);
     }
 
     private void ClearCore()

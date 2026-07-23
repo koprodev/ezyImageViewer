@@ -89,7 +89,7 @@ public sealed class SettingsUiContractTests
     }
 
     [Fact]
-    public void FileAssociations_AutomaticPathsAreOpenWithCandidatesOnlyAndNeverTouchTheUserChoice()
+    public void FileAssociations_RegistrarStaysPerUserCandidatesAndOnlyTheApplyPathSetsTheDefault()
     {
         var registrar = File.ReadAllText(RepoFile(
             "EzyImageViewer.App", "FileAssociationRegistrar.cs"));
@@ -98,8 +98,8 @@ public sealed class SettingsUiContractTests
         var viewer = File.ReadAllText(RepoFile(
             "EzyImageViewer.App", "Views", "ViewerWindow.xaml.cs"));
 
-        // FR-APP-001: the registrar and every non-explicit path register per-user Open With
-        // candidates only — never the default-app UserChoice, and never a writer call.
+        // FR-APP-001: the registrar itself stays per-user Open With candidates only and never
+        // authors a UserChoice; the default switch lives solely in UserChoiceDefaultWriter.
         Assert.Contains("Registry.CurrentUser", registrar, StringComparison.Ordinal);
         Assert.DoesNotContain("Registry.LocalMachine", registrar, StringComparison.Ordinal);
         // The registrar may READ UserChoice (read-only ProgId lifetime guard) but must never write
@@ -120,18 +120,25 @@ public sealed class SettingsUiContractTests
             "FileAssociationPolicy.GetDefaultAppsSettingsUri()", settingsUi, StringComparison.Ordinal);
         Assert.Contains("Launcher.LaunchUriAsync(target)", viewer, StringComparison.Ordinal);
 
-        // The general Save path (ApplyPendingAssociations) and the page Apply button both funnel
-        // through ApplyAssociations, which must call the candidate registrar and never the writer.
-        Assert.DoesNotContain(
-            "UserChoiceDefaultWriter", MethodBody(settingsUi, "public void ApplyPendingAssociations()"));
-        Assert.DoesNotContain(
-            "UserChoiceDefaultWriter", MethodBody(settingsUi, "private void ApplyAssociations()"));
-        // Exactly one writer call in the whole file, and it is inside the explicit SetDefaultApp.
+        // 2026-07-23 user-approved policy revision: Save and the page Apply button both funnel
+        // through ApplyAssociations, which registers candidates AND switches the default.
+        var applyBody = MethodBody(settingsUi, "private void ApplyAssociations()");
+        Assert.Contains("FileAssociationRegistrar.Apply", applyBody, StringComparison.Ordinal);
+        Assert.Contains("UserChoiceDefaultWriter.SetDefaults", applyBody, StringComparison.Ordinal);
+        // Exactly one writer call in the whole file: the single apply path, no second entry point.
         Assert.Equal(1, CountOccurrences(settingsUi, "UserChoiceDefaultWriter.SetDefaults"));
+        // Save applies only after the user opened the file association page — the installer
+        // pre-registers candidates, so a theme-only save must never hand over the default app.
+        var saveBody = MethodBody(settingsUi, "public void ApplyPendingAssociations()");
+        Assert.Contains("ApplyAssociations();", saveBody, StringComparison.Ordinal);
+        Assert.Contains("!_associationPageVisited", saveBody, StringComparison.Ordinal);
         Assert.Contains(
-            "UserChoiceDefaultWriter.SetDefaults",
-            MethodBody(settingsUi, "private void SetDefaultApp()"),
-            StringComparison.Ordinal);
+            "_associationPageVisited |= index == FileAssociationPageIndex",
+            settingsUi, StringComparison.Ordinal);
+        // Having opened the page, an unchanged selection must still re-assert the default.
+        Assert.DoesNotContain("SetEquals", saveBody, StringComparison.Ordinal);
+        // The default switch stays out of packaged/Portable builds.
+        Assert.Contains("#if EZY_UNPACKAGED", applyBody, StringComparison.Ordinal);
 
         // The shared ProgId/command survives clearing all candidates while it is still a default,
         // so UserChoice-based double-clicks never dangle.

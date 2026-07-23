@@ -106,6 +106,115 @@ public sealed class AppDataSecurityTests : IDisposable
         Assert.Equal(expected, actual);
     }
 
+    [Fact]
+    public void AtomicWriteInFlightInAnotherProcess_DoesNotFailTheProtectionPass()
+    {
+        if (!OperatingSystem.IsWindows())
+            return;
+
+        var root = Path.Combine(_directory, "concurrent");
+        Directory.CreateDirectory(root);
+        File.WriteAllText(Path.Combine(root, "settings.json"), "{}");
+        AppDataSecurity.EnsureProtected(new AppDataPaths(root));
+
+        // Mirrors AtomicFileWriter's in-flight state: the sibling temp exists and is held with
+        // FileShare.None until the final rename, which is what a second instance walks into.
+        var temp = Path.Combine(root, $".settings.json.{Guid.NewGuid():N}.tmp");
+        using (new FileStream(temp, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+        {
+            AppDataSecurity.EnsureProtected(new AppDataPaths(root));
+        }
+
+        AssertProtectedFile(Path.Combine(root, "settings.json"));
+    }
+
+    [Fact]
+    public void EntryRemovedDuringTheWalk_DoesNotFailTheProtectionPass()
+    {
+        if (!OperatingSystem.IsWindows())
+            return;
+
+        var root = Path.Combine(_directory, "vanishing");
+        Directory.CreateDirectory(root);
+        var doomed = Path.Combine(root, "retired.jsonl");
+        File.WriteAllText(doomed, "{}");
+        AppDataSecurity.EnsureProtected(new AppDataPaths(root));
+
+        // A delete-on-close handle makes the entry disappear the moment the walk releases it,
+        // standing in for log retention pruning a file mid-pass.
+        using (new FileStream(
+            doomed, FileMode.Open, FileAccess.ReadWrite,
+            FileShare.ReadWrite | FileShare.Delete, 4096, FileOptions.DeleteOnClose))
+        {
+        }
+
+        Assert.False(File.Exists(doomed));
+        AppDataSecurity.EnsureProtected(new AppDataPaths(root));
+    }
+
+    [Fact]
+    public void ForeignLockedFile_StillFailsClosed()
+    {
+        if (!OperatingSystem.IsWindows())
+            return;
+
+        var root = Path.Combine(_directory, "foreign-lock");
+        Directory.CreateDirectory(root);
+        // Only atomic-write temps are skipped; an ordinary locked file must still fail closed.
+        var locked = Path.Combine(root, "settings.json");
+        using var handle = new FileStream(
+            locked, FileMode.CreateNew, FileAccess.Write, FileShare.None);
+
+        Assert.Throws<AppDataProtectionException>(() =>
+            AppDataSecurity.EnsureProtected(new AppDataPaths(root)));
+    }
+
+    [Fact]
+    public void ProtectedAtomicWrite_LeavesAnExplicitAclThatSurvivesTheVerifyPass()
+    {
+        if (!OperatingSystem.IsWindows())
+            return;
+
+        var root = Path.Combine(_directory, "protected-write");
+        Directory.CreateDirectory(root);
+        AppDataSecurity.EnsureProtected(new AppDataPaths(root));
+
+        var target = Path.Combine(root, "settings.json");
+        AtomicFileWriter.Write(target, [1, 2, 3], AtomicFileProtection.CurrentUserAndSystem);
+
+        // Without the explicit ACL the renamed file keeps the ACEs it inherited from the
+        // directory, which the verify pass rejects as unprotected.
+        AssertProtectedFile(target);
+        AppDataSecurity.EnsureProtected(new AppDataPaths(root));
+        AssertProtectedFile(target);
+    }
+
+    [Fact]
+    public void InheritedAtomicWrite_LeavesTheDirectoryAclInPlaceForUserFacingOutput()
+    {
+        if (!OperatingSystem.IsWindows())
+            return;
+
+        var folder = Directory.CreateDirectory(Path.Combine(_directory, "exports")).FullName;
+        var target = Path.Combine(folder, "export.png");
+
+        AtomicFileWriter.Write(target, [1, 2, 3]);
+
+        Assert.False(new FileInfo(target).GetAccessControl(AccessControlSections.Access)
+            .AreAccessRulesProtected);
+    }
+
+    [Theory]
+    [InlineData(".settings.json.0123456789abcdef0123456789abcdef.tmp", true)]
+    [InlineData(".a.0123456789ABCDEF0123456789ABCDEF.tmp", true)]
+    [InlineData("settings.json.0123456789abcdef0123456789abcdef.tmp", false)]
+    [InlineData(".settings.json.tmp", false)]
+    [InlineData(".settings.json.short.tmp", false)]
+    [InlineData(".settings.json.0123456789abcdef0123456789abcdef.txt", false)]
+    [InlineData(".0123456789abcdef0123456789abcdef.tmp", false)]
+    public void AtomicTempNames_AreRecognizedOnlyInTheWriterFormat(string fileName, bool expected)
+        => Assert.Equal(expected, AtomicFileWriter.IsTempFileName(fileName));
+
     public void Dispose()
     {
         if (Directory.Exists(_directory))

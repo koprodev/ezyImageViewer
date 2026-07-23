@@ -117,7 +117,8 @@ public sealed class RecoveryStore
         {
             var bytes = JsonSerializer.SerializeToUtf8Bytes(
                 marker, CrashMarkerJsonContext.Default.CrashSessionMarker);
-            AtomicFileWriter.Write(GetMarkerPath(sessionId), bytes);
+            AtomicFileWriter.Write(
+                GetMarkerPath(sessionId), bytes, AtomicFileProtection.CurrentUserAndSystem);
         }
         return marker;
     }
@@ -130,7 +131,8 @@ public sealed class RecoveryStore
         {
             AtomicFileWriter.Write(
                 GetRecoveryPath(record.SessionId, record.WindowId),
-                stream => Serialize(record, stream));
+                stream => Serialize(record, stream),
+                AtomicFileProtection.CurrentUserAndSystem);
         }
     }
 

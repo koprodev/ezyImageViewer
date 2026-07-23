@@ -211,7 +211,7 @@ public sealed class StartupHealthTracker
             document, StartupHealthJsonContext.Default.StartupHealthDocument);
         if (bytes.Length > MaximumStoreBytes)
             throw new IOException("The startup-health state exceeded its size limit.");
-        AtomicFileWriter.Write(_path, bytes);
+        AtomicFileWriter.Write(_path, bytes, AtomicFileProtection.CurrentUserAndSystem);
     }
 
     private FileStream AcquireCrossProcessLock()

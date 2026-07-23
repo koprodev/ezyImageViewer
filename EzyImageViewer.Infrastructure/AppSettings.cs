@@ -485,7 +485,7 @@ public sealed class AppSettingsStore
     {
         var bytes = JsonSerializer.SerializeToUtf8Bytes(
             settings, AppSettingsJsonContext.Default.AppSettings);
-        AtomicFileWriter.Write(_path, bytes);
+        AtomicFileWriter.Write(_path, bytes, AtomicFileProtection.CurrentUserAndSystem);
     }
 
     private static bool IsValid(AppSettings settings)

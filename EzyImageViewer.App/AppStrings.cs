@@ -113,9 +113,9 @@ public static class AppStrings
     public static string SettingsLanguageNote => Get("SettingsLanguageNote",
         "현재 버전은 한국어를 제공합니다. 영어는 이후 버전에서 지원할 예정입니다.");
     public static string FileAssocDescription => Get("FileAssocDescription",
-        "선택한 확장자를 이 앱의 '연결 프로그램' 후보로 등록합니다(저장 시 함께 적용). "
-        + "Windows 정책상 기본 앱은 앱이 직접 바꿀 수 없으므로, 기본 프로그램으로 쓰려면 아래 "
-        + "'Windows 기본 프로그램 설정'에서 ezy Image Viewer를 직접 선택해야 합니다.");
+        "선택한 확장자를 이 앱의 기본 프로그램으로 지정합니다. 저장하거나 '지금 적용'을 누르면 "
+        + "연결 프로그램 후보 등록과 더블클릭 기본 앱 전환이 함께 적용됩니다. Windows가 전환을 "
+        + "막으면 아래 'Windows 기본 프로그램 설정'에서 직접 선택하세요.");
     public static string FileAssocWindowsSettings => Get("FileAssocWindowsSettings", "Windows 기본 프로그램 설정");
     public static string FileAssocSelectEssential => Get("FileAssocSelectEssential", "필수 파일 선택");
     public static string FileAssocSelectAll => Get("FileAssocSelectAll", "전부 선택");
@@ -124,15 +124,11 @@ public static class AppStrings
     public static string FileAssocApplied => Get("FileAssocApplied",
         "파일 연결을 적용했습니다. 더블클릭 기본 앱으로 쓰려면 'Windows 기본 프로그램 설정'에서 "
         + "ezy Image Viewer를 선택하세요");
+    public static string FileAssocCleared => Get("FileAssocCleared",
+        "선택한 확장자가 없어 이 앱의 파일 연결을 모두 해제했습니다");
     public static string FileAssocApplyFailed => Get("FileAssocApplyFailed", "파일 연결을 적용하지 못했습니다");
     public static string FileAssocUnavailable => Get("FileAssocUnavailable",
         "파일 연결 정보를 읽지 못해 이 페이지를 사용할 수 없습니다");
-    public static string FileAssocSetDefault => Get("FileAssocSetDefault", "기본 앱으로 지정");
-    public static string FileAssocSetDefaultHelp => Get("FileAssocSetDefaultHelp",
-        "선택한 확장자를 이 앱의 기본 프로그램으로 설정합니다. Windows 정책상 제한될 수 있으며, "
-        + "막히면 Windows 설정으로 안내합니다.");
-    public static string FileAssocSetDefaultNone => Get("FileAssocSetDefaultNone",
-        "먼저 기본 앱으로 지정할 확장자를 선택하세요");
     public static string FileAssocSetDefaultAll => Get("FileAssocSetDefaultAll",
         "선택한 확장자를 이 앱의 기본 프로그램으로 지정했습니다");
     public static string FileAssocSetDefaultPartial => Get("FileAssocSetDefaultPartial",

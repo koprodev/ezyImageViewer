@@ -102,7 +102,7 @@ public static class AppDataSecurity
                 or IdentityNotMappedException
                 or PlatformNotSupportedException)
             {
-                if (attempt + 1 < attemptCount && IsTransientSharingViolation(ex))
+                if (attempt + 1 < attemptCount && IsRetryable(ex))
                 {
                     Thread.Sleep(TimeSpan.FromMilliseconds(50 * (attempt + 1)));
                     continue;
@@ -133,18 +133,24 @@ public static class AppDataSecurity
             foreach (var entry in Directory.EnumerateFileSystemEntries(
                 directory, "*", SearchOption.TopDirectoryOnly))
             {
-                var attributes = File.GetAttributes(entry);
-                if ((attributes & FileAttributes.ReparsePoint) != 0)
-                    throw new IOException("The application-data tree contains a reparse point.");
+                try
+                {
+                    var attributes = File.GetAttributes(entry);
+                    if ((attributes & FileAttributes.ReparsePoint) != 0)
+                        throw new IOException("The application-data tree contains a reparse point.");
 
-                if ((attributes & FileAttributes.Directory) != 0)
-                {
-                    ProtectDirectory(entry, currentUser, system);
-                    pending.Push(entry);
+                    if ((attributes & FileAttributes.Directory) != 0)
+                    {
+                        ProtectDirectory(entry, currentUser, system);
+                        pending.Push(entry);
+                    }
+                    else
+                    {
+                        ProtectFile(entry, currentUser, system);
+                    }
                 }
-                else
+                catch (IOException ex) when (SkipTransientEntry(entry, ex))
                 {
-                    ProtectFile(entry, currentUser, system);
                 }
             }
         }
@@ -156,15 +162,20 @@ public static class AppDataSecurity
             foreach (var entry in Directory.EnumerateFileSystemEntries(
                 directory, "*", SearchOption.TopDirectoryOnly))
             {
-                var attributes = File.GetAttributes(entry);
-                if ((attributes & FileAttributes.Directory) != 0)
+                try
                 {
-                    VerifyDirectory(entry, currentUser, system);
-                    pending.Push(entry);
+                    if ((File.GetAttributes(entry) & FileAttributes.Directory) != 0)
+                    {
+                        VerifyDirectory(entry, currentUser, system);
+                        pending.Push(entry);
+                    }
+                    else
+                    {
+                        VerifyFile(entry, currentUser, system);
+                    }
                 }
-                else
+                catch (IOException ex) when (SkipTransientEntry(entry, ex))
                 {
-                    VerifyFile(entry, currentUser, system);
                 }
             }
         }
@@ -174,6 +185,24 @@ public static class AppDataSecurity
     {
         var errorCode = exception.HResult & 0xFFFF;
         return errorCode is 32 or 33;
+    }
+
+    /// <summary>A concurrent instance legitimately rewriting a file inside the tree can make the
+    /// verify pass observe a freshly created (still inheriting) DACL; re-running the whole pass
+    /// re-protects it, so that is retried rather than reported as a protection failure.</summary>
+    private static bool IsRetryable(Exception exception) =>
+        IsTransientSharingViolation(exception) || exception is UnauthorizedAccessException;
+
+    /// <summary>Entries that a concurrent instance is creating or renaming away must not fail the
+    /// whole tree. Two cases are skipped: an atomic write still holding its sibling temp
+    /// exclusively, and any entry already gone by the time it is reached — there is nothing left to
+    /// protect, and the durable file a temp becomes is protected on the next pass.</summary>
+    private static bool SkipTransientEntry(string path, Exception exception)
+    {
+        if (exception is FileNotFoundException or DirectoryNotFoundException)
+            return true;
+        return IsTransientSharingViolation(exception)
+            && AtomicFileWriter.IsTempFileName(Path.GetFileName(path));
     }
 
     public static AppDataPaths CreateProtectedEphemeral()
@@ -238,6 +267,14 @@ public static class AppDataSecurity
         EnsureCurrentOwner(
             new FileInfo(path).GetAccessControl(AccessControlSections.Owner),
             currentUser);
+        new FileInfo(path).SetAccessControl(CreateFileSecurity(currentUser, system));
+    }
+
+    [SupportedOSPlatform("windows")]
+    private static FileSecurity CreateFileSecurity(
+        SecurityIdentifier currentUser,
+        SecurityIdentifier system)
+    {
         var security = new FileSecurity();
         security.SetAccessRuleProtection(isProtected: true, preserveInheritance: false);
         security.AddAccessRule(new FileSystemAccessRule(
@@ -248,7 +285,20 @@ public static class AppDataSecurity
             system,
             FileSystemRights.FullControl,
             AccessControlType.Allow));
-        new FileInfo(path).SetAccessControl(security);
+        return security;
+    }
+
+    /// <summary>The file ACL this policy demands, for callers that must create a file already
+    /// carrying it. A file created without this inherits its directory's ACEs, which the verify
+    /// pass rejects as unprotected until the next startup re-protects it.</summary>
+    [SupportedOSPlatform("windows")]
+    internal static FileSecurity CreateProtectedFileSecurityForCurrentUser()
+    {
+        using var identity = WindowsIdentity.GetCurrent(TokenAccessLevels.Query);
+        var currentUser = identity.User
+            ?? throw new InvalidOperationException("The current Windows user SID is unavailable.");
+        return CreateFileSecurity(
+            currentUser, new SecurityIdentifier(WellKnownSidType.LocalSystemSid, null));
     }
 
     [SupportedOSPlatform("windows")]
@@ -369,9 +419,19 @@ public static class AppDataSecurity
                 if ((attributes & FileAttributes.ReparsePoint) != 0)
                     throw new IOException("The application-data tree contains a reparse point.");
                 if ((attributes & FileAttributes.Directory) != 0)
+                {
                     pending.Push(entry);
+                }
                 else
-                    RejectMultipleHardLinks(entry);
+                {
+                    try
+                    {
+                        RejectMultipleHardLinks(entry);
+                    }
+                    catch (IOException ex) when (SkipTransientEntry(entry, ex))
+                    {
+                    }
+                }
             }
         }
     }
