@@ -113,16 +113,34 @@ public static class AppStrings
     public static string SettingsLanguageNote => Get("SettingsLanguageNote",
         "현재 버전은 한국어를 제공합니다. 영어는 이후 버전에서 지원할 예정입니다.");
     public static string FileAssocDescription => Get("FileAssocDescription",
-        "선택한 확장자를 이 앱의 '연결 프로그램' 후보로 등록합니다. 기존 기본 앱은 변경하지 않습니다.");
+        "선택한 확장자를 이 앱의 '연결 프로그램' 후보로 등록합니다(저장 시 함께 적용). "
+        + "Windows 정책상 기본 앱은 앱이 직접 바꿀 수 없으므로, 기본 프로그램으로 쓰려면 아래 "
+        + "'Windows 기본 프로그램 설정'에서 ezy Image Viewer를 직접 선택해야 합니다.");
     public static string FileAssocWindowsSettings => Get("FileAssocWindowsSettings", "Windows 기본 프로그램 설정");
     public static string FileAssocSelectEssential => Get("FileAssocSelectEssential", "필수 파일 선택");
     public static string FileAssocSelectAll => Get("FileAssocSelectAll", "전부 선택");
     public static string FileAssocSelectNone => Get("FileAssocSelectNone", "선택 안 함");
     public static string FileAssocApply => Get("FileAssocApply", "지금 적용");
-    public static string FileAssocApplied => Get("FileAssocApplied", "파일 연결을 적용했습니다");
+    public static string FileAssocApplied => Get("FileAssocApplied",
+        "파일 연결을 적용했습니다. 더블클릭 기본 앱으로 쓰려면 'Windows 기본 프로그램 설정'에서 "
+        + "ezy Image Viewer를 선택하세요");
     public static string FileAssocApplyFailed => Get("FileAssocApplyFailed", "파일 연결을 적용하지 못했습니다");
     public static string FileAssocUnavailable => Get("FileAssocUnavailable",
         "파일 연결 정보를 읽지 못해 이 페이지를 사용할 수 없습니다");
+    public static string FileAssocSetDefault => Get("FileAssocSetDefault", "기본 앱으로 지정");
+    public static string FileAssocSetDefaultHelp => Get("FileAssocSetDefaultHelp",
+        "선택한 확장자를 이 앱의 기본 프로그램으로 설정합니다. Windows 정책상 제한될 수 있으며, "
+        + "막히면 Windows 설정으로 안내합니다.");
+    public static string FileAssocSetDefaultNone => Get("FileAssocSetDefaultNone",
+        "먼저 기본 앱으로 지정할 확장자를 선택하세요");
+    public static string FileAssocSetDefaultAll => Get("FileAssocSetDefaultAll",
+        "선택한 확장자를 이 앱의 기본 프로그램으로 지정했습니다");
+    public static string FileAssocSetDefaultPartial => Get("FileAssocSetDefaultPartial",
+        "{0}/{1}개 확장자만 기본 프로그램으로 지정했습니다. 나머지는 Windows 설정에서 직접 선택하세요");
+    public static string FileAssocSetDefaultUnsupported => Get("FileAssocSetDefaultUnsupported",
+        "이 Windows에서는 앱이 기본 프로그램을 바꿀 수 없습니다. Windows 설정에서 직접 선택하세요");
+    public static string FileAssocSetDefaultRestoreFailed => Get("FileAssocSetDefaultRestoreFailed",
+        "일부 확장자는 이전 기본 앱 복원에도 실패했습니다. Windows 설정에서 확인하세요.");
     public static string FileAssocGroupRaster => Get("FileAssocGroupRaster", "래스터 이미지");
     public static string FileAssocGroupCodec => Get("FileAssocGroupCodec", "코덱 확장 형식 (AVIF·HEIC)");
     public static string FileAssocGroupVector => Get("FileAssocGroupVector", "벡터 이미지");

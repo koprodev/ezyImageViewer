@@ -45,7 +45,10 @@ internal static class FileAssociationRegistrar
             else
                 UnregisterExtension(extension);
         }
-        if (desired.Count == 0)
+        // Never strip the shared ProgId/command while any extension still resolves to it as a
+        // default (the experimental UserChoice writer may have made it one); a dangling
+        // shell\open\command would break those double-clicks.
+        if (desired.Count == 0 && !AnyExtensionUsesProgIdAsDefault())
             RemoveApplicationRegistration();
         SHChangeNotify(ShcneAssocChanged, ShcnfIdList, IntPtr.Zero, IntPtr.Zero);
     }
@@ -75,6 +78,23 @@ internal static class FileAssociationRegistrar
         registrations.SetValue(
             FileAssociationPolicy.RegisteredApplicationName,
             FileAssociationPolicy.CapabilitiesKeyPath);
+    }
+
+    private static bool AnyExtensionUsesProgIdAsDefault()
+    {
+        const string fileExts =
+            @"Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts";
+        foreach (var extension in FileAssociationPolicy.SelectableExtensions)
+        {
+            using var userChoice = Registry.CurrentUser.OpenSubKey(
+                $@"{fileExts}\{extension}\UserChoice");
+            if (userChoice?.GetValue("ProgId") is string progId
+                && string.Equals(progId, FileAssociationPolicy.ProgId, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static void RemoveApplicationRegistration()

@@ -73,7 +73,7 @@ foreach ($expected in @('Bundle.en-US.wxl', 'Bundle.ko-KR.wxl', 'EULA.ko-KR.txt'
     Assert-Contains $wixBuild $expected 'WiX installer builder'
 }
 foreach ($expected in @('WixStdBAScope = &quot;PerUser&quot;',
-        'WixStdBAScope = &quot;PerMachine&quot;', 'LaunchTarget="ezyImageViewer.exe"',
+        'WixStdBAScope = &quot;PerMachine&quot;', 'LaunchTarget="[LaunchTargetPath]"',
         '1042\thm.wxl', '1042\license.rtf',
         'EzyFileAssociations" Type="numeric" Value="1"')) {
     Assert-Contains $bundleSource $expected 'WiX bundle source'

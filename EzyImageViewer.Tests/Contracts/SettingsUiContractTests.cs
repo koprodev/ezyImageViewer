@@ -89,7 +89,7 @@ public sealed class SettingsUiContractTests
     }
 
     [Fact]
-    public void FileAssociations_AreOpenWithCandidatesOnlyAndNeverTouchTheUserChoice()
+    public void FileAssociations_AutomaticPathsAreOpenWithCandidatesOnlyAndNeverTouchTheUserChoice()
     {
         var registrar = File.ReadAllText(RepoFile(
             "EzyImageViewer.App", "FileAssociationRegistrar.cs"));
@@ -98,18 +98,118 @@ public sealed class SettingsUiContractTests
         var viewer = File.ReadAllText(RepoFile(
             "EzyImageViewer.App", "Views", "ViewerWindow.xaml.cs"));
 
-        // FR-APP-001: per-user candidate registration only — never the default-app choice.
+        // FR-APP-001: the registrar and every non-explicit path register per-user Open With
+        // candidates only — never the default-app UserChoice, and never a writer call.
         Assert.Contains("Registry.CurrentUser", registrar, StringComparison.Ordinal);
         Assert.DoesNotContain("Registry.LocalMachine", registrar, StringComparison.Ordinal);
-        Assert.DoesNotContain("UserChoice", registrar, StringComparison.Ordinal);
+        // The registrar may READ UserChoice (read-only ProgId lifetime guard) but must never write
+        // it: no CreateSubKey/DeleteSubKey on UserChoice and no Hash value are authored here.
+        Assert.DoesNotContain("CreateSubKey(\"UserChoice\")", registrar, StringComparison.Ordinal);
+        Assert.DoesNotContain("DeleteSubKey(\"UserChoice\"", registrar, StringComparison.Ordinal);
+        Assert.DoesNotContain("\"Hash\"", registrar, StringComparison.Ordinal);
+        // The only UserChoice touch is the read-only guard opening the key.
+        var guard = MethodBody(registrar, "private static bool AnyExtensionUsesProgIdAsDefault()");
+        Assert.Contains("OpenSubKey", guard, StringComparison.Ordinal);
+        Assert.Contains("UserChoice", guard, StringComparison.Ordinal);
         Assert.Contains(
             "FileAssociationPolicy.OpenWithProgidsKeyPath", registrar, StringComparison.Ordinal);
         Assert.Contains("SHChangeNotify", registrar, StringComparison.Ordinal);
         Assert.Contains(
             "FileAssociationRegistrar.Apply", settingsUi, StringComparison.Ordinal);
         Assert.Contains(
-            "FileAssociationPolicy.DefaultAppsSettingsUri", settingsUi, StringComparison.Ordinal);
+            "FileAssociationPolicy.GetDefaultAppsSettingsUri()", settingsUi, StringComparison.Ordinal);
         Assert.Contains("Launcher.LaunchUriAsync(target)", viewer, StringComparison.Ordinal);
+
+        // The general Save path (ApplyPendingAssociations) and the page Apply button both funnel
+        // through ApplyAssociations, which must call the candidate registrar and never the writer.
+        Assert.DoesNotContain(
+            "UserChoiceDefaultWriter", MethodBody(settingsUi, "public void ApplyPendingAssociations()"));
+        Assert.DoesNotContain(
+            "UserChoiceDefaultWriter", MethodBody(settingsUi, "private void ApplyAssociations()"));
+        // Exactly one writer call in the whole file, and it is inside the explicit SetDefaultApp.
+        Assert.Equal(1, CountOccurrences(settingsUi, "UserChoiceDefaultWriter.SetDefaults"));
+        Assert.Contains(
+            "UserChoiceDefaultWriter.SetDefaults",
+            MethodBody(settingsUi, "private void SetDefaultApp()"),
+            StringComparison.Ordinal);
+
+        // The shared ProgId/command survives clearing all candidates while it is still a default,
+        // so UserChoice-based double-clicks never dangle.
+        Assert.Contains("AnyExtensionUsesProgIdAsDefault", registrar, StringComparison.Ordinal);
+        Assert.Contains(
+            "desired.Count == 0 && !AnyExtensionUsesProgIdAsDefault()",
+            registrar, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void UserChoiceDefaultWriter_IsInstallerOnlyVerifiesEffectiveDefaultAndRestoresOnFailure()
+    {
+        var writer = File.ReadAllText(RepoFile(
+            "EzyImageViewer.App", "UserChoiceDefaultWriter.cs"));
+        var settingsUi = File.ReadAllText(RepoFile(
+            "EzyImageViewer.App", "SettingsDialogContent.cs"));
+        var appProject = File.ReadAllText(RepoFile(
+            "EzyImageViewer.App", "EzyImageViewer.App.csproj"));
+
+        // Experimental writer compiles only into the installer flavor: not Store/packaged, and not
+        // the registry-free Portable build.
+        Assert.StartsWith("#if EZY_UNPACKAGED", writer.TrimStart(), StringComparison.Ordinal);
+        Assert.Contains(
+            "<DefineConstants Condition=\"'$(Packaged)' != 'true' and '$(Portable)' != 'true'\">$(DefineConstants);EZY_UNPACKAGED",
+            appProject, StringComparison.Ordinal);
+        Assert.Contains("#if EZY_UNPACKAGED", settingsUi, StringComparison.Ordinal);
+
+        // Effective (not machine) default check: AL_EFFECTIVE must be 1.
+        Assert.Contains("Effective = 1", writer, StringComparison.Ordinal);
+        Assert.Contains("AssociationLevel.Effective", writer, StringComparison.Ordinal);
+        Assert.Contains("QueryCurrentDefault", writer, StringComparison.Ordinal);
+        // Honest fail-closed detection and per-extension restore, not silent success.
+        Assert.Contains("HashProtectionState.DetectionFailed", writer, StringComparison.Ordinal);
+        Assert.Contains("UserChoiceStatus.Restored", writer, StringComparison.Ordinal);
+        Assert.Contains("UserChoiceStatus.RestoreFailed", writer, StringComparison.Ordinal);
+        Assert.Contains("private static bool Restore(", writer, StringComparison.Ordinal);
+        // Timestamp binds to the key's own last-write minute, retried across the boundary.
+        Assert.Contains("RegQueryInfoKeyW", writer, StringComparison.Ordinal);
+        Assert.Contains("SameMinute", writer, StringComparison.Ordinal);
+        Assert.DoesNotContain("DateTime.Now", writer, StringComparison.Ordinal);
+        Assert.Contains("COMException", writer, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void UserChoiceHash_IsMarkedAsAnMplDerivativeWithProvenance()
+    {
+        var hash = File.ReadAllText(RepoFile(
+            "EzyImageViewer.Infrastructure", "UserChoiceHash.cs"));
+        var notices = File.ReadAllText(RepoFile("THIRD-PARTY-NOTICES.md"));
+
+        Assert.StartsWith("// SPDX-License-Identifier: MPL-2.0", hash.TrimStart(), StringComparison.Ordinal);
+        Assert.Contains("WindowsUserChoice.cpp", hash, StringComparison.Ordinal);
+        Assert.Contains("MPL-2.0", notices, StringComparison.Ordinal);
+        Assert.DoesNotContain("독립적으로 재구현", notices, StringComparison.Ordinal);
+    }
+
+    private static int CountOccurrences(string source, string needle)
+    {
+        var count = 0;
+        for (var i = source.IndexOf(needle, StringComparison.Ordinal); i >= 0;
+             i = source.IndexOf(needle, i + needle.Length, StringComparison.Ordinal))
+            count++;
+        return count;
+    }
+
+    private static string MethodBody(string source, string signature)
+    {
+        var start = source.IndexOf(signature, StringComparison.Ordinal);
+        Assert.True(start >= 0, $"Signature not found: {signature}");
+        var brace = source.IndexOf('{', start);
+        var depth = 0;
+        for (var i = brace; i < source.Length; i++)
+        {
+            if (source[i] == '{') depth++;
+            else if (source[i] == '}' && --depth == 0)
+                return source[start..(i + 1)];
+        }
+        throw new InvalidOperationException($"Unbalanced braces after {signature}.");
     }
 
     [Fact]

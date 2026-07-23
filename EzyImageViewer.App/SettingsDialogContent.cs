@@ -46,6 +46,9 @@ internal sealed class SettingsDialogContent : Grid
     private readonly Dictionary<string, CheckBox> _extensionBoxes =
         new(StringComparer.OrdinalIgnoreCase);
     private readonly Button _applyAssociations = new();
+#if EZY_UNPACKAGED
+    private readonly Button _setDefaultApp = new();
+#endif
     private readonly TextBlock _associationStatus = new()
     {
         TextWrapping = TextWrapping.Wrap,
@@ -256,7 +259,7 @@ internal sealed class SettingsDialogContent : Grid
         };
         AutomationProperties.SetName(windowsSettings, AppStrings.FileAssocWindowsSettings);
         windowsSettings.Click += (_, _) => LinkRequested?.Invoke(
-            this, new Uri(FileAssociationPolicy.DefaultAppsSettingsUri));
+            this, FileAssociationPolicy.GetDefaultAppsSettingsUri());
         SetRow(windowsSettings, 1);
         page.Children.Add(windowsSettings);
 
@@ -299,6 +302,15 @@ internal sealed class SettingsDialogContent : Grid
                 extension, StringComparer.OrdinalIgnoreCase)));
         actions.Children.Add(SelectionButton(AppStrings.FileAssocSelectAll, _ => true));
         actions.Children.Add(SelectionButton(AppStrings.FileAssocSelectNone, _ => false));
+#if EZY_UNPACKAGED
+        _setDefaultApp.Content = AppStrings.FileAssocSetDefault;
+        AutomationProperties.SetName(_setDefaultApp, AppStrings.FileAssocSetDefault);
+        AutomationProperties.SetHelpText(_setDefaultApp, AppStrings.FileAssocSetDefaultHelp);
+        _setDefaultApp.Margin = new Thickness(0, 8, 0, 0);
+        _setDefaultApp.IsEnabled = _associationsAvailable;
+        _setDefaultApp.Click += (_, _) => SetDefaultApp();
+        actions.Children.Add(_setDefaultApp);
+#endif
         SetColumn(actions, 1);
         body.Children.Add(actions);
         SetRow(body, 2);
@@ -379,6 +391,20 @@ internal sealed class SettingsDialogContent : Grid
         return button;
     }
 
+    /// <summary>Dialog-level save also applies a pending association selection: users expected
+    /// Save to cover the checkboxes, not only the page's own apply button.</summary>
+    public void ApplyPendingAssociations()
+    {
+        if (!_associationsAvailable)
+            return;
+        var desired = _extensionBoxes
+            .Where(pair => pair.Value.IsChecked == true)
+            .Select(pair => pair.Key)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        if (!desired.SetEquals(_appliedExtensions))
+            ApplyAssociations();
+    }
+
     private void ApplyAssociations()
     {
         var desired = _extensionBoxes
@@ -398,6 +424,60 @@ internal sealed class SettingsDialogContent : Grid
         }
         UpdateAssociationApplyState();
     }
+
+#if EZY_UNPACKAGED
+    /// <summary>Experimental: register the checked extensions as candidates, then write UserChoice
+    /// so double-click opens this app. Unsupported by Microsoft; reports per-extension and falls
+    /// back to the Windows settings page when the OS blocks the write.</summary>
+    private void SetDefaultApp()
+    {
+        var desired = _extensionBoxes
+            .Where(pair => pair.Value.IsChecked == true)
+            .Select(pair => pair.Key)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        if (desired.Count == 0)
+        {
+            _associationStatus.Text = AppStrings.FileAssocSetDefaultNone;
+            return;
+        }
+        try
+        {
+            FileAssociationRegistrar.Apply(desired);
+            _appliedExtensions = desired;
+        }
+        catch (Exception ex) when (ex is System.Security.SecurityException
+            or UnauthorizedAccessException or IOException or InvalidOperationException)
+        {
+            _associationStatus.Text = $"{AppStrings.FileAssocApplyFailed}: {ex.Message}";
+            UpdateAssociationApplyState();
+            return;
+        }
+
+        var outcome = UserChoiceDefaultWriter.SetDefaults(desired);
+        if (outcome.Blocked)
+        {
+            _associationStatus.Text = AppStrings.FileAssocSetDefaultUnsupported;
+            LinkRequested?.Invoke(this, FileAssociationPolicy.GetDefaultAppsSettingsUri());
+        }
+        else if (outcome.AllSet)
+        {
+            _associationStatus.Text = AppStrings.FileAssocSetDefaultAll;
+        }
+        else
+        {
+            var message = string.Format(
+                CultureInfo.CurrentCulture,
+                AppStrings.FileAssocSetDefaultPartial,
+                outcome.SetCount,
+                outcome.Total);
+            if (outcome.AnyRestoreFailed)
+                message += " " + AppStrings.FileAssocSetDefaultRestoreFailed;
+            _associationStatus.Text = message;
+            LinkRequested?.Invoke(this, FileAssociationPolicy.GetDefaultAppsSettingsUri());
+        }
+        UpdateAssociationApplyState();
+    }
+#endif
 
     private void UpdateAssociationApplyState()
     {

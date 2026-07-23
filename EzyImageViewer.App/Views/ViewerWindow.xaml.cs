@@ -4907,6 +4907,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         if (await ShowDialogAsync(dialog, editScoped: false) != ContentDialogResult.Primary
             || candidate is null)
             return;
+        editor.ApplyPendingAssociations();
         try
         {
             await AppServices.UpdateSettingsAsync(current =>

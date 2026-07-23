@@ -15,6 +15,23 @@ ezyImageViewer 자체 코드는 저장소 루트의 `LICENSE`에 있는 MIT Lice
 
 배포 패키지는 위 `LICENSE` 원문을 포함해야 합니다.
 
+## 알고리즘 출처 고지 (UserChoice 해시)
+
+`EzyImageViewer.Infrastructure/UserChoiceHash.cs`는 Mozilla Firefox
+`browser/components/shell/WindowsUserChoice.cpp`(MPL-2.0)의 UserChoice 해시 구조를 C#으로
+옮긴 **MPL-2.0 파생 저작물**입니다. 따라서 이 파일 하나는 루트 MIT가 아니라 MPL-2.0을 따르며,
+파일 상단에 `SPDX-License-Identifier: MPL-2.0`과 원 출처를 표기했습니다. 배포물에는 MPL-2.0
+전문과 이 파일의 소스 가용성 안내를 포함하고, 나머지 ezyImageViewer 코드가 MIT임을 함께
+명시합니다. MPL-2.0 전문: <https://www.mozilla.org/en-US/MPL/2.0/>.
+
+정확성 교차검증에는 DanysysTeam/PS-SFTA `SFTA.ps1`(MIT, Copyright 2022 Danysys)의 출력
+벡터만 오프라인 오라클로 사용했으며, 그 소스 코드는 제품에 포함하지 않습니다.
+
+이 기능(레지스트리 writer와 UI 버튼)은 installer(MSI) 빌드에서 사용자가 명시적으로 요청할
+때만 동작하며 Store/packaged·registry-free Portable 산출물에는 컴파일되지 않습니다. 순수 해시
+core(`UserChoiceHash`)는 Infrastructure 어셈블리에 존재하지만 writer/UI 없이는 호출되지
+않습니다.
+
 ## 인벤토리 범위와 재현 방법
 
 이 목록은 단순히 모든 lock 파일 항목을 합친 것이 아니라 다음 두 실제 Windows x64

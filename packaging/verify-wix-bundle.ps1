@@ -70,8 +70,20 @@ try {
         'Bundle desktop shortcut must default off.'
     Assert-Equal '1' $variables.EzyFileAssociations.Value `
         'Bundle file associations must default on.'
-    Assert-Equal 'ezyImageViewer.exe' $variables.LaunchTarget.Value `
-        'Bundle launch target must resolve through the selected scope App Paths registration.'
+    Assert-Equal '[LaunchTargetPath]' $variables.LaunchTarget.Value `
+        'Bundle launch target must resolve through the scope-selected absolute path variable.'
+    Assert-Equal '[PerUserInstallFolder]\ezyImageViewer.exe' `
+        $variables.LaunchTargetPath.Value `
+        'Bundle launch path must default to the per-user executable.'
+    $launchOverrides = @($root.SelectNodes('b:SetVariable', $manifestNamespace) |
+            Where-Object { [string]$_.Variable -eq 'LaunchTargetPath' })
+    Assert-Equal '1' ([string]$launchOverrides.Count) `
+        'Bundle must plan exactly one per-machine launch path override.'
+    Assert-Equal '[PerMachineInstallFolder]\ezyImageViewer.exe' `
+        ([string]$launchOverrides[0].Value) `
+        'Per-machine launch path override value mismatch.'
+    Assert-Equal 'WixStdBAScope = "PerMachine"' ([string]$launchOverrides[0].Condition) `
+        'Per-machine launch path override condition mismatch.'
     Assert-True (-not $variables.ContainsKey('LaunchArguments')) `
         'Bundle launch must not depend on package-identity protocol registration.'
     foreach ($name in @('PerUserInstallFolder', 'PerMachineInstallFolder',

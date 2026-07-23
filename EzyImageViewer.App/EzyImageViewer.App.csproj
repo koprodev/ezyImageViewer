@@ -24,6 +24,10 @@
     <!-- Dev loop runs unpackaged; -p:Packaged=true builds the MSIX flavor (Q7=b) which
          packaging\pack-msix.ps1 lays out and signs. Self-contained WASDK works in both. -->
     <WindowsPackageType Condition="'$(Packaged)' != 'true'">None</WindowsPackageType>
+    <!-- The experimental UserChoice default-app writer is unsupported by Microsoft and must not
+         ship in Store/packaged flavors, nor in the registry-free Portable flavor; it compiles
+         only into the installer (MSI) build, which already writes per-user registry entries. -->
+    <DefineConstants Condition="'$(Packaged)' != 'true' and '$(Portable)' != 'true'">$(DefineConstants);EZY_UNPACKAGED</DefineConstants>
     <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
   </PropertyGroup>
 

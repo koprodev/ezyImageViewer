@@ -22,6 +22,14 @@ public static class FileAssociationPolicy
     public const string ApplicationDescription = "이미지 보기 및 편집";
     public const string DefaultAppsSettingsUri = "ms-settings:defaultapps";
 
+    /// <summary>Windows 11 (build 22000+) deep-links straight to this app's default-app page;
+    /// Windows 10 does not support the parameter, so it gets the plain default-apps page.</summary>
+    public static Uri GetDefaultAppsSettingsUri() =>
+        Environment.OSVersion.Version.Build >= 22000
+            ? new Uri(DefaultAppsSettingsUri + "?registeredAppUser="
+                + Uri.EscapeDataString(RegisteredApplicationName))
+            : new Uri(DefaultAppsSettingsUri);
+
     /// <summary>The Setup default set (FR-APP-001) surfaced as "필수 파일" in the settings page.</summary>
     public static readonly IReadOnlyList<string> EssentialExtensions =
     [
