@@ -107,6 +107,8 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
     private SKPoint? _lastPointer;
     private uint? _activePointerId;
     private bool _fitPending = true;
+    /// <summary>The first image a window shows sizes that window (once, restored state only).</summary>
+    private bool _initialSizePending = true;
     // FR-VIEW-004: Space+drag and right-button drag are the pan gestures in every tool.
     private bool _spaceHeld;
     private bool _rightPanActive;
@@ -1403,6 +1405,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         CancelActiveGesture();
         CancelEditDialog();
         RebuildSnapshot(_viewModel.Session.Current);
+        MaybeApplyInitialWindowSize();
         _viewModel.RefreshStatus();
         UpdateStatusBar();
         UpdateOverlay();
@@ -2091,7 +2094,12 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
 
     // ---- input ----
 
-    private void OnCanvasSizeChanged(object sender, SizeChangedEventArgs e) => QueueCanvasResize();
+    private void OnCanvasSizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        // Also the retry for a document that arrived before the canvas had a layout size.
+        MaybeApplyInitialWindowSize();
+        QueueCanvasResize();
+    }
 
     private void OnCanvasLoaded(object sender, RoutedEventArgs e)
     {
@@ -2102,6 +2110,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
             if (_observedXamlRoot is not null)
                 _observedXamlRoot.Changed += OnXamlRootChanged;
         }
+        MaybeApplyInitialWindowSize();
         QueueCanvasResize();
     }
 
@@ -2148,6 +2157,96 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         Canvas.EnableRenderLoop = false;
         Canvas.Invalidate();
         QueueScaleDependentRerender();
+    }
+
+    // ---- initial window size ----
+
+    /// <summary>Breathing room between the image and the canvas edge, per side.</summary>
+    private const double CanvasMarginDip = 24d;
+    /// <summary>Fallback rail thickness plus its margin, used before the rail is measured.</summary>
+    private const double ToolRailReserveDip = 56d;
+    private const double MinimumWindowWidthDip = 800d;
+    private const double MinimumWindowHeightDip = 600d;
+
+    /// <summary>
+    /// Opens the window around its first image (the Explorer double-click case): the canvas takes
+    /// the picture at up to 100% with a margin that also keeps the floating tool rail off it, and
+    /// the window is centered on its monitor without outgrowing the work area. Runs once per
+    /// window, never against a maximized or full-screen presenter, and re-arms nothing afterwards
+    /// so file navigation and edits keep the size the user is left with.
+    /// </summary>
+    private void MaybeApplyInitialWindowSize()
+    {
+        if (!_initialSizePending)
+            return;
+        // The snapshot check is the ordering guard: the session goes Ready before its UI-thread
+        // callback runs, and that callback re-arms the pending fit. Waiting for the snapshot to
+        // carry this document means the fit this method cancels is the one already queued for it.
+        if (_viewModel.Session.State != SessionState.Ready
+            || _viewModel.Session.Current is not { NativeSize: { IsEmpty: false } native } document
+            || document.Id != _snapshotDocumentId)
+            return;
+        if (AppWindow.Presenter is not OverlappedPresenter { State: OverlappedPresenterState.Restored })
+        {
+            // A maximized or full-screen window is the user's own choice; leave it alone for good.
+            _initialSizePending = false;
+            return;
+        }
+        var rasterScale = Canvas.XamlRoot?.RasterizationScale ?? 0d;
+        if (rasterScale <= 0d || Canvas.ActualWidth <= 0d || Canvas.ActualHeight <= 0d)
+            return; // Pre-layout: the canvas SizeChanged/Loaded path retries.
+        if (DisplayArea.GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Nearest) is not { } display)
+            return;
+        _initialSizePending = false;
+
+        var canvasWidth = Canvas.ActualWidth * rasterScale;
+        var canvasHeight = Canvas.ActualHeight * rasterScale;
+        // Everything outside the canvas — title bar, borders, status bar — measured, not assumed.
+        var chrome = new PixelSize(
+            Math.Max(0, AppWindow.Size.Width - (int)Math.Round(canvasWidth)),
+            Math.Max(0, AppWindow.Size.Height - (int)Math.Round(canvasHeight)));
+        var railReserve = ToolRailReserve();
+        // The rail reserve counts on both sides because the view centers the image: half of it on
+        // the docked side is what actually keeps the picture out from under the rail.
+        var margin = new PixelSize(
+            (int)Math.Round((CanvasMarginDip
+                + (_toolRailDock == ToolRailDock.Vertical ? railReserve : 0d)) * rasterScale),
+            (int)Math.Round((CanvasMarginDip
+                + (_toolRailDock == ToolRailDock.Horizontal ? railReserve : 0d)) * rasterScale));
+        var workArea = new PixelSize(display.WorkArea.Width, display.WorkArea.Height);
+        var layout = InitialWindowGeometry.Measure(
+            native,
+            chrome,
+            margin,
+            workArea,
+            new PixelSize(
+                (int)Math.Round(MinimumWindowWidthDip * rasterScale),
+                (int)Math.Round(MinimumWindowHeightDip * rasterScale)));
+        var (x, y) = InitialWindowGeometry.Center(
+            layout.WindowSize, workArea, display.WorkArea.X, display.WorkArea.Y);
+
+        // Adopt the scale before the resize lands: the viewport change then only re-centers
+        // (Custom mode keeps the centered content centered), so no fit ever overwrites the margin.
+        _transform.SetViewport(
+            (float)Math.Max(1, layout.WindowSize.Width - chrome.Width),
+            (float)Math.Max(1, layout.WindowSize.Height - chrome.Height));
+        _transform.OpenAtScale(layout.ContentScale);
+        _fitPending = false;
+        AppWindow.MoveAndResize(new Windows.Graphics.RectInt32(
+            x, y, layout.WindowSize.Width, layout.WindowSize.Height));
+        UpdateStatusBar();
+    }
+
+    /// <summary>Rail thickness plus its outer margin on the docked axis, in DIPs.</summary>
+    private double ToolRailReserve()
+    {
+        var thickness = _toolRailDock == ToolRailDock.Horizontal
+            ? ToolRail.ActualHeight
+            : ToolRail.ActualWidth;
+        var gap = _toolRailDock == ToolRailDock.Horizontal
+            ? ToolRail.Margin.Top
+            : ToolRail.Margin.Left;
+        return thickness > 0d ? thickness + gap : ToolRailReserveDip;
     }
 
     private void OnPointerPressed(object sender, PointerRoutedEventArgs e)

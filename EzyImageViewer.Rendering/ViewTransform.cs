@@ -102,6 +102,20 @@ public sealed class ViewTransform
         CenterInViewport();
     }
 
+    /// <summary>
+    /// Opens at an explicit scale, centered. Initial window sizing picks the scale so the image
+    /// keeps a margin on every side, which Fit — edge-to-edge by definition — cannot express.
+    /// Scale 1 reports as ActualSize so the view mode matches what the user sees.
+    /// </summary>
+    public void OpenAtScale(float scale)
+    {
+        // No MinScale floor, for the same reason Fit has none: a max-side image needs a scale below
+        // the interactive zoom floor to sit on a monitor.
+        Scale = Math.Clamp(scale, float.Epsilon, MaxScale);
+        Mode = Scale == 1f ? ViewMode.ActualSize : ViewMode.Custom;
+        CenterInViewport();
+    }
+
     /// <summary>1 image pixel = 1 physical pixel (all coordinates here are physical).</summary>
     public void ActualSize()
     {

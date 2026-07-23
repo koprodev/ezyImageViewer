@@ -1,6 +1,6 @@
 {
     "schemaVersion":  2,
-    "sourceCommit":  "fd6f9b81932175ffbaf8b5c793b17236d659cda8",
+    "sourceCommit":  "658db4b1542d9e91ff044527982d47f77de5cbe0",
     "allowlistedPaths":  [
                              ".github/",
                              "EzyImageViewer.App/",
@@ -36,11 +36,11 @@
                              "README.md",
                              "THIRD-PARTY-NOTICES.md"
                          ],
-    "payloadFileCount":  374,
+    "payloadFileCount":  376,
     "files":  [
                   {
                       "path":  ".gitattributes",
-                      "sha256":  "55F2A2EF050E05D331B0023E29C392DDBD6A98B5B074BA2EC6FC328AEB84251D"
+                      "sha256":  "044F16CC97926056E74F65BE5A0CD15D201B6F356B3696545121DD7386272042"
                   },
                   {
                       "path":  ".github/workflows/ci.yml",
@@ -92,7 +92,7 @@
                   },
                   {
                       "path":  "docs/preview-release-notes.md",
-                      "sha256":  "0DDD87B81567E0D0D9638D1B755B0303CE2CF0EDB3409B4188CFD21B05FF1662"
+                      "sha256":  "B5F9E116B28F9A2084896CCC3336B706A7B4453A01C5B2F0BC65846638C99EB7"
                   },
                   {
                       "path":  "docs/privacy.md",
@@ -100,7 +100,7 @@
                   },
                   {
                       "path":  "docs/release-process.md",
-                      "sha256":  "A031FD01AD0F33984A7C640DF65804D2F4E65521711F95032124D109DE374AB6"
+                      "sha256":  "A746CDA568C7952AC5B4A2F33ED0248F5A1BCF70D1ABD1E547D741E051CA6B65"
                   },
                   {
                       "path":  "docs/signpath-readiness.md",
@@ -108,7 +108,7 @@
                   },
                   {
                       "path":  "docs/user-guide.md",
-                      "sha256":  "7EBD391D194BB058ECC0675B078FC1A5A0B2D927E7B97AC02BD97FAE495C2478"
+                      "sha256":  "E3604F504A0F0815DC7E8C989A8B9D0904E4BF3D8AB0331CC1D1689AB0E3DC6A"
                   },
                   {
                       "path":  "EzyImageViewer.App/Activation/ActivationArgsConverter.cs",
@@ -220,7 +220,7 @@
                   },
                   {
                       "path":  "EzyImageViewer.App/Views/ViewerWindow.xaml.cs",
-                      "sha256":  "DC3FD3B00EE8A67F4BB8633D10B7C34D81FB5B28D2E5F8D0BF46642A63C9237B"
+                      "sha256":  "DFF79AF50335FC4B34DAD6EBAFAB32E721EE1673AB5EE2022FCB857DCFC930A9"
                   },
                   {
                       "path":  "EzyImageViewer.App/WindowManager.cs",
@@ -823,6 +823,10 @@
                       "sha256":  "44D67AABEB67A2FE5F57ADC4EC59AC49E995A9CEDFD822D5E76531B4E8DE9F1E"
                   },
                   {
+                      "path":  "EzyImageViewer.Rendering/InitialWindowGeometry.cs",
+                      "sha256":  "E2677DB68116794BF32DA4C73DCE3B7D6C2C6175C07999EE5BB8391347AD4A64"
+                  },
+                  {
                       "path":  "EzyImageViewer.Rendering/packages.lock.json",
                       "sha256":  "16C6A1C43C87AD0E427059307D8E821429F2FA1D0606B335765116EA3597F3D9"
                   },
@@ -836,7 +840,7 @@
                   },
                   {
                       "path":  "EzyImageViewer.Rendering/ViewTransform.cs",
-                      "sha256":  "43515418F7615DA1F7B060C0002C0B109232094E9D8CFC25F2D3BDA38362C5E7"
+                      "sha256":  "0C6800CE8EBBDB68C1EF4B0E202C3B4A2EA38E0E4D59B6C0DD3F37990C3AC1B2"
                   },
                   {
                       "path":  "EzyImageViewer.slnx",
@@ -1211,6 +1215,10 @@
                       "sha256":  "466A2DA743DE231F900FEB8622E5AAE609E9DDA05975D7159CF0561FA05322DC"
                   },
                   {
+                      "path":  "EzyImageViewer.Tests/Rendering/InitialWindowGeometryTests.cs",
+                      "sha256":  "CAF53C39BB58DF715224677BA9677D5102119B866EEF1B418E9A29CE2CDE8B71"
+                  },
+                  {
                       "path":  "EzyImageViewer.Tests/Rendering/M4CRenderingTests.cs",
                       "sha256":  "67C21B6EE6E21C6F68F44E6E21BB2F542E5E9D91AEFE2930572C69BCB3D310EF"
                   },
@@ -1228,7 +1236,7 @@
                   },
                   {
                       "path":  "EzyImageViewer.Tests/Rendering/ViewTransformTests.cs",
-                      "sha256":  "CCA2425655C756694AEA1291592FF2AF3AA6B2E44C669037C0048588D74E3B7E"
+                      "sha256":  "C6DFA42FC52F3081919B1D540C54298CF58D1AD6672414560B2586620171EF77"
                   },
                   {
                       "path":  "EzyImageViewer.Tests/Spikes/LargeImageSpikeTests.cs",
@@ -1432,7 +1440,7 @@
                   },
                   {
                       "path":  "packaging/preview-release.json",
-                      "sha256":  "3A9074C8DDF26C29F1A331D15BCE82A4E1EEF37B242974EF03B1E811EA17F1E3"
+                      "sha256":  "8CDDF8FCC29210E4700F4C7A23AD5220843F06025DDCAEDDE769907B1BD6B917"
                   },
                   {
                       "path":  "packaging/public-source-allowlist.txt",

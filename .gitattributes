@@ -4,6 +4,10 @@
 *.png binary
 *.ttf binary
 
+# cmd.exe misparses parenthesized blocks in LF-only batch files.
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
 # Freeze upstream third-party notice bytes so their hash-pinned release contract
 # survives eol normalization across clones and CI checkouts.
 EzyImageViewer.CodecHost/Notices/PDFium/** -text -diff

@@ -102,6 +102,40 @@ public class ViewTransformTests
     }
 
     [Fact]
+    public void OpenAtScale_CentersAndKeepsTheRequestedMargin()
+    {
+        var transform = Make(contentW: 200, contentH: 100, viewW: 248, viewH: 148);
+        transform.OpenAtScale(1f);
+
+        Assert.Equal(ViewMode.ActualSize, transform.Mode);
+        Assert.Equal(1f, transform.Scale);
+        Assert.Equal(24f, transform.Offset.X, 2);
+        Assert.Equal(24f, transform.Offset.Y, 2);
+    }
+
+    [Fact]
+    public void OpenAtScale_BelowMinScale_IsKeptForOversizedImages()
+    {
+        var transform = Make(contentW: 65_500, contentH: 65_500, viewW: 1000, viewH: 1000);
+        transform.OpenAtScale(0.01f);
+
+        Assert.Equal(ViewMode.Custom, transform.Mode);
+        Assert.Equal(0.01f, transform.Scale, 4);
+    }
+
+    [Fact]
+    public void OpenAtScale_SurvivesAViewportChange_StillCentered()
+    {
+        var transform = Make(contentW: 200, contentH: 100, viewW: 248, viewH: 148);
+        transform.OpenAtScale(0.5f);
+        transform.SetViewport(348, 248);
+
+        Assert.Equal(0.5f, transform.Scale, 4);
+        Assert.Equal((348f - (200f * 0.5f)) / 2f, transform.Offset.X, 2);
+        Assert.Equal((248f - (100f * 0.5f)) / 2f, transform.Offset.Y, 2);
+    }
+
+    [Fact]
     public void ViewToContent_RoundTripsThroughMatrix()
     {
         var transform = Make();
