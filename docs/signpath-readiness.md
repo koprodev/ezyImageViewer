@@ -67,11 +67,12 @@ or token-like content.
   have no text/EXIF chunks and retain their C2PA Content Credentials. All four
   are intentionally included.
 - The reviewed snapshot is public at
-  `https://github.com/koprodev/ezy-image-viewer-releases`. Pull request #1 was
-  squash-merged as public commit `3f56687b53da726a84ecc8586f52d4a92a5954cf`.
-  Its protected-main GitHub Actions run
-  [29683659478](https://github.com/koprodev/ezy-image-viewer-releases/actions/runs/29683659478)
-  completed successfully. This is source and CI evidence, not a production
+  `https://github.com/koprodev/ezyImageViewer`. The original evidence repository
+  `koprodev/ezy-image-viewer-releases` (pull request #1, squash-merged public
+  commit `3f56687b53da726a84ecc8586f52d4a92a5954cf`, protected-main Actions run
+  29683659478) was deleted on 2026-07-23 when the user consolidated publishing
+  into the single `koprodev/ezyImageViewer` repository, so that CI evidence must
+  be regenerated there. This is source and CI evidence, not a production
   binary release or SignPath acceptance.
 
 The public CI does not upload unsigned MSIX or standalone MSI validation
@@ -128,7 +129,7 @@ Hello SignPath Foundation team,
 
 I maintain ezy Image Viewer, an MIT-licensed Windows desktop application as an
 individual in South Korea. The project has no revenue and publishes its source
-at https://github.com/koprodev/ezy-image-viewer-releases. It has not published
+at https://github.com/koprodev/ezyImageViewer. It has not published
 a production binary yet.
 
 Before applying for signing, could you clarify:

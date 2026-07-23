@@ -56,6 +56,14 @@ public class AnnotationKindsRenderingTests
                 Id = Guid.NewGuid(), Bounds = new RectF(10, 10, 36, 36), Number = 12,
             },
         ];
+        yield return
+        [
+            new SpeechBubbleAnnotation
+            {
+                Id = Guid.NewGuid(), Bounds = new RectF(5, 5, 50, 25),
+                TailTip = new AnnotationPoint(15, 45), Text = "말풍선",
+            },
+        ];
     }
 
     [Theory]

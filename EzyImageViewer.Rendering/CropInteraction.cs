@@ -96,6 +96,23 @@ public sealed class CropInteraction
         return true;
     }
 
+    /// <summary>A review is only actionable against the exact document revision it was drawn on
+    /// (FR-EDIT-007 region copy shares the commit-path gate at ViewerWindow.TryCommitCropReview).</summary>
+    public bool TryGetValidReview(Guid documentId, long revision, out CropReview review)
+    {
+        if (Phase == CropInteractionPhase.Reviewing
+            && Review is { } current
+            && current.DocumentId == documentId
+            && current.Revision == revision)
+        {
+            review = current;
+            return true;
+        }
+
+        review = default;
+        return false;
+    }
+
     public void CancelDrag()
     {
         if (Phase != CropInteractionPhase.Dragging)

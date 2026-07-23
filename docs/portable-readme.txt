@@ -39,4 +39,4 @@ agreement permits it. Accordingly, this Portable build is published only for
 evaluation and testing and must not be relied on as a production deployment.
 
 Project page:
-https://github.com/koprodev/ezy-image-viewer-releases
+https://github.com/koprodev/ezyImageViewer

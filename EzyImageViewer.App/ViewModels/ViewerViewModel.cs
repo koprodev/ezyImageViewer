@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using EzyImageViewer.Core.Documents;
 using EzyImageViewer.Core.Documents.Layers;
@@ -217,6 +218,10 @@ public sealed class ViewerViewModel : INotifyPropertyChanged, IDisposable
         _ = sourceFormat; // format is re-sniffed from the bytes
         RequestLoad(ct => _documentLoader.LoadMemoryAsync(bytes, DocumentSource.FromClipboard(), ct));
     }
+
+    /// <summary>In-app generated pixels (whiteboard); routed through the same hardened memory load.</summary>
+    public void OpenGeneratedBytes(ReadOnlyMemory<byte> bytes) =>
+        RequestLoad(ct => _documentLoader.LoadMemoryAsync(bytes, DocumentSource.FromGenerated(), ct));
 
     private void Load(string path)
     {
@@ -496,13 +501,33 @@ public sealed class ViewerViewModel : INotifyPropertyChanged, IDisposable
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(string.Empty));
     }
 
+    /// <summary>Version in the title identifies the installed build at a glance — stale-payload
+    /// upgrades (2026-07-22) were invisible without it. FileVersion carries the installer-stamped
+    /// value; the short commit comes from the SourceLink informational version.</summary>
+    private static readonly string ProductTitle = BuildProductTitle();
+
+    private static string BuildProductTitle()
+    {
+        const string product = "ezy Image Viewer";
+        var assembly = typeof(ViewerViewModel).Assembly;
+        var file = assembly.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version;
+        var informational = assembly
+            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+        var plus = informational?.IndexOf('+') ?? -1;
+        var commit = plus >= 0 && informational!.Length > plus + 1
+            ? informational.Substring(plus + 1, Math.Min(7, informational.Length - plus - 1))
+            : null;
+        if (string.IsNullOrWhiteSpace(file))
+            return product;
+        return commit is null ? $"{product} {file}" : $"{product} {file} ({commit})";
+    }
+
     /// <summary>Window title with the FR-HIST-004 modified marker.</summary>
     public string BuildTitle()
     {
-        const string product = "ezy Image Viewer";
         var name = Session.Current?.Source.Path is { } path ? Path.GetFileName(path) : null;
         var marker = Editor.IsModified ? "● " : "";
-        return name is null ? $"{marker}{product}" : $"{marker}{name} - {product}";
+        return name is null ? $"{marker}{ProductTitle}" : $"{marker}{name} - {ProductTitle}";
     }
 
     /// <summary>

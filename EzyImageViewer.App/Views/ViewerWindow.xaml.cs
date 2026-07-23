@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
 using System.Numerics;
@@ -60,7 +61,8 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         AnnotationTextAlignment Alignment,
         uint? BackgroundArgb,
         Guid DocumentId,
-        long Revision);
+        long Revision,
+        bool SpeechBubble = false);
 
     // Fixed dash, cached: SKPaint.Dispose does not dispose an assigned path effect, so building one
     // per repaint would strand a native effect on the finalizer queue every rubber-band frame.
@@ -105,8 +107,9 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
     private SKPoint? _lastPointer;
     private uint? _activePointerId;
     private bool _fitPending = true;
-    // FR-VIEW-004: Space+drag is the pan gesture in every tool.
+    // FR-VIEW-004: Space+drag and right-button drag are the pan gestures in every tool.
     private bool _spaceHeld;
+    private bool _rightPanActive;
 
     // ---- edit tools ----
     // Authoring drafts live in document space (annotations: native px, crop: output px) so they stay
@@ -153,6 +156,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
     private bool _drawTextBackgroundEnabled;
     private readonly Dictionary<CanvasTool, ToolStyle> _toolStyles = [];
     private ToolDefaults _publishedToolDefaults = new();
+    private readonly ObservableCollection<string> _fontFamilies = [];
     private bool _updatingToolControls;
     private bool _updatingZoomSlider;
     private readonly Dictionary<uint, Button> _colorButtons = [];
@@ -197,6 +201,15 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
     private static readonly float?[] CropRatios = [null, 1f, 4f / 3f, 16f / 9f];
     private int _cropRatioIndex;
     private readonly CropInteraction _cropInteraction = new();
+    // UR-009 box-select shares the crop drag/review machine but never enters the crop commit path.
+    private readonly CropInteraction _regionInteraction = new();
+    private bool _regionSelectMode;
+    private bool _openGroupEnabled = true;
+    private bool _selectGroupEnabled = true;
+    private bool _transformGroupEnabled = true;
+    private bool _cropGroupEnabled = true;
+    private bool _zoomGroupEnabled = true;
+    private bool _protectGroupEnabled = true;
 
     // Every gesture is bound to the document and editor binding it started on; the mutation funnel
     // re-validates, so an interaction straddling a replacement dies instead of editing the successor.
@@ -232,7 +245,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
 
     // Authoring target (UR-007). Window state, not document state: selecting a layer is not undoable.
     private Guid _activeLayerId = AnnotationLayer.InitialLayerId;
-    private bool? _layerPanelOverride;
+    private bool _layerPanelCollapsed;
     private Guid _renamingLayerId;
 
     internal Guid RecoveryWindowId { get; } = Guid.NewGuid();
@@ -247,6 +260,11 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         _animationsEnabled = _uiSettings.AnimationsEnabled;
         _uiSettings.AnimationsEnabledChanged += OnAnimationsEnabledChanged;
         ConfigureToolRailOverflowHints();
+        // handledEventsToo: the ScrollViewer marks wheel input handled before it would bubble here.
+        ContextBarScroll.AddHandler(
+            UIElement.PointerWheelChangedEvent,
+            new PointerEventHandler(OnContextBarPointerWheel),
+            handledEventsToo: true);
         _canvasResizeSettleTimer = DispatcherQueue.CreateTimer();
         _canvasResizeSettleTimer.Interval = TimeSpan.FromMilliseconds(300);
         _canvasResizeSettleTimer.IsRepeating = false;
@@ -276,6 +294,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         ApplyRecoveryAvailability(AppServices.RecoveryAvailability);
         ApplyDataProtectionStatus();
         LayerPanelTitle.Text = AppStrings.LayerPanel;
+        ApplyLayerPanelCollapse();
         UpdateLayerPanel();
         UpdateToolUi();
         UpdateEditCommands();
@@ -405,7 +424,16 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         };
         _viewModel.SetIncludeSubfolders(settings.IncludeSubfoldersInNavigation);
         RecentButton.IsEnabled = settings.RecentFilesEnabled;
+        RecentMenuItem.IsEnabled = settings.RecentFilesEnabled;
         CaptureButton.IsEnabled = !AppServices.IsSafeMode;
+        CaptureMenuItem.IsEnabled = !AppServices.IsSafeMode;
+        _openGroupEnabled = settings.ToolbarOpenGroupEnabled;
+        _selectGroupEnabled = settings.ToolbarSelectGroupEnabled;
+        _transformGroupEnabled = settings.ToolbarTransformGroupEnabled;
+        _cropGroupEnabled = settings.ToolbarCropGroupEnabled;
+        _zoomGroupEnabled = settings.ToolbarZoomGroupEnabled;
+        _protectGroupEnabled = settings.ToolbarProtectGroupEnabled;
+        ApplyToolbarGrouping();
         SetTip(
             CaptureButton,
             $"{AppStrings.ToolCapture} ({FormatCaptureHotkey(settings.CaptureHotkey)})",
@@ -857,6 +885,9 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         SetTip(OpenButton, AppStrings.ToolOpen, AppStrings.TipOpen);
         SetTip(RecentButton, AppStrings.ToolRecent, AppStrings.TipRecent);
         SetTip(ClipboardButton, AppStrings.ToolClipboard, AppStrings.TipClipboard);
+        SetTip(WhiteboardButton, AppStrings.ToolWhiteboard, AppStrings.TipWhiteboard);
+        WhiteboardWhiteItem.Text = AppStrings.WhiteboardWhite;
+        WhiteboardBlackItem.Text = AppStrings.WhiteboardBlack;
         SetTip(
             CaptureButton,
             $"{AppStrings.ToolCapture} ({FormatCaptureHotkey(AppServices.Settings.CaptureHotkey)})",
@@ -875,7 +906,6 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         SetTip(ZoomOutButton, AppStrings.ToolZoomOut, AppStrings.TipZoomOut);
         SetTip(ZoomInButton, AppStrings.ToolZoomIn, AppStrings.TipZoomIn);
         SetTip(FullScreenButton, AppStrings.ToolFullScreen, AppStrings.TipFullScreen);
-        SetTip(LayerPanelButton, AppStrings.ToolLayerPanel, AppStrings.TipLayerPanel);
         SetTip(SettingsButton, AppStrings.ToolSettings, AppStrings.TipSettings);
         SetTip(LayerAddButton, AppStrings.LayerAdd, AppStrings.TipLayerAdd);
         SetTip(LayerDeleteButton, AppStrings.LayerDelete, AppStrings.TipLayerDelete);
@@ -889,7 +919,19 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         SetTip(BringToFrontButton, AppStrings.ToolBringToFront, AppStrings.TipBringToFront);
         SetTip(DuplicateButton, AppStrings.ToolDuplicate, AppStrings.TipDuplicate);
         SetTip(EditTextButton, AppStrings.ToolEditText, AppStrings.TipEditText);
-        SetTip(SelectButton, AppStrings.ToolSelect, AppStrings.TipSelect);
+        SetTip(SelectButton,
+            _regionSelectMode ? AppStrings.SelectModeRegion : AppStrings.ToolSelect,
+            _regionSelectMode ? AppStrings.TipRegionSelect : AppStrings.TipSelect);
+        SetTip(SelectModeButton, AppStrings.ToolSelectMode, AppStrings.TipSelectMode);
+        SetTip(RegionSelectButton, AppStrings.SelectModeRegion, AppStrings.TipRegionSelect);
+        SelectModeObjectItem.Text = AppStrings.ToolSelect;
+        SelectModeRegionItem.Text = AppStrings.SelectModeRegion;
+        SetTip(OpenGroupButton, AppStrings.ToolOpenGroup, AppStrings.TipOpenGroup);
+        SetTip(TransformGroupButton, AppStrings.ToolTransformGroup, AppStrings.TipTransformGroup);
+        SetTip(CropGroupButton, AppStrings.ToolCropGroup, AppStrings.TipCropGroup);
+        SetTip(ZoomGroupButton, AppStrings.ToolZoomGroup, AppStrings.TipZoomGroup);
+        SetTip(ProtectGroupButton, AppStrings.ToolProtectGroup, AppStrings.TipProtectGroup);
+        ConfigureGroupedMenus();
         SetTip(PenButton, AppStrings.ToolPen, AppStrings.TipPen);
         SetTip(HighlighterButton, AppStrings.ToolHighlighter, AppStrings.TipHighlighter);
         SetTip(LineButton, AppStrings.ToolLine, AppStrings.TipLine);
@@ -899,6 +941,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         SetTip(EllipseButton, AppStrings.ToolEllipse, AppStrings.TipEllipse);
         SetTip(TextButton, AppStrings.ToolText, AppStrings.TipText);
         SetTip(NumberButton, AppStrings.ToolNumber, AppStrings.TipNumber);
+        SetTip(SpeechBubbleButton, AppStrings.ToolSpeechBubble, AppStrings.TipSpeechBubble);
         SetTip(MosaicButton, AppStrings.ToolMosaic, AppStrings.TipMosaic);
         SetTip(BlurButton, AppStrings.ToolBlur, AppStrings.TipBlur);
         SetTip(MaskButton, AppStrings.ToolMask, AppStrings.TipMask);
@@ -912,6 +955,14 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         TextBackgroundCheckBox.Content = AppStrings.StyleBackground;
         BlockSizeLabel.Text = AppStrings.StyleBlockSize;
         BlurSigmaLabel.Text = AppStrings.StyleBlurSigma;
+        StrokeWidthLabel.Text = AppStrings.StyleStrokeWidth;
+        OpacityLabel.Text = AppStrings.StyleOpacity;
+        FontSizeLabel.Text = AppStrings.StyleFontSize;
+        CornerRadiusLabel.Text = AppStrings.StyleCornerRadius;
+        ArrowheadLabel.Text = AppStrings.StyleArrowhead;
+        FontFamilyLabel.Text = AppStrings.StyleFontFamily;
+        AlignmentLabel.Text = AppStrings.StyleAlignment;
+        RotationLabel.Text = AppStrings.StyleRotation;
         SetNameAndTip(CornerRadiusBox, AppStrings.StyleCornerRadius);
         SetNameAndTip(ArrowheadBox, AppStrings.StyleArrowhead);
         SetNameAndTip(FontFamilyBox, AppStrings.StyleFontFamily);
@@ -979,6 +1030,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
     {
         SetTip(CropRatioButton,
             $"{AppStrings.ToolCropRatio}: {CropRatioText()}", AppStrings.TipCropRatio);
+        CropRatioMenuItem.Text = $"{AppStrings.MenuCropRatio}: {CropRatioText()}";
         SetTip(ColorButton,
             $"{AppStrings.ToolColor}: #{_strokeColor & 0x00FF_FFFF:X6}", AppStrings.TipColor);
         SetTip(DockToggleButton, AppStrings.ToolDockToggle,
@@ -992,6 +1044,16 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
 
     private void PopulateStyleOptions()
     {
+        // Users pick fonts from the installed list (SkiaSharp resolves them for rendering, so
+        // every listed family is renderable); typed free-form names were unusable in practice.
+        foreach (var family in SKFontManager.Default.FontFamilies
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(name => name, StringComparer.CurrentCulture))
+        {
+            _fontFamilies.Add(family);
+        }
+        FontFamilyBox.ItemsSource = _fontFamilies;
+
         ArrowheadBox.Items.Add(new ComboBoxItem
         {
             Content = AppStrings.ArrowheadOpen,
@@ -1122,6 +1184,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
                     RectangleAnnotation rectangle => rectangle with { StrokeArgb = color.Argb },
                     TextAnnotation text => text with { ForegroundArgb = color.Argb },
                     NumberMarkerAnnotation marker => marker with { FillArgb = color.Argb },
+                    SpeechBubbleAnnotation bubble => bubble with { StrokeArgb = color.Argb },
                     _ => selected,
                 });
             }
@@ -1248,6 +1311,16 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
             if (IsTextInputFocused())
                 return false;
             _ = CopyToClipboardAsync();
+            return true;
+        });
+        // UR-009: cut is meaningful only on a reviewed box selection; otherwise the key stays free.
+        AddConditional(VirtualKey.X, VirtualKeyModifiers.Control, () =>
+        {
+            if (IsTextInputFocused()
+                || _tool != CanvasTool.RegionSelect
+                || _regionInteraction.Phase != CropInteractionPhase.Reviewing)
+                return false;
+            _ = CutRegionToClipboardAsync();
             return true;
         });
         Add(VirtualKey.F11, default, (_, _) => ToggleFullScreen());
@@ -1590,7 +1663,10 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
     {
         UndoButton.IsEnabled = _viewModel.Editor.CanUndo;
         RedoButton.IsEnabled = _viewModel.Editor.CanRedo;
-        SelectButton.IsChecked = _tool == CanvasTool.Select;
+        SelectButton.IsChecked = _selectGroupEnabled
+            ? _tool is CanvasTool.Select or CanvasTool.RegionSelect
+            : _tool == CanvasTool.Select;
+        RegionSelectButton.IsChecked = _tool == CanvasTool.RegionSelect;
         PenButton.IsChecked = _tool == CanvasTool.Pen;
         HighlighterButton.IsChecked = _tool == CanvasTool.Highlighter;
         LineButton.IsChecked = _tool == CanvasTool.Line;
@@ -1600,6 +1676,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         EllipseButton.IsChecked = _tool == CanvasTool.Ellipse;
         TextButton.IsChecked = _tool == CanvasTool.Text;
         NumberButton.IsChecked = _tool == CanvasTool.Number;
+        SpeechBubbleButton.IsChecked = _tool == CanvasTool.SpeechBubble;
         MosaicButton.IsChecked = _tool == CanvasTool.Mosaic;
         BlurButton.IsChecked = _tool == CanvasTool.Blur;
         MaskButton.IsChecked = _tool == CanvasTool.Mask;
@@ -1697,6 +1774,9 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         StatusModified.Text = _viewModel.ModifiedText;
         SetStatusState(_cropInteraction.Phase == CropInteractionPhase.Reviewing
             ? AppStrings.CropReviewHint
+            : _tool == CanvasTool.RegionSelect
+                && _regionInteraction.Phase == CropInteractionPhase.Reviewing
+            ? AppStrings.RegionReviewHint
             : string.IsNullOrEmpty(_viewModel.DiagnosticsText)
                 ? _viewModel.StateText
                 : $"{_viewModel.StateText} · {_viewModel.DiagnosticsText}");
@@ -1776,6 +1856,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         DrawPendingAnnotation(canvas, viewMatrix);
         DrawSelectionBand(canvas, viewMatrix);
         DrawCropOverlay(canvas, viewMatrix);
+        DrawRegionOverlay(canvas, viewMatrix);
 
         if (_firstPaintWatch is { IsRunning: true } && _viewModel.Session.State == SessionState.Ready)
         {
@@ -1827,6 +1908,8 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
                     CornerRadius = _drawCornerRadius,
                     Opacity = _drawOpacity,
                 },
+            CanvasTool.SpeechBubble when _drawAnchor is { } bubbleStart && _drawCurrent is { } bubbleEnd =>
+                MakeBubbleDraft(RectF.FromCorners(bubbleStart.X, bubbleStart.Y, bubbleEnd.X, bubbleEnd.Y)),
             CanvasTool.Number when _drawAnchor is { } markerStart && _drawCurrent is { } markerEnd =>
                 new NumberMarkerAnnotation
                 {
@@ -1918,8 +2001,9 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         canvas.DrawPath(path, paint);
     }
 
-    /// <summary>Crop draft: dims the output canvas outside the candidate region. The constrained
-    /// review bounds are stored unchanged for commit, so the overlay exactly matches the CropOp.</summary>
+    /// <summary>Crop draft: a select-style dashed box, no dim (user decision 2026-07-22). The
+    /// constrained review bounds are stored unchanged for commit, so the box exactly matches
+    /// the CropOp.</summary>
     private void DrawCropOverlay(SKCanvas canvas, SKMatrix viewMatrix)
     {
         if (_viewModel.Editor.Document is not { } document)
@@ -1932,36 +2016,21 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         if (rect.Width < 1f || rect.Height < 1f)
             return;
 
-        using var cropBuilder = new SKPathBuilder();
-        cropBuilder.MoveTo(viewMatrix.MapPoint(rect.Left, rect.Top));
-        cropBuilder.LineTo(viewMatrix.MapPoint(rect.Right, rect.Top));
-        cropBuilder.LineTo(viewMatrix.MapPoint(rect.Right, rect.Bottom));
-        cropBuilder.LineTo(viewMatrix.MapPoint(rect.Left, rect.Bottom));
-        cropBuilder.Close();
-        using var cropPath = cropBuilder.Detach();
+        CropOverlayRendering.Draw(canvas, viewMatrix, rect);
+    }
 
-        using var canvasBuilder = new SKPathBuilder();
-        canvasBuilder.MoveTo(viewMatrix.MapPoint(0f, 0f));
-        canvasBuilder.LineTo(viewMatrix.MapPoint(canvasSize.Width, 0f));
-        canvasBuilder.LineTo(viewMatrix.MapPoint(canvasSize.Width, canvasSize.Height));
-        canvasBuilder.LineTo(viewMatrix.MapPoint(0f, canvasSize.Height));
-        canvasBuilder.Close();
-        using var outputPath = canvasBuilder.Detach();
+    private void DrawRegionOverlay(SKCanvas canvas, SKMatrix viewMatrix)
+    {
+        if (_viewModel.Editor.Document is not { } document)
+            return;
+        var canvasSize = Evaluation(document).OutputSize;
+        if (_regionInteraction.GetPreview(null, canvasSize.Width, canvasSize.Height) is not { } draft)
+            return;
+        var rect = SKRect.Create(draft.X, draft.Y, draft.Width, draft.Height);
+        if (rect.Width < 1f || rect.Height < 1f)
+            return;
 
-        canvas.Save();
-        canvas.ClipPath(outputPath, SKClipOperation.Intersect, antialias: false);
-        canvas.ClipPath(cropPath, SKClipOperation.Difference, antialias: false);
-        canvas.DrawColor(new SKColor(0x00, 0x00, 0x00, 0x80));
-        canvas.Restore();
-
-        using var border = new SKPaint
-        {
-            IsAntialias = true,
-            Style = SKPaintStyle.Stroke,
-            StrokeWidth = 1.5f,
-            Color = new SKColor(0xFF, 0xFF, 0xFF, 0xE0),
-        };
-        canvas.DrawPath(cropPath, border);
+        CropOverlayRendering.Draw(canvas, viewMatrix, rect);
     }
 
     private void DrawBackground(SKCanvas canvas, int width, int height)
@@ -2084,7 +2153,11 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
     private void OnPointerPressed(object sender, PointerRoutedEventArgs e)
     {
         var currentPoint = e.GetCurrentPoint(Canvas);
-        if (!currentPoint.Properties.IsLeftButtonPressed || _activePointerId is not null)
+        // FR-VIEW-004: a right-button (or pen barrel) drag pans like Space+drag; the canvas has no
+        // context menu, so the button is free and never reaches the edit paths below.
+        var rightPan = !currentPoint.Properties.IsLeftButtonPressed
+            && currentPoint.Properties.IsRightButtonPressed;
+        if ((!currentPoint.Properties.IsLeftButtonPressed && !rightPan) || _activePointerId is not null)
             return;
         if (!Canvas.CapturePointer(e.Pointer))
             return;
@@ -2092,6 +2165,11 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         _activePointerId = e.Pointer.PointerId;
         var point = currentPoint.Position;
         _lastPointer = new SKPoint((float)point.X, (float)point.Y);
+        if (rightPan)
+        {
+            _rightPanActive = true;
+            return;
+        }
 
         // Space is the pan override even mid-tool (FR-VIEW-004), so it wins over any edit gesture.
         // A replacement in flight also blocks editing: the pending swap would discard the edit unasked.
@@ -2123,6 +2201,27 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
                 return;
             BeginGesture(document);
             _cropInteraction.BeginDrag(output.X, output.Y, document.Id, _viewModel.Editor.Revision);
+            Canvas.Invalidate();
+            UpdateStatusBar();
+            return;
+        }
+
+        if (_tool == CanvasTool.RegionSelect)
+        {
+            var output = ToOutput(device);
+            if (_regionInteraction.TryGetValidReview(
+                    document.Id, _viewModel.Editor.Revision, out var regionReview)
+                && regionReview.Contains(output.X, output.Y))
+            {
+                LiftRegionAndBeginDrag(document, regionReview, device);
+                return;
+            }
+            var regionCanvas = Evaluation(document).OutputSize;
+            if (output.X < 0f || output.Y < 0f
+                || output.X > regionCanvas.Width || output.Y > regionCanvas.Height)
+                return;
+            BeginGesture(document);
+            _regionInteraction.BeginDrag(output.X, output.Y, document.Id, _viewModel.Editor.Revision);
             Canvas.Invalidate();
             UpdateStatusBar();
             return;
@@ -2230,9 +2329,10 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         // its delta from the previous frame, not from the press point, or the first pan frame jumps.
         _lastPointer = current;
 
-        // FR-VIEW-004: Space+drag ALWAYS pans, even over an in-progress draft — the draft lives in
-        // document space, so it survives the pan untouched and resumes when Space is released.
-        if (!_spaceHeld)
+        // FR-VIEW-004: Space+drag (or a right-button drag) ALWAYS pans, even over an in-progress
+        // draft — the draft lives in document space, so it survives the pan untouched and resumes
+        // when the pan modifier is released.
+        if (!_spaceHeld && !_rightPanActive)
         {
             if (_draftTool is CanvasTool.Pen or CanvasTool.Highlighter
                 && _inkPoints.Count > 0)
@@ -2268,6 +2368,14 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
             {
                 var output = ToOutput(DevicePoint(e));
                 _cropInteraction.UpdateDrag(output.X, output.Y);
+                Canvas.Invalidate();
+                return;
+            }
+
+            if (_regionInteraction.Phase == CropInteractionPhase.Dragging)
+            {
+                var output = ToOutput(DevicePoint(e));
+                _regionInteraction.UpdateDrag(output.X, output.Y);
                 Canvas.Invalidate();
                 return;
             }
@@ -2337,9 +2445,12 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         if (ToNative(DevicePoint(e)) is not { } native)
             return;
         var point = new AnnotationPoint(native.X, native.Y);
-        var next = _activeSelectionHandle == SelectionHandle.Rotate
-            ? SelectionGeometry.Rotate(origin, point)
-            : SelectionGeometry.Resize(origin, _activeSelectionHandle, point);
+        var next = _activeSelectionHandle switch
+        {
+            SelectionHandle.Rotate => SelectionGeometry.Rotate(origin, point),
+            SelectionHandle.Tail => SelectionGeometry.MoveTail(origin, point),
+            _ => SelectionGeometry.Resize(origin, _activeSelectionHandle, point),
+        };
         if (Equals(origin, next))
             return;
         var command = new ReplaceAnnotationCommand(
@@ -2358,6 +2469,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
 
         var pendingText = CommitPendingAnnotation();
         CompleteCropDrag();
+        CompleteRegionDrag();
         if (_selectionBandAnchor is { } anchor && _selectionBandCurrent is { } current
             && GestureStillValid())
         {
@@ -2373,6 +2485,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         _selectionTransformMoved = false;
         _dragAnnotation = default;
         _dragMoved = false;
+        _rightPanActive = false;
         _lastPointer = null;
         _activePointerId = null;
         Canvas.ReleasePointerCapture(e.Pointer);
@@ -2398,6 +2511,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         _inkPoints.Clear();
         _draftTool = CanvasTool.Select;
         _cropInteraction.CancelDrag();
+        _regionInteraction.CancelDrag();
         _dragAnnotation = default;
         _dragMoved = false;
         _activeSelectionHandle = SelectionHandle.None;
@@ -2405,6 +2519,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         _selectionTransformMoved = false;
         _selectionBandAnchor = null;
         _selectionBandCurrent = null;
+        _rightPanActive = false;
         _activePointerId = null;
         _lastPointer = null;
         Canvas.Invalidate();
@@ -2412,6 +2527,18 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
     }
 
     /// <summary>Turns one native-space draft into one history entry.</summary>
+    /// <summary>Live drag draft only (Id = empty, no text yet): never enters the document.</summary>
+    private SpeechBubbleAnnotation MakeBubbleDraft(RectF bounds) => new()
+    {
+        Id = Guid.Empty,
+        Bounds = bounds,
+        TailTip = SpeechBubbleGeometry.DefaultTailTip(bounds),
+        Text = "",
+        StrokeArgb = _drawStrokeColor,
+        CornerRadius = _drawCornerRadius,
+        Opacity = _drawOpacity,
+    };
+
     private PendingText? CommitPendingAnnotation()
     {
         var anchor = _drawAnchor;
@@ -2491,13 +2618,29 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
                     break;
                 case CanvasTool.Text:
                     if (bounds.Width < 1f || bounds.Height < 1f)
+                    {
+                        if (TrySelectTextTargetAt(a, bubble: false))
+                            return null;
                         bounds = DefaultNativeBounds(a, 240f, 60f);
+                    }
                     return new PendingText(
                         bounds, _drawStrokeColor, _drawOpacity, _drawFontSize,
                         _drawFontFamily, _drawFontBold, _drawFontItalic,
                         _drawTextAlignment,
                         _drawTextBackgroundEnabled ? 0xCCFF_FFFF : null,
                         _gestureDocumentId, _gestureRevision);
+                case CanvasTool.SpeechBubble:
+                    if (bounds.Width < 1f || bounds.Height < 1f)
+                    {
+                        if (TrySelectTextTargetAt(a, bubble: true))
+                            return null;
+                        bounds = DefaultNativeBounds(a, 240f, 120f);
+                    }
+                    return new PendingText(
+                        bounds, _drawStrokeColor, _drawOpacity, _drawFontSize,
+                        _drawFontFamily, _drawFontBold, _drawFontItalic,
+                        _drawTextAlignment, null,
+                        _gestureDocumentId, _gestureRevision, SpeechBubble: true);
                 case CanvasTool.Mosaic:
                 case CanvasTool.Blur:
                 case CanvasTool.Mask:
@@ -2547,10 +2690,28 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         return null;
     }
 
-    private async Task ShowTextDialogAndCommitAsync(PendingText pending)
+    /// <summary>A degenerate click on an annotation of the tool's own text-bearing kind selects it
+    /// instead of stacking a new default draft, so double-click-to-edit works under that tool.</summary>
+    private bool TrySelectTextTargetAt(SKPoint nativePoint, bool bubble)
+    {
+        var hit = _viewModel.Editor.State.HitTest(nativePoint.X, nativePoint.Y);
+        if (bubble ? hit is not SpeechBubbleAnnotation : hit is not TextAnnotation)
+            return false;
+        SetTool(CanvasTool.Select);
+        _selectedAnnotation = hit!.Id;
+        UpdateLayerPanel();
+        UpdateToolUi();
+        UpdateEditCommands();
+        Canvas.Invalidate();
+        return true;
+    }
+
+    /// <summary>One dialog for every text-bearing annotation (text and speech bubble): the create
+    /// and edit paths must never drift apart in limits or cancel semantics.</summary>
+    private async Task<string?> PromptAnnotationTextAsync(string title, string? initial = null)
     {
         if (Content?.XamlRoot is null)
-            return;
+            return null;
         var textBox = new TextBox
         {
             Header = AppStrings.TextContentLabel,
@@ -2559,11 +2720,12 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
             MinWidth = 360,
             Height = 160,
             MaxLength = AnnotationValidator.MaxTextLength,
+            Text = initial ?? "",
         };
         var dialog = new ContentDialog
         {
             XamlRoot = Content.XamlRoot,
-            Title = AppStrings.TextTitle,
+            Title = title,
             Content = textBox,
             PrimaryButtonText = AppStrings.DialogApply,
             CloseButtonText = AppStrings.DialogCancel,
@@ -2571,6 +2733,18 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         };
         if (await ShowDialogAsync(dialog, editScoped: true) != ContentDialogResult.Primary
             || string.IsNullOrWhiteSpace(textBox.Text))
+            return null;
+        // WinUI TextBox reports line breaks as bare '\r'; the document model stores '\n'.
+        return textBox.Text
+            .Replace("\r\n", "\n", StringComparison.Ordinal)
+            .Replace('\r', '\n');
+    }
+
+    private async Task ShowTextDialogAndCommitAsync(PendingText pending)
+    {
+        var text = await PromptAnnotationTextAsync(
+            pending.SpeechBubble ? AppStrings.SpeechBubbleTitle : AppStrings.TextTitle);
+        if (text is null)
             return;
         if (_viewModel.IsReplacementPending
             || _viewModel.Editor.Document is not { } document
@@ -2578,20 +2752,36 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
             || _viewModel.Editor.Revision != pending.Revision)
             return;
 
-        var annotation = new TextAnnotation
-        {
-            Id = Guid.NewGuid(),
-            Bounds = pending.Bounds,
-            Text = textBox.Text,
-            FontFamily = pending.FontFamily,
-            ForegroundArgb = pending.Color,
-            FontSize = pending.FontSize,
-            IsBold = pending.IsBold,
-            IsItalic = pending.IsItalic,
-            Alignment = pending.Alignment,
-            BackgroundArgb = pending.BackgroundArgb,
-            Opacity = pending.Opacity,
-        };
+        Annotation annotation = pending.SpeechBubble
+            ? new SpeechBubbleAnnotation
+            {
+                Id = Guid.NewGuid(),
+                Bounds = pending.Bounds,
+                TailTip = SpeechBubbleGeometry.DefaultTailTip(pending.Bounds),
+                Text = text,
+                FontFamily = pending.FontFamily,
+                FontSize = pending.FontSize,
+                IsBold = pending.IsBold,
+                IsItalic = pending.IsItalic,
+                Alignment = pending.Alignment,
+                StrokeArgb = pending.Color,
+                CornerRadius = _cornerRadius,
+                Opacity = pending.Opacity,
+            }
+            : new TextAnnotation
+            {
+                Id = Guid.NewGuid(),
+                Bounds = pending.Bounds,
+                Text = text,
+                FontFamily = pending.FontFamily,
+                ForegroundArgb = pending.Color,
+                FontSize = pending.FontSize,
+                IsBold = pending.IsBold,
+                IsItalic = pending.IsItalic,
+                Alignment = pending.Alignment,
+                BackgroundArgb = pending.BackgroundArgb,
+                Opacity = pending.Opacity,
+            };
         if (!CanEditActiveLayer())
             return;
         _viewModel.Editor.Apply(new AddAnnotationCommand(annotation, _activeLayerId));
@@ -2600,43 +2790,42 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
 
     private async void OnEditSelectedTextClicked(object sender, RoutedEventArgs e)
     {
+        if (SelectedAnnotation() is { } selected)
+            await EditAnnotationTextAsync(selected);
+    }
+
+    private async Task EditAnnotationTextAsync(Annotation before)
+    {
         if (_viewModel.IsReplacementPending
-            || SelectedAnnotation() is not TextAnnotation { IsLocked: false } before
+            || before is not (TextAnnotation or SpeechBubbleAnnotation)
+            || before.IsLocked
             || _viewModel.Editor.Document is not { } document
             || Content?.XamlRoot is null)
             return;
         var documentId = document.Id;
         var revision = _viewModel.Editor.Revision;
-        var textBox = new TextBox
+        var initial = before switch
         {
-            Header = AppStrings.TextContentLabel,
-            AcceptsReturn = true,
-            TextWrapping = TextWrapping.Wrap,
-            MinWidth = 360,
-            Height = 160,
-            MaxLength = AnnotationValidator.MaxTextLength,
-            Text = before.Text,
-        };
-        var dialog = new ContentDialog
-        {
-            XamlRoot = Content.XamlRoot,
-            Title = AppStrings.TextEditTitle,
-            Content = textBox,
-            PrimaryButtonText = AppStrings.DialogApply,
-            CloseButtonText = AppStrings.DialogCancel,
-            DefaultButton = ContentDialogButton.Primary,
+            TextAnnotation text => text.Text,
+            SpeechBubbleAnnotation bubble => bubble.Text,
+            _ => "",
         };
         try
         {
-            if (await ShowDialogAsync(dialog, editScoped: true) != ContentDialogResult.Primary
-                || string.IsNullOrWhiteSpace(textBox.Text)
+            var edited = await PromptAnnotationTextAsync(AppStrings.TextEditTitle, initial);
+            if (edited is null
                 || _viewModel.IsReplacementPending
                 || _viewModel.Editor.Document is not { } target
                 || target.Id != documentId
                 || _viewModel.Editor.Revision != revision
                 || !Equals(_viewModel.Editor.State.Find(before.Id), before))
                 return;
-            ApplySelectedEdit(AnnotationEditKind.Content, before with { Text = textBox.Text });
+            ApplySelectedEdit(AnnotationEditKind.Content, before switch
+            {
+                TextAnnotation text => text with { Text = edited },
+                SpeechBubbleAnnotation bubble => bubble with { Text = edited },
+                _ => before,
+            });
         }
         catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
@@ -2747,21 +2936,194 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         UpdateStatusBar();
     }
 
+    private void CompleteRegionDrag()
+    {
+        if (_regionInteraction.Phase != CropInteractionPhase.Dragging)
+            return;
+        if (!GestureStillValid())
+        {
+            _regionInteraction.CancelDrag();
+            Canvas.Invalidate();
+            UpdateStatusBar();
+            return;
+        }
+
+        var canvasSize = Evaluation(_viewModel.Editor.Document!).OutputSize;
+        _regionInteraction.CompleteDrag(null, canvasSize.Width, canvasSize.Height);
+        Canvas.Invalidate();
+        UpdateStatusBar();
+    }
+
+    /// <summary>
+    /// UR-009 lift: the reviewed rect becomes a raster-asset annotation and the same rect is
+    /// erased from the background — one history entry — then the current press continues as a
+    /// normal selection drag so the patch follows the pointer without re-pressing.
+    /// </summary>
+    private void LiftRegionAndBeginDrag(
+        Core.Documents.ImageDocument document, CropReview review, SKPoint device)
+    {
+        if (!CanEditActiveLayer())
+            return;
+        if (document.IsReducedPreview || _snapshot is null)
+        {
+            SetStatusState(AppStrings.RegionNeedsFullRes);
+            return;
+        }
+
+        var evaluation = Evaluation(document);
+        if (!evaluation.TryGetOutputToNative(out var inverse))
+            return;
+        // Native-space bbox of the review rect; axis-aligned exactly for the quarter-turn/flip
+        // pipelines the UI produces, snapped outward to the pixel grid like a crop.
+        var min = new Vector2(float.PositiveInfinity);
+        var max = new Vector2(float.NegativeInfinity);
+        foreach (var corner in (ReadOnlySpan<Vector2>)
+        [
+            new(review.Bounds.X, review.Bounds.Y),
+            new(review.Bounds.Right, review.Bounds.Y),
+            new(review.Bounds.Right, review.Bounds.Bottom),
+            new(review.Bounds.X, review.Bounds.Bottom),
+        ])
+        {
+            var mapped = Vector2.Transform(corner, inverse);
+            min = Vector2.Min(min, mapped);
+            max = Vector2.Max(max, mapped);
+        }
+        var x0 = Math.Clamp((int)MathF.Floor(min.X), 0, document.NativeSize.Width);
+        var y0 = Math.Clamp((int)MathF.Floor(min.Y), 0, document.NativeSize.Height);
+        var x1 = Math.Clamp((int)MathF.Ceiling(max.X), 0, document.NativeSize.Width);
+        var y1 = Math.Clamp((int)MathF.Ceiling(max.Y), 0, document.NativeSize.Height);
+        if (x1 - x0 < 1 || y1 - y0 < 1)
+            return;
+
+        try
+        {
+            using var lifted = _snapshot.Subset(new SKRectI(x0, y0, x1, y1))
+                ?? throw new InvalidOperationException("Region extraction failed.");
+            var png = ImageExporter.Encode(lifted, ExportFormat.Png);
+            var asset = new RasterAsset
+            {
+                Id = Guid.NewGuid(),
+                EncodedBytes = [.. png],
+                PixelSize = new PixelSize(x1 - x0, y1 - y0),
+                Format = "Png",
+            };
+            var retained = checked(
+                _viewModel.Editor.State.Assets.Sum(item => item.EstimatedRetainedBytes)
+                + asset.EstimatedRetainedBytes);
+            if (retained > AnnotationValidator.MaxRasterAssetBytes)
+                throw new InvalidDataException(
+                    $"Raster assets exceed the {AnnotationValidator.MaxRasterAssetBytes:N0} byte document limit.");
+            var annotation = new ImageAnnotation
+            {
+                Id = Guid.NewGuid(),
+                AssetId = asset.Id,
+                Bounds = new RectF(x0, y0, x1 - x0, y1 - y0),
+            };
+
+            // The erase bounds are the native rect mapped forward, so the punch and the patch
+            // cover the same pixels even after the outward snap above.
+            var outMin = new Vector2(float.PositiveInfinity);
+            var outMax = new Vector2(float.NegativeInfinity);
+            foreach (var corner in (ReadOnlySpan<Vector2>)
+                [new(x0, y0), new(x1, y0), new(x1, y1), new(x0, y1)])
+            {
+                var mapped = Vector2.Transform(corner, evaluation.NativeToOutput);
+                outMin = Vector2.Min(outMin, mapped);
+                outMax = Vector2.Max(outMax, mapped);
+            }
+            var erase = new EraseOp(new RectF(
+                outMin.X, outMin.Y, outMax.X - outMin.X, outMax.Y - outMin.Y));
+            var before = _viewModel.Editor.State.Transform;
+            _ = TransformEvaluator.Evaluate(before.Append(erase), document.NativeSize);
+
+            _assetCache.Warm(asset, SKImage.FromEncodedData(SKData.CreateCopy(png))
+                ?? throw new InvalidDataException("Lifted region cannot be decoded."));
+            _viewModel.Editor.Apply(new LiftRegionCommand(
+                asset, annotation, _activeLayerId, before, erase));
+            _regionInteraction.CancelAll();
+            _selectedAnnotation = annotation.Id;
+            _tool = CanvasTool.Select;
+
+            // Continue this press as the annotation drag (fields the Select press path would set).
+            BeginGesture(document);
+            _dragAnnotation = annotation.Id;
+            _dragOrigin = annotation.Bounds;
+            _dragStartNative = ToNative(device) ?? new SKPoint(x0, y0);
+            _dragMoved = false;
+            UpdateLayerPanel();
+            UpdateToolUi();
+            UpdateEditCommands();
+            Canvas.Invalidate();
+            UpdateStatusBar();
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or InvalidDataException
+            or ArgumentException or IOException)
+        {
+            SetStatusState($"{AppStrings.EditFailed}: {ex.Message}");
+        }
+    }
+
+    /// <summary>Ctrl+X on a reviewed region: region PNG to the clipboard, then the erase op —
+    /// erase only after the copy actually succeeded, so a failed copy never destroys pixels.</summary>
+    private async Task CutRegionToClipboardAsync()
+    {
+        if (_viewModel.Editor.Document is not { } document
+            || _tool != CanvasTool.RegionSelect
+            || !_regionInteraction.TryGetValidReview(
+                document.Id, _viewModel.Editor.Revision, out var review))
+            return;
+
+        if (!await CopyToClipboardAsync())
+            return;
+        if (_viewModel.Editor.Document?.Id != document.Id)
+            return;
+        if (ApplyTransformOp(TransformEditKind.Erase, new EraseOp(review.Bounds)))
+            SetStatusState(AppStrings.RegionCutDone);
+    }
+
     private bool TryCommitCropReviewFromKeyboard() =>
         !_colorFlyoutOpen && _activeDialog is null && TryCommitCropReview();
 
-    private void OnCanvasDoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
+    private async void OnCanvasDoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
     {
-        if (_colorFlyoutOpen || _activeDialog is not null || _cropInteraction.Review is not { } review)
+        if (_colorFlyoutOpen || _activeDialog is not null)
             return;
 
         var point = e.GetPosition(Canvas);
         var scale = (float)Canvas.XamlRoot.RasterizationScale;
-        var output = ToOutput(new SKPoint((float)point.X * scale, (float)point.Y * scale));
-        if (!review.Contains(output.X, output.Y))
-            return;
+        var device = new SKPoint((float)point.X * scale, (float)point.Y * scale);
 
-        e.Handled = TryCommitCropReview();
+        if (_cropInteraction.Review is { } review)
+        {
+            var output = ToOutput(device);
+            if (!review.Contains(output.X, output.Y))
+                return;
+            e.Handled = TryCommitCropReview();
+            return;
+        }
+
+        // Photoshop parity: double-click on the empty workspace opens the file picker.
+        if (_viewModel.Editor.Document is null || ToNativeVisible(device) is not { } native)
+        {
+            e.Handled = true;
+            await OpenPickerAsync();
+            return;
+        }
+
+        // FR-ANNO-005/007: double-click on a text-bearing annotation opens its content editor.
+        if (_tool != CanvasTool.Select)
+            return;
+        var hit = _viewModel.Editor.State.HitTest(native.X, native.Y);
+        if (hit is not (TextAnnotation or SpeechBubbleAnnotation) || hit.IsLocked)
+            return;
+        _selectedAnnotation = hit.Id;
+        UpdateLayerPanel();
+        UpdateToolUi();
+        UpdateEditCommands();
+        Canvas.Invalidate();
+        e.Handled = true;
+        await EditAnnotationTextAsync(hit);
     }
 
     private bool TryCommitCropReview()
@@ -2855,6 +3217,27 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
 
     private async void OnCaptureClicked(object sender, RoutedEventArgs e) =>
         await (AppServices.Capture?.RequestCaptureAsync(this) ?? Task.CompletedTask);
+
+    private async void OnWhiteboardWhiteClicked(object sender, RoutedEventArgs e) =>
+        await OpenWhiteboardAsync(WhiteboardStyle.White);
+
+    private async void OnWhiteboardBlackClicked(object sender, RoutedEventArgs e) =>
+        await OpenWhiteboardAsync(WhiteboardStyle.Black);
+
+    private async Task OpenWhiteboardAsync(WhiteboardStyle style)
+    {
+        try
+        {
+            // Rendered off the UI thread (8.3MP fill + PNG encode); the load gate then owns
+            // replacement prompts exactly as for any other in-memory source.
+            var bytes = await Task.Run(() => WhiteboardFactory.CreatePng(style));
+            _viewModel.OpenGeneratedBytes(bytes);
+        }
+        catch (Exception ex)
+        {
+            SetStatusState($"{AppStrings.StateFailed}: {ex.Message}");
+        }
+    }
 
     // ---- capture notification (FR-CAP-003; payload captured at detection time) ----
 
@@ -2989,6 +3372,33 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         {
             ReportReleasePageLaunchFailure(ex);
         }
+    }
+
+    private async void OnSettingsLinkRequested(object? sender, Uri target)
+    {
+        try
+        {
+            if (await Launcher.LaunchUriAsync(target))
+                return;
+            ReportExternalPageLaunchFailure();
+        }
+        catch (Exception ex)
+        {
+            ReportExternalPageLaunchFailure(ex);
+        }
+    }
+
+    private void ReportExternalPageLaunchFailure(Exception? exception = null)
+    {
+        SetStatusState(AppStrings.LinkOpenFailed);
+        _ = AppServices.Logs.TryEnqueue(
+            LocalLogLevel.Warning,
+            new StructuredLogEvent
+            {
+                Name = StructuredLogEventNames.ReleasePageLaunchFailed,
+                ErrorCode = "shell_launch_failed",
+            },
+            exception);
     }
 
     private void ReportReleasePageLaunchFailure(Exception? exception = null)
@@ -3278,12 +3688,136 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
     private void OnRotateClicked(object sender, RoutedEventArgs e) =>
         ApplyTransformOp(TransformEditKind.Rotate, new RotateOp(90f));
 
+    private void OnRotateCcwClicked(object sender, RoutedEventArgs e) =>
+        ApplyTransformOp(TransformEditKind.Rotate, new RotateOp(270f));
+
     private void OnAnnotationToolClicked(object sender, RoutedEventArgs e)
     {
         if (sender is not ToggleButton { Tag: string name } button
             || !Enum.TryParse<CanvasTool>(name, out var tool))
             return;
+        // The split select button activates whichever select mode is latched (UR-009); in the
+        // flat rail the region tool has its own button, so Select stays plain object select.
+        if (tool == CanvasTool.Select && _selectGroupEnabled && _regionSelectMode)
+            tool = CanvasTool.RegionSelect;
         SetTool(button.IsChecked == true ? tool : CanvasTool.Select);
+    }
+
+    /// <summary>UR-010 dropdown menus: every item shows its rail icon in front of the text. Font
+    /// glyphs are cloned from the shared FontIconSource resources; the two path-based icons
+    /// (whiteboard, marquee) are declared inline in XAML per the icon-system contract.</summary>
+    private void ConfigureGroupedMenus()
+    {
+        SetMenuItem(OpenMenuItem, AppStrings.ToolOpen, "Icon.File.Open");
+        SetMenuItem(RecentMenuItem, AppStrings.ToolRecent, "Icon.File.Recent");
+        SetMenuItem(ClipboardMenuItem, AppStrings.ToolClipboard, "Icon.File.Clipboard");
+        SetMenuItem(CaptureMenuItem, AppStrings.ToolCapture, "Icon.File.Capture");
+        WhiteboardSubMenu.Text = AppStrings.ToolWhiteboard;
+        WhiteboardWhiteMenuItem.Text = AppStrings.WhiteboardWhite;
+        WhiteboardBlackMenuItem.Text = AppStrings.WhiteboardBlack;
+        SetMenuItem(NewWindowMenuItem, AppStrings.ToolNewWindow, "Icon.File.NewWindow");
+        SetMenuItem(CropMenuItem, AppStrings.MenuCrop, "Icon.Image.Crop");
+        SetMenuItem(CropRatioMenuItem, AppStrings.MenuCropRatio, "Icon.Image.CropRatio");
+        SetMenuItem(ResizeMenuItem, AppStrings.MenuResize, "Icon.Image.Resize");
+        SetMenuItem(FitMenuItem, AppStrings.ToolFit, "Icon.View.Fit");
+        // The 1:1 icon is a custom path declared inline in XAML (same constraint as whiteboard).
+        ActualSizeMenuItem.Text = AppStrings.ToolActualSize;
+        SetMenuItem(MosaicMenuItem, AppStrings.ToolMosaic, "Icon.Protect.Mosaic");
+        SetMenuItem(BlurMenuItem, AppStrings.ToolBlur, "Icon.Protect.Blur");
+        SetMenuItem(MaskMenuItem, AppStrings.ToolMask, "Icon.Protect.Mask");
+        SetMenuItem(RotateCwMenuItem, AppStrings.ToolRotate, "Icon.Image.Rotate");
+        SetMenuItem(RotateCcwMenuItem, AppStrings.ToolRotateCcw, "Icon.Image.Rotate", mirrored: true);
+        SetMenuItem(FlipHorizontalMenuItem, AppStrings.ToolFlipHorizontal, "Icon.Image.FlipHorizontal");
+        SetMenuItem(FlipVerticalMenuItem, AppStrings.ToolFlipVertical, "Icon.Image.FlipVertical", rotated: true);
+        SetMenuItem(SelectModeObjectItem, AppStrings.ToolSelect, "Icon.Image.Select");
+    }
+
+    private void SetMenuItem(
+        MenuFlyoutItem item, string text, string iconKey, bool mirrored = false, bool rotated = false)
+    {
+        item.Text = text;
+        var icon = new FontIcon
+        {
+            FontFamily = (FontFamily)Root.Resources["Icon.FontFamily"],
+            FontSize = 16,
+            Glyph = ((FontIconSource)Root.Resources[iconKey]).Glyph,
+        };
+        // Mirror = counter-clockwise variant of the rotate glyph; rotate = the shared flip glyph
+        // turned vertical, same trick as the rail button.
+        if (mirrored || rotated)
+        {
+            icon.RenderTransformOrigin = new Point(0.5, 0.5);
+            icon.RenderTransform = mirrored
+                ? new ScaleTransform { ScaleX = -1 }
+                : new RotateTransform { Angle = 90 };
+        }
+        item.Icon = icon;
+    }
+
+    /// <summary>UR-010: each group toggles independently between its dropdown/split button and
+    /// the original flat buttons (open, select split, rotate/flip, crop/size, zoom).</summary>
+    private void ApplyToolbarGrouping()
+    {
+        ApplyGroup(_openGroupEnabled, OpenGroupButton,
+            OpenButton, RecentButton, ClipboardButton, CaptureButton,
+            WhiteboardButton, NewWindowButton);
+        ApplyGroup(_transformGroupEnabled, TransformGroupButton,
+            RotateButton, FlipHorizontalButton, FlipVerticalButton);
+        ApplyGroup(_cropGroupEnabled, CropGroupButton,
+            CropButton, CropRatioButton, ResizeButton);
+        ApplyGroup(_zoomGroupEnabled, ZoomGroupButton, FitButton, ActualSizeButton);
+        ApplyGroup(_protectGroupEnabled, ProtectGroupButton, MosaicButton, BlurButton, MaskButton);
+        SelectModeButton.Visibility = _selectGroupEnabled
+            ? Visibility.Visible : Visibility.Collapsed;
+        RegionSelectButton.Visibility = _selectGroupEnabled
+            ? Visibility.Collapsed : Visibility.Visible;
+        // Re-grouping latches the split button onto whichever select mode is currently active.
+        if (_selectGroupEnabled)
+            _regionSelectMode = _tool == CanvasTool.RegionSelect;
+        UpdateSelectButtonIcon();
+        UpdateToolUi();
+        QueueToolRailOverflowUpdate(resetToStart: false);
+
+        static void ApplyGroup(bool grouped, UIElement groupButton, params UIElement[] flatButtons)
+        {
+            groupButton.Visibility = grouped ? Visibility.Visible : Visibility.Collapsed;
+            foreach (var button in flatButtons)
+                button.Visibility = grouped ? Visibility.Collapsed : Visibility.Visible;
+        }
+    }
+
+    /// <summary>Dropdown twin of the flat toggle buttons: activate the tagged tool, or drop back
+    /// to object select when it is already active.</summary>
+    private void OnToolMenuItemClicked(object sender, RoutedEventArgs e)
+    {
+        if (sender is not MenuFlyoutItem { Tag: string name }
+            || !Enum.TryParse<CanvasTool>(name, out var tool))
+            return;
+        SetTool(_tool == tool ? CanvasTool.Select : tool);
+    }
+
+    private void OnSelectModeObjectClicked(object sender, RoutedEventArgs e) => ApplySelectMode(false);
+
+    private void OnSelectModeRegionClicked(object sender, RoutedEventArgs e) => ApplySelectMode(true);
+
+    private void ApplySelectMode(bool regionMode)
+    {
+        _regionSelectMode = regionMode;
+        UpdateSelectButtonIcon();
+        SetTip(SelectButton,
+            regionMode ? AppStrings.SelectModeRegion : AppStrings.ToolSelect,
+            regionMode ? AppStrings.TipRegionSelect : AppStrings.TipSelect);
+        SetTool(regionMode ? CanvasTool.RegionSelect : CanvasTool.Select);
+    }
+
+    /// <summary>Visibility swap, never IconSource reassignment: sharing one IconSource instance
+    /// across reassignments intermittently dropped the rendered glyph (user bug report 2026-07-23).
+    /// The flat rail always shows the object-select glyph; the split button reflects the mode.</summary>
+    private void UpdateSelectButtonIcon()
+    {
+        var showRegion = _selectGroupEnabled && _regionSelectMode;
+        SelectObjectIcon.Visibility = showRegion ? Visibility.Collapsed : Visibility.Visible;
+        SelectRegionIcon.Visibility = showRegion ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private void OnCropClicked(object sender, RoutedEventArgs e) =>
@@ -3306,11 +3840,11 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         Canvas.Invalidate();
     }
 
-    private void OnStrokeWidthChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)
+    private void OnStrokeWidthChanged(CompactNumberBox sender, double newValue)
     {
-        if (_updatingToolControls || !double.IsFinite(args.NewValue))
+        if (_updatingToolControls || !double.IsFinite(newValue))
             return;
-        _strokeWidth = (float)args.NewValue;
+        _strokeWidth = (float)newValue;
         if (SelectedAnnotation() is { IsLocked: false } selected)
         {
             ApplySelectedEdit(AnnotationEditKind.Style, selected switch
@@ -3318,17 +3852,18 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
                 InkAnnotation ink => ink with { StrokeWidth = _strokeWidth },
                 LineAnnotation line => line with { StrokeWidth = _strokeWidth },
                 RectangleAnnotation rectangle => rectangle with { StrokeWidth = _strokeWidth },
+                SpeechBubbleAnnotation bubble => bubble with { StrokeWidth = _strokeWidth },
                 _ => selected,
             });
         }
         SaveCurrentToolStyle();
     }
 
-    private void OnOpacityChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)
+    private void OnOpacityChanged(CompactNumberBox sender, double newValue)
     {
-        if (_updatingToolControls || !double.IsFinite(args.NewValue))
+        if (_updatingToolControls || !double.IsFinite(newValue))
             return;
-        _opacity = (float)(args.NewValue / 100d);
+        _opacity = (float)(newValue / 100d);
         if (SelectedAnnotation() is { IsLocked: false } selected)
         {
             ApplySelectedEdit(AnnotationEditKind.Style, selected switch
@@ -3339,43 +3874,45 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
                 TextAnnotation text => text with { Opacity = _opacity },
                 NumberMarkerAnnotation marker => marker with { Opacity = _opacity },
                 ImageAnnotation image => image with { Opacity = _opacity },
+                SpeechBubbleAnnotation bubble => bubble with { Opacity = _opacity },
                 _ => selected,
             });
         }
         SaveCurrentToolStyle();
     }
 
-    private void OnBlockSizeChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)
+    private void OnBlockSizeChanged(CompactNumberBox sender, double newValue)
     {
-        if (_updatingToolControls || !double.IsFinite(args.NewValue))
+        if (_updatingToolControls || !double.IsFinite(newValue))
             return;
-        _mosaicBlockSize = (float)args.NewValue;
+        _mosaicBlockSize = (float)newValue;
         if (SelectedAnnotation() is ProtectionAnnotation { Kind: ProtectionKind.Mosaic, IsLocked: false } mosaic)
             ApplySelectedEdit(AnnotationEditKind.Style, mosaic with { BlockSize = _mosaicBlockSize });
         PublishCurrentToolDefaults();
     }
 
-    private void OnBlurSigmaChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)
+    private void OnBlurSigmaChanged(CompactNumberBox sender, double newValue)
     {
-        if (_updatingToolControls || !double.IsFinite(args.NewValue))
+        if (_updatingToolControls || !double.IsFinite(newValue))
             return;
-        _blurSigma = (float)args.NewValue;
+        _blurSigma = (float)newValue;
         if (SelectedAnnotation() is ProtectionAnnotation { Kind: ProtectionKind.Blur, IsLocked: false } blur)
             ApplySelectedEdit(AnnotationEditKind.Style, blur with { BlurSigma = _blurSigma });
         PublishCurrentToolDefaults();
     }
 
-    private void OnFontSizeChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)
+    private void OnFontSizeChanged(CompactNumberBox sender, double newValue)
     {
-        if (_updatingToolControls || !double.IsFinite(args.NewValue))
+        if (_updatingToolControls || !double.IsFinite(newValue))
             return;
-        _fontSize = (float)args.NewValue;
+        _fontSize = (float)newValue;
         if (SelectedAnnotation() is { IsLocked: false } selected)
         {
             ApplySelectedEdit(AnnotationEditKind.Style, selected switch
             {
                 TextAnnotation text => text with { FontSize = _fontSize },
                 NumberMarkerAnnotation marker => marker with { FontSize = _fontSize },
+                SpeechBubbleAnnotation bubble => bubble with { FontSize = _fontSize },
                 _ => selected,
             });
         }
@@ -3395,13 +3932,20 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         PublishCurrentToolDefaults();
     }
 
-    private void OnCornerRadiusChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)
+    private void OnCornerRadiusChanged(CompactNumberBox sender, double newValue)
     {
-        if (_updatingToolControls || !double.IsFinite(args.NewValue))
+        if (_updatingToolControls || !double.IsFinite(newValue))
             return;
-        _cornerRadius = (float)args.NewValue;
-        if (SelectedAnnotation() is RectangleAnnotation { IsLocked: false } rectangle)
-            ApplySelectedEdit(AnnotationEditKind.Style, rectangle with { CornerRadius = _cornerRadius });
+        _cornerRadius = (float)newValue;
+        if (SelectedAnnotation() is { IsLocked: false } roundable)
+        {
+            ApplySelectedEdit(AnnotationEditKind.Style, roundable switch
+            {
+                RectangleAnnotation rectangle => rectangle with { CornerRadius = _cornerRadius },
+                SpeechBubbleAnnotation bubble => bubble with { CornerRadius = _cornerRadius },
+                _ => roundable,
+            });
+        }
         PublishCurrentToolDefaults();
     }
 
@@ -3416,13 +3960,42 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         PublishCurrentToolDefaults();
     }
 
-    private void OnFontFamilyChanged(object sender, TextChangedEventArgs e)
+    /// <summary>Selects the family in the installed-font dropdown; a persisted family that is no
+    /// longer installed is prepended so the current value stays visible and re-savable.</summary>
+    private void SelectFontFamily(string family)
     {
-        if (_updatingToolControls || string.IsNullOrWhiteSpace(FontFamilyBox.Text))
+        var index = -1;
+        for (var i = 0; i < _fontFamilies.Count; i++)
+        {
+            if (string.Equals(_fontFamilies[i], family, StringComparison.OrdinalIgnoreCase))
+            {
+                index = i;
+                break;
+            }
+        }
+        if (index < 0 && !string.IsNullOrWhiteSpace(family))
+        {
+            _fontFamilies.Insert(0, family);
+            index = 0;
+        }
+        FontFamilyBox.SelectedIndex = index;
+    }
+
+    private void OnFontFamilyChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_updatingToolControls || FontFamilyBox.SelectedItem is not string family
+            || string.IsNullOrWhiteSpace(family))
             return;
-        _fontFamily = FontFamilyBox.Text.Trim();
-        if (SelectedAnnotation() is TextAnnotation { IsLocked: false } text)
-            ApplySelectedEdit(AnnotationEditKind.Style, text with { FontFamily = _fontFamily });
+        _fontFamily = family;
+        if (SelectedAnnotation() is { IsLocked: false } fontOwner)
+        {
+            ApplySelectedEdit(AnnotationEditKind.Style, fontOwner switch
+            {
+                TextAnnotation text => text with { FontFamily = _fontFamily },
+                SpeechBubbleAnnotation bubble => bubble with { FontFamily = _fontFamily },
+                _ => fontOwner,
+            });
+        }
         PublishCurrentToolDefaults();
     }
 
@@ -3432,12 +4005,19 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
             return;
         _fontBold = BoldButton.IsChecked == true;
         _fontItalic = ItalicButton.IsChecked == true;
-        if (SelectedAnnotation() is TextAnnotation { IsLocked: false } text)
-            ApplySelectedEdit(AnnotationEditKind.Style, text with
+        if (SelectedAnnotation() is { IsLocked: false } styled)
+        {
+            ApplySelectedEdit(AnnotationEditKind.Style, styled switch
             {
-                IsBold = _fontBold,
-                IsItalic = _fontItalic,
+                TextAnnotation text => text with { IsBold = _fontBold, IsItalic = _fontItalic },
+                SpeechBubbleAnnotation bubble => bubble with
+                {
+                    IsBold = _fontBold,
+                    IsItalic = _fontItalic,
+                },
+                _ => styled,
             });
+        }
         PublishCurrentToolDefaults();
     }
 
@@ -3448,8 +4028,15 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
             { Tag: AnnotationTextAlignment alignment })
             return;
         _textAlignment = alignment;
-        if (SelectedAnnotation() is TextAnnotation { IsLocked: false } text)
-            ApplySelectedEdit(AnnotationEditKind.Style, text with { Alignment = alignment });
+        if (SelectedAnnotation() is { IsLocked: false } aligned)
+        {
+            ApplySelectedEdit(AnnotationEditKind.Style, aligned switch
+            {
+                TextAnnotation text => text with { Alignment = alignment },
+                SpeechBubbleAnnotation bubble => bubble with { Alignment = alignment },
+                _ => aligned,
+            });
+        }
         PublishCurrentToolDefaults();
     }
 
@@ -3471,16 +4058,18 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         var selected = _tool == CanvasTool.Select ? SelectedAnnotation() : null;
         var selectedMode = selected is not null;
         AnnotationContextBar.Visibility = _tool is CanvasTool.Crop or CanvasTool.Eyedropper
+            or CanvasTool.RegionSelect
             || (_tool == CanvasTool.Select && !selectedMode)
             ? Visibility.Collapsed : Visibility.Visible;
         ToolContextLabel.Text = selectedMode ? AnnotationName(selected!) : ToolName(_tool);
         var hasStroke = selectedMode
             ? selected is InkAnnotation or LineAnnotation or RectangleAnnotation
+                or SpeechBubbleAnnotation
             : _tool is not CanvasTool.Text and not CanvasTool.Number and not CanvasTool.Eyedropper
                 and not CanvasTool.Mosaic and not CanvasTool.Blur and not CanvasTool.Mask;
         var hasFont = selectedMode
-            ? selected is TextAnnotation or NumberMarkerAnnotation
-            : _tool is CanvasTool.Text or CanvasTool.Number;
+            ? selected is TextAnnotation or NumberMarkerAnnotation or SpeechBubbleAnnotation
+            : _tool is CanvasTool.Text or CanvasTool.Number or CanvasTool.SpeechBubble;
         // Protection is always fully opaque (FR-ANNO-008~010) — no opacity dial.
         var hasOpacity = selectedMode
             ? selected is not ProtectionAnnotation
@@ -3491,37 +4080,38 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         var hasBlurSigma = selectedMode
             ? selected is ProtectionAnnotation { Kind: ProtectionKind.Blur }
             : _tool == CanvasTool.Blur;
-        StrokeWidthLabel.Visibility = hasStroke ? Visibility.Visible : Visibility.Collapsed;
-        StrokeWidthBox.Visibility = hasStroke ? Visibility.Visible : Visibility.Collapsed;
-        OpacityLabel.Visibility = hasOpacity ? Visibility.Visible : Visibility.Collapsed;
-        OpacityBox.Visibility = hasOpacity ? Visibility.Visible : Visibility.Collapsed;
-        BlockSizeLabel.Visibility = hasBlockSize ? Visibility.Visible : Visibility.Collapsed;
-        BlockSizeBox.Visibility = hasBlockSize ? Visibility.Visible : Visibility.Collapsed;
-        BlurSigmaLabel.Visibility = hasBlurSigma ? Visibility.Visible : Visibility.Collapsed;
-        BlurSigmaBox.Visibility = hasBlurSigma ? Visibility.Visible : Visibility.Collapsed;
-        FontSizeLabel.Visibility = hasFont ? Visibility.Visible : Visibility.Collapsed;
-        FontSizeBox.Visibility = hasFont ? Visibility.Visible : Visibility.Collapsed;
+        StrokeWidthGroup.Visibility = hasStroke ? Visibility.Visible : Visibility.Collapsed;
+        OpacityGroup.Visibility = hasOpacity ? Visibility.Visible : Visibility.Collapsed;
+        BlockSizeGroup.Visibility = hasBlockSize ? Visibility.Visible : Visibility.Collapsed;
+        BlurSigmaGroup.Visibility = hasBlurSigma ? Visibility.Visible : Visibility.Collapsed;
+        FontSizeGroup.Visibility = hasFont ? Visibility.Visible : Visibility.Collapsed;
         var isShape = selectedMode
             ? selected is RectangleAnnotation
             : _tool is CanvasTool.Rectangle or CanvasTool.RoundedRectangle or CanvasTool.Ellipse;
         FillCheckBox.Visibility = isShape ? Visibility.Visible : Visibility.Collapsed;
-        CornerRadiusBox.Visibility = selectedMode
+        CornerRadiusGroup.Visibility = selectedMode
             ? selected is RectangleAnnotation { Shape: ShapeKind.RoundedRectangle }
+                or SpeechBubbleAnnotation
                 ? Visibility.Visible : Visibility.Collapsed
-            : _tool == CanvasTool.RoundedRectangle
+            : _tool is CanvasTool.RoundedRectangle or CanvasTool.SpeechBubble
             ? Visibility.Visible
             : Visibility.Collapsed;
-        ArrowheadBox.Visibility = selectedMode
+        ArrowheadGroup.Visibility = selectedMode
             ? selected is LineAnnotation ? Visibility.Visible : Visibility.Collapsed
             : _tool == CanvasTool.Arrow
             ? Visibility.Visible
             : Visibility.Collapsed;
-        var isText = selectedMode ? selected is TextAnnotation : _tool == CanvasTool.Text;
-        FontFamilyBox.Visibility = isText ? Visibility.Visible : Visibility.Collapsed;
-        BoldButton.Visibility = isText ? Visibility.Visible : Visibility.Collapsed;
-        ItalicButton.Visibility = isText ? Visibility.Visible : Visibility.Collapsed;
-        TextAlignmentBox.Visibility = isText ? Visibility.Visible : Visibility.Collapsed;
-        TextBackgroundCheckBox.Visibility = isText ? Visibility.Visible : Visibility.Collapsed;
+        var isTextLike = selectedMode
+            ? selected is TextAnnotation or SpeechBubbleAnnotation
+            : _tool is CanvasTool.Text or CanvasTool.SpeechBubble;
+        // The bubble's background is its required FillArgb, not the optional text backdrop —
+        // exposing both would create two competing background states (PEER [17차]).
+        var isPlainText = selectedMode ? selected is TextAnnotation : _tool == CanvasTool.Text;
+        FontFamilyGroup.Visibility = isTextLike ? Visibility.Visible : Visibility.Collapsed;
+        BoldButton.Visibility = isTextLike ? Visibility.Visible : Visibility.Collapsed;
+        ItalicButton.Visibility = isTextLike ? Visibility.Visible : Visibility.Collapsed;
+        AlignmentGroup.Visibility = isTextLike ? Visibility.Visible : Visibility.Collapsed;
+        TextBackgroundCheckBox.Visibility = isPlainText ? Visibility.Visible : Visibility.Collapsed;
         var objectCommands = selectedMode ? Visibility.Visible : Visibility.Collapsed;
         var objectEditable = selected is not { IsLocked: true };
         StrokeWidthBox.IsEnabled = objectEditable;
@@ -3538,14 +4128,15 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         TextAlignmentBox.IsEnabled = objectEditable;
         TextBackgroundCheckBox.IsEnabled = objectEditable;
         ObjectRotationBox.IsEnabled = objectEditable && selected is not ProtectionAnnotation;
-        ObjectRotationBox.Visibility = selected is ProtectionAnnotation
+        RotationGroup.Visibility = selected is ProtectionAnnotation
             ? Visibility.Collapsed : objectCommands;
         SendToBackButton.Visibility = objectCommands;
         SendBackwardButton.Visibility = objectCommands;
         BringForwardButton.Visibility = objectCommands;
         BringToFrontButton.Visibility = objectCommands;
         DuplicateButton.Visibility = objectCommands;
-        EditTextButton.Visibility = selected is TextAnnotation ? Visibility.Visible : Visibility.Collapsed;
+        EditTextButton.Visibility = selected is TextAnnotation or SpeechBubbleAnnotation
+            ? Visibility.Visible : Visibility.Collapsed;
         _updatingToolControls = true;
         try
         {
@@ -3554,6 +4145,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
                 InkAnnotation ink => ink.StrokeWidth,
                 LineAnnotation line => line.StrokeWidth,
                 RectangleAnnotation rectangle => rectangle.StrokeWidth,
+                SpeechBubbleAnnotation bubble => bubble.StrokeWidth,
                 _ => _strokeWidth,
             };
             OpacityBox.Value = (selectedMode ? AnnotationOpacity(selected) : _opacity) * 100f;
@@ -3565,20 +4157,44 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
             {
                 TextAnnotation text => text.FontSize,
                 NumberMarkerAnnotation marker => marker.FontSize,
+                SpeechBubbleAnnotation bubble => bubble.FontSize,
                 _ => _fontSize,
             };
             FillCheckBox.IsChecked = selected is RectangleAnnotation filledRectangle
                 ? filledRectangle.FillArgb is not null : _fillEnabled;
-            CornerRadiusBox.Value = selected is RectangleAnnotation rounded
-                ? rounded.CornerRadius : _cornerRadius;
+            CornerRadiusBox.Value = selected switch
+            {
+                RectangleAnnotation rounded => rounded.CornerRadius,
+                SpeechBubbleAnnotation bubble => bubble.CornerRadius,
+                _ => _cornerRadius,
+            };
             var selectedArrow = selected is LineAnnotation selectedLine
                 ? selectedLine.EndArrowhead : _arrowhead;
             ArrowheadBox.SelectedIndex = selectedArrow == ArrowheadKind.Open ? 0 : 1;
-            FontFamilyBox.Text = selected is TextAnnotation textValue ? textValue.FontFamily : _fontFamily;
-            BoldButton.IsChecked = selected is TextAnnotation boldText ? boldText.IsBold : _fontBold;
-            ItalicButton.IsChecked = selected is TextAnnotation italicText ? italicText.IsItalic : _fontItalic;
-            TextAlignmentBox.SelectedIndex = (int)(selected is TextAnnotation aligned
-                ? aligned.Alignment : _textAlignment);
+            SelectFontFamily(selected switch
+            {
+                TextAnnotation textValue => textValue.FontFamily,
+                SpeechBubbleAnnotation bubbleFont => bubbleFont.FontFamily,
+                _ => _fontFamily,
+            });
+            BoldButton.IsChecked = selected switch
+            {
+                TextAnnotation boldText => boldText.IsBold,
+                SpeechBubbleAnnotation boldBubble => boldBubble.IsBold,
+                _ => _fontBold,
+            };
+            ItalicButton.IsChecked = selected switch
+            {
+                TextAnnotation italicText => italicText.IsItalic,
+                SpeechBubbleAnnotation italicBubble => italicBubble.IsItalic,
+                _ => _fontItalic,
+            };
+            TextAlignmentBox.SelectedIndex = (int)(selected switch
+            {
+                TextAnnotation aligned => aligned.Alignment,
+                SpeechBubbleAnnotation alignedBubble => alignedBubble.Alignment,
+                _ => _textAlignment,
+            });
             TextBackgroundCheckBox.IsChecked = selected is TextAnnotation background
                 ? background.BackgroundArgb is not null : _textBackgroundEnabled;
             ObjectRotationBox.Value = selected?.RotationDegrees ?? 0f;
@@ -3599,6 +4215,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         TextAnnotation text => text.Opacity,
         NumberMarkerAnnotation marker => marker.Opacity,
         ImageAnnotation image => image.Opacity,
+        SpeechBubbleAnnotation bubble => bubble.Opacity,
         _ => 1f,
     };
 
@@ -3634,6 +4251,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         RectangleAnnotation { Shape: ShapeKind.Ellipse } => AppStrings.LayerTypeEllipse,
         RectangleAnnotation => AppStrings.LayerTypeRectangle,
         TextAnnotation => AppStrings.LayerTypeText,
+        SpeechBubbleAnnotation => AppStrings.LayerTypeSpeechBubble,
         NumberMarkerAnnotation marker => $"{AppStrings.LayerTypeNumber} {marker.Number}",
         ImageAnnotation => AppStrings.LayerTypeImage,
         ProtectionAnnotation { Kind: ProtectionKind.Mosaic } => AppStrings.LayerTypeMosaic,
@@ -3665,9 +4283,8 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
             }
             var totalAnnotations = state.Annotations.Count;
             var autoVisible = totalAnnotations > 0 || layers.Count > 1;
-            var visible = _viewModel.Editor.Document is not null && (_layerPanelOverride ?? autoVisible);
+            var visible = _viewModel.Editor.Document is not null && autoVisible;
             LayerPanel.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
-            LayerPanelButton.IsChecked = visible;
             var activeIndex = state.LayerIndexOf(_activeLayerId);
             LayerAddButton.IsEnabled = _viewModel.Editor.Document is not null;
             LayerDeleteButton.IsEnabled = layers.Count > 1 && activeIndex >= 0;
@@ -3825,10 +4442,24 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         }
     }
 
-    private void OnLayerPanelToggleClicked(object sender, RoutedEventArgs e)
+    private void OnLayerCollapseClicked(object sender, RoutedEventArgs e)
     {
-        _layerPanelOverride = LayerPanelButton.IsChecked == true;
-        UpdateLayerPanel();
+        _layerPanelCollapsed = !_layerPanelCollapsed;
+        ApplyLayerPanelCollapse();
+    }
+
+    /// <summary>Photoshop-style panel fold: the header stays, list and actions collapse away.</summary>
+    private void ApplyLayerPanelCollapse()
+    {
+        var body = _layerPanelCollapsed ? Visibility.Collapsed : Visibility.Visible;
+        LayerList.Visibility = body;
+        LayerFooterButtons.Visibility = body;
+        // The panel is bottom-anchored, so the chevron points where the body will go.
+        LayerCollapseIcon.IconSource = IconSourceFor(
+            _layerPanelCollapsed ? "Icon.Layer.Up" : "Icon.Layer.Down");
+        SetTip(LayerCollapseButton,
+            _layerPanelCollapsed ? AppStrings.LayerExpand : AppStrings.LayerCollapse,
+            AppStrings.TipLayerCollapse);
     }
 
     private void OnLayerAddClicked(object sender, RoutedEventArgs e)
@@ -4132,6 +4763,14 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
             hint.VerticalAlignment = horizontal
                 ? VerticalAlignment.Stretch
                 : (start ? VerticalAlignment.Top : VerticalAlignment.Bottom);
+            // Bleed across the rail padding so the hint sits flush with the rail edge; the end
+            // hint rounds the same 12px corners as the rail border, the start edge is mid-rail.
+            hint.Margin = horizontal
+                ? new Thickness(0, -4, start ? 0 : -8, -4)
+                : new Thickness(-4, 0, -4, start ? 0 : -8);
+            hint.CornerRadius = start
+                ? new CornerRadius(0)
+                : horizontal ? new CornerRadius(0, 12, 12, 0) : new CornerRadius(0, 0, 12, 12);
             hint.Background = CreateToolRailOverflowBrush(horizontal, start);
         }
     }
@@ -4155,17 +4794,20 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
     private void ApplyToolRailDock()
     {
         var horizontal = _toolRailDock == ToolRailDock.Horizontal;
+        // Same 44px rail thickness in both docks: 36px buttons + 4px padding on the thickness axis.
+        ToolRail.Padding = horizontal ? new Thickness(8, 4, 8, 4) : new Thickness(4, 8, 4, 8);
         ToolRailItems.Orientation = horizontal ? Orientation.Horizontal : Orientation.Vertical;
         foreach (var group in new[]
         {
-            FileToolGroup, HistoryToolGroup, ImageToolGroup, DrawingToolGroup,
+            FileToolGroup, ZoomToolGroup, HistoryToolGroup, ImageToolGroup, DrawingToolGroup,
             ShapeToolGroup, TextToolGroup, ProtectionToolGroup, ViewToolGroup,
         })
             group.Orientation = horizontal ? Orientation.Horizontal : Orientation.Vertical;
         foreach (var separator in new[]
         {
-            DockMenuSeparator, FileHistorySeparator, HistoryImageSeparator, ImageDrawingSeparator,
-            DrawingShapeSeparator, ShapeTextSeparator, TextProtectionSeparator, ProtectionViewSeparator,
+            DockMenuSeparator, FileZoomSeparator, ZoomHistorySeparator, HistoryImageSeparator,
+            ImageDrawingSeparator, DrawingShapeSeparator, ShapeTextSeparator,
+            TextProtectionSeparator, ProtectionViewSeparator,
         })
         {
             separator.Width = horizontal ? 1 : 28;
@@ -4176,6 +4818,21 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
             separator.HorizontalAlignment = HorizontalAlignment.Center;
             separator.VerticalAlignment = VerticalAlignment.Center;
         }
+        SelectModeButton.Width = horizontal ? 14 : 36;
+        SelectModeButton.Height = horizontal ? 36 : 14;
+        // Rail flyouts must open away from the rail (below when docked top, right when docked
+        // left) — the default placement clips against the window edge behind the rail.
+        foreach (var flyout in new[]
+        {
+            OpenGroupButton.Flyout, TransformGroupButton.Flyout,
+            WhiteboardButton.Flyout, SelectModeButton.Flyout,
+        })
+        {
+            if (flyout is not null)
+                flyout.Placement = horizontal
+                    ? FlyoutPlacementMode.BottomEdgeAlignedLeft
+                    : FlyoutPlacementMode.RightEdgeAlignedTop;
+        }
         Grid.SetRow(DockToggleButton, 0);
         Grid.SetColumn(DockToggleButton, 0);
         Grid.SetRow(DockMenuSeparator, horizontal ? 0 : 1);
@@ -4184,7 +4841,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         Grid.SetColumn(ToolRailScrollableViewport, horizontal ? 2 : 0);
         ToolRail.HorizontalAlignment = horizontal ? HorizontalAlignment.Stretch : HorizontalAlignment.Left;
         ToolRail.VerticalAlignment = horizontal ? VerticalAlignment.Top : VerticalAlignment.Stretch;
-        ToolRail.MaxHeight = horizontal ? 64 : double.PositiveInfinity;
+        ToolRail.MaxHeight = horizontal ? 44 : double.PositiveInfinity;
         ToolRailViewport.Width = horizontal ? double.NaN : 36;
         ToolRailViewport.Height = horizontal ? 36 : double.NaN;
         ToolRailScroll.HorizontalScrollMode = horizontal ? ScrollMode.Enabled : ScrollMode.Disabled;
@@ -4197,9 +4854,8 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
             ? HorizontalAlignment.Center : HorizontalAlignment.Left;
         ApplyToolRailOverflowHintLayout(horizontal);
         QueueToolRailOverflowUpdate(resetToStart: true);
-        LayerPanel.Margin = horizontal ? new Thickness(12, 76, 0, 0) : new Thickness(68, 12, 0, 0);
         AnnotationContextBar.Margin = horizontal
-            ? new Thickness(12, 76, 12, 0)
+            ? new Thickness(12, 68, 12, 0)
             : new Thickness(68, 12, 12, 0);
         UpdateDynamicTooltips();
     }
@@ -4228,21 +4884,19 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
             return;
         var editor = new SettingsDialogContent(AppServices.Settings);
         editor.CheckForUpdatesRequested += OnCheckForUpdatesRequested;
+        editor.LinkRequested += OnSettingsLinkRequested;
         AppSettings? candidate = null;
         var dialog = new ContentDialog
         {
             XamlRoot = Content.XamlRoot,
             Title = AppStrings.SettingsTitle,
-            Content = new ScrollViewer
-            {
-                Content = editor,
-                MaxHeight = 620,
-                VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
-            },
+            Content = editor,
             PrimaryButtonText = AppStrings.SettingsSave,
             CloseButtonText = AppStrings.DialogCancel,
             DefaultButton = ContentDialogButton.Primary,
         };
+        // The paged hub is wider than ContentDialog's default 548px ceiling.
+        dialog.Resources["ContentDialogMaxWidth"] = 800d;
         dialog.PrimaryButtonClick += (_, args) =>
         {
             if (editor.TryCreateSettings(out var value))
@@ -4285,15 +4939,26 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         }
     }
 
-    private void OnObjectRotationChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)
+    /// <summary>The context bar scrolls horizontally only, so the vertical wheel maps to it.</summary>
+    private void OnContextBarPointerWheel(object sender, PointerRoutedEventArgs e)
     {
-        if (_updatingToolControls || !double.IsFinite(args.NewValue)
+        if (ContextBarScroll.ScrollableWidth <= 0)
+            return;
+        var delta = e.GetCurrentPoint(ContextBarScroll).Properties.MouseWheelDelta;
+        ContextBarScroll.ChangeView(
+            ContextBarScroll.HorizontalOffset - delta, null, null, disableAnimation: false);
+        e.Handled = true;
+    }
+
+    private void OnObjectRotationChanged(CompactNumberBox sender, double newValue)
+    {
+        if (_updatingToolControls || !double.IsFinite(newValue)
             || SelectedAnnotation() is not { IsLocked: false } selected)
             return;
         if (selected is ProtectionAnnotation)
             return;
         ApplySelectedEdit(AnnotationEditKind.Geometry,
-            selected with { RotationDegrees = (float)args.NewValue });
+            selected with { RotationDegrees = (float)newValue });
     }
 
     private void OnSendToBackClicked(object sender, RoutedEventArgs e) => ReorderSelection(-1, true);
@@ -4398,7 +5063,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         var styles = new Dictionary<string, ToolStylePreference>(StringComparer.Ordinal);
         foreach (var tool in Enum.GetValues<CanvasTool>())
         {
-            if (tool is CanvasTool.Select or CanvasTool.Crop)
+            if (tool is CanvasTool.Select or CanvasTool.Crop or CanvasTool.RegionSelect)
                 continue;
             var style = _toolStyles.TryGetValue(tool, out var saved)
                 ? saved
@@ -4453,11 +5118,13 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         CanvasTool.Ellipse => AppStrings.ToolEllipse,
         CanvasTool.Text => AppStrings.ToolText,
         CanvasTool.Number => AppStrings.ToolNumber,
+        CanvasTool.SpeechBubble => AppStrings.ToolSpeechBubble,
         CanvasTool.Mosaic => AppStrings.ToolMosaic,
         CanvasTool.Blur => AppStrings.ToolBlur,
         CanvasTool.Mask => AppStrings.ToolMask,
         CanvasTool.Eyedropper => AppStrings.ToolEyedropper,
         CanvasTool.Crop => AppStrings.ToolCrop,
+        CanvasTool.RegionSelect => AppStrings.SelectModeRegion,
         _ => AppStrings.ToolSelect,
     };
 
@@ -4563,6 +5230,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         _inkPoints.Clear();
         _draftTool = CanvasTool.Select;
         _cropInteraction.CancelAll();
+        _regionInteraction.CancelAll();
         _dragAnnotation = default;
         _dragMoved = false;
         _activeSelectionHandle = SelectionHandle.None;
@@ -4581,7 +5249,8 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
     private void OnEscape()
     {
         if (_drawAnchor is not null || _inkPoints.Count > 0
-            || _cropInteraction.Phase != CropInteractionPhase.Idle)
+            || _cropInteraction.Phase != CropInteractionPhase.Idle
+            || _regionInteraction.Phase != CropInteractionPhase.Idle)
         {
             CancelActiveGesture();
             Canvas.Invalidate();
@@ -4778,11 +5447,42 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         }
     }
 
-    /// <summary>FR-OUT-001: the flattened edit result goes to the clipboard with transparency.</summary>
-    private async Task CopyToClipboardAsync()
+    /// <summary>FR-OUT-001: the flattened edit result goes to the clipboard with transparency.
+    /// FR-EDIT-007: a valid crop review copies only that region; a stale review closes without
+    /// touching the clipboard, mirroring the commit-path gate. A reviewed box selection (UR-009)
+    /// copies its region the same way. Returns true only when the clipboard actually changed.</summary>
+    private async Task<bool> CopyToClipboardAsync()
     {
         if (_savingInProgress || _viewModel.Editor.Document is not { } document || _snapshot is null)
-            return;
+            return false;
+        RectF? region = null;
+        if (_cropInteraction.Phase == CropInteractionPhase.Reviewing)
+        {
+            if (!_cropInteraction.TryGetValidReview(
+                document.Id, _viewModel.Editor.Revision, out var review))
+            {
+                _cropInteraction.CancelAll();
+                Canvas.Invalidate();
+                UpdateStatusBar();
+                SetStatusState(AppStrings.CopyRegionStale);
+                return false;
+            }
+            region = review.Bounds;
+        }
+        else if (_tool == CanvasTool.RegionSelect
+            && _regionInteraction.Phase == CropInteractionPhase.Reviewing)
+        {
+            if (!_regionInteraction.TryGetValidReview(
+                document.Id, _viewModel.Editor.Revision, out var review))
+            {
+                _regionInteraction.CancelAll();
+                Canvas.Invalidate();
+                UpdateStatusBar();
+                SetStatusState(AppStrings.CopyRegionStale);
+                return false;
+            }
+            region = review.Bounds;
+        }
         try
         {
             var token = _shutdownCts.Token;
@@ -4793,24 +5493,31 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
             {
                 using var assets = await WarmExportAssetsAsync(state, token).ConfigureAwait(false);
                 token.ThrowIfCancellationRequested();
-                using var flattened = DocumentFlattener.Flatten(
-                    frame, document.NativeSize, state, assets);
+                using var flattened = region is { } bounds
+                    ? DocumentFlattener.FlattenRegion(
+                        frame, document.NativeSize, state, bounds, assets)
+                    : DocumentFlattener.Flatten(
+                        frame, document.NativeSize, state, assets);
                 return ImageExporter.Encode(flattened, ExportFormat.Png);
             }, token);
             if (_viewModel.Editor.Document?.Id != document.Id)
-                return;
+                return false;
             await _clipboard.SetImagePngAsync(png, token);
             // FR-CAP-005: the capture watcher must not mistake this copy for a new capture.
             AppServices.Capture?.NoteInternalCopy(png);
-            SetStatusState(AppStrings.CopyDone);
+            SetStatusState(region is null ? AppStrings.CopyDone : AppStrings.CopyRegionDone);
+            return true;
         }
         catch (OperationCanceledException)
         {
+            return false;
         }
         catch (Exception ex) when (ex is IOException or InvalidOperationException
-            or InvalidDataException or System.Runtime.InteropServices.COMException)
+            or InvalidDataException or ArgumentException
+            or System.Runtime.InteropServices.COMException)
         {
             SetStatusState($"{AppStrings.SaveFailed}: {ex.Message}");
+            return false;
         }
     }
 

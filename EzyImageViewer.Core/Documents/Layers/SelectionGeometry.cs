@@ -12,6 +12,8 @@ public enum SelectionHandle
     SouthWest,
     West,
     Rotate,
+    /// <summary>Speech-bubble tail tip (FR-ANNO-007). Only bubbles expose it.</summary>
+    Tail,
 }
 
 public static class SelectionGeometry
@@ -34,10 +36,17 @@ public static class SelectionGeometry
             SelectionHandle.SouthWest => new AnnotationPoint(bounds.X, bounds.Bottom),
             SelectionHandle.West => new AnnotationPoint(bounds.X, bounds.CenterY),
             SelectionHandle.Rotate => new AnnotationPoint(bounds.CenterX, bounds.Y - rotationOffset),
+            SelectionHandle.Tail when annotation is SpeechBubbleAnnotation bubble => bubble.TailTip,
             _ => new AnnotationPoint(bounds.CenterX, bounds.CenterY),
         };
         return AnnotationGeometry.Rotate(point, bounds, annotation.RotationDegrees);
     }
+
+    /// <summary>True when <paramref name="handle"/> exists on this object at all — the tail
+    /// handle belongs to speech bubbles only, everything else would get a ghost handle at its
+    /// center (the HandlePoint fallback).</summary>
+    public static bool HandleApplies(Annotation annotation, SelectionHandle handle) =>
+        handle != SelectionHandle.Tail || annotation is SpeechBubbleAnnotation;
 
     public static SelectionHandle HitTest(
         Annotation annotation, AnnotationPoint point, float radius, float rotationOffset)
@@ -47,7 +56,7 @@ public static class SelectionGeometry
             throw new ArgumentOutOfRangeException(nameof(radius));
         foreach (var handle in Enum.GetValues<SelectionHandle>())
         {
-            if (handle == SelectionHandle.None)
+            if (handle == SelectionHandle.None || !HandleApplies(annotation, handle))
                 continue;
             var target = HandlePoint(annotation, handle, rotationOffset);
             var dx = point.X - target.X;
@@ -91,6 +100,21 @@ public static class SelectionGeometry
             + (vertical == 0 ? 0f : uy.Y * height * vertical / 2f);
         var next = new RectF(centerX - (width / 2f), centerY - (height / 2f), width, height);
         return annotation.WithBounds(next);
+    }
+
+    /// <summary>Drags the bubble tail tip. The pointer arrives in rotated document space and is
+    /// stored back in pre-rotation local coordinates, mirroring how hit-testing unrotates.</summary>
+    public static Annotation MoveTail(Annotation annotation, AnnotationPoint pointer)
+    {
+        ArgumentNullException.ThrowIfNull(annotation);
+        if (annotation is not SpeechBubbleAnnotation bubble)
+            throw new ArgumentOutOfRangeException(
+                nameof(annotation), annotation.GetType().Name, "Only speech bubbles have a tail.");
+        if (!float.IsFinite(pointer.X) || !float.IsFinite(pointer.Y))
+            return annotation;
+        var local = AnnotationGeometry.UndoRotation(
+            pointer, bubble.Bounds, bubble.RotationDegrees);
+        return bubble with { TailTip = local };
     }
 
     public static Annotation Rotate(Annotation annotation, AnnotationPoint pointer)

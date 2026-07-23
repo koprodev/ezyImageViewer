@@ -55,8 +55,8 @@ public sealed class IconSystemContractTests
             .Where(name => name?.EndsWith("Separator", StringComparison.Ordinal) == true)
             .ToArray();
 
-        // 8 since M5: the protection group added Text→Protection and Protection→View dividers.
-        Assert.Equal(8, separators.Length);
+        // 9 since 2026-07-23: the fit/1:1 zoom group moved between File and History (user layout).
+        Assert.Equal(9, separators.Length);
         Assert.Contains("separator.Width = horizontal ? 1 : 28", code, StringComparison.Ordinal);
         Assert.Contains("separator.Height = horizontal ? 28 : 1", code, StringComparison.Ordinal);
         Assert.True(Regex.Matches(app, "<Setter Property=\"Width\" Value=\"36\" />").Count >= 2);
@@ -247,6 +247,11 @@ public sealed class IconSystemContractTests
         var expected = new Dictionary<string, string>(StringComparer.Ordinal)
         {
             ["Icon.File.Open"] = "E2C7",
+            ["Icon.Group.Open"] = "E2C7",
+            ["Icon.Group.Rotate"] = "E41A",
+            ["Icon.Group.Crop"] = "E3BE",
+            ["Icon.Group.Zoom"] = "EA10",
+            ["Icon.Group.Protect"] = "E3EC",
             ["Icon.File.Save"] = "E161",
             ["Icon.File.Clipboard"] = "E14F",
             ["Icon.File.Recent"] = "E889",
@@ -321,12 +326,22 @@ public sealed class IconSystemContractTests
             "ms-appx:///Assets/Fonts/MaterialSymbolsOutlined.ttf#Material Symbols Outlined",
             family.Value);
 
-        // Only the two glyphs without a Material Symbols equivalent stay custom vectors.
+        // Custom vectors: the two glyphs without a Material Symbols equivalent, plus the speech
+        // bubble (FR-ANNO-007, 2026-07-22) and the whiteboard (UR-008, 2026-07-22) kept custom
+        // until a subset-font refresh cycle adds matching glyphs to the approved manifest.
         var customVectors = icons.Root!.Elements()
             .Where(element => element.Name.LocalName == "PathIconSource")
             .Select(element => (string?)element.Attribute(Xaml + "Key"))
             .ToArray();
-        Assert.Equal(new[] { "Icon.Shape.RoundedRectangle", "Icon.View.ActualSize" }, customVectors);
+        Assert.Equal(
+            new[]
+            {
+                "Icon.Shape.SpeechBubble", "Icon.Shape.RoundedRectangle", "Icon.View.ActualSize",
+                "Icon.File.Whiteboard", "Icon.Image.RegionSelect", "Icon.Common.ChevronDown",
+                "Icon.Chevron.Small.Open", "Icon.Chevron.Small.Transform", "Icon.Chevron.Small.Crop",
+                "Icon.Chevron.Small.Zoom", "Icon.Chevron.Small.Protect", "Icon.Image.RegionSelectFlat",
+            },
+            customVectors);
 
         // Runtime-created page/play controls clone static FontIconSource resources; treating those
         // resources as the x:String-only dynamic glyph set crashed ViewerWindow construction.
@@ -413,7 +428,7 @@ public sealed class IconSystemContractTests
         Assert.Contains("button.KeyDown += OnColorSwatchKeyDown", code, StringComparison.Ordinal);
         Assert.Contains("#{color.Argb & 0x00FF_FFFF:X6}", code, StringComparison.Ordinal);
         Assert.Contains("totalAnnotations > 0 || layers.Count > 1", code, StringComparison.Ordinal);
-        Assert.Contains("_layerPanelOverride ?? autoVisible", code, StringComparison.Ordinal);
+        Assert.Contains("ApplyLayerPanelCollapse();", code, StringComparison.Ordinal);
         Assert.Contains("Opacity = layer.IsVisible ? 1d : 0.6d", code, StringComparison.Ordinal);
         Assert.Contains("layerTransitionsExercised", code, StringComparison.Ordinal);
         Assert.Contains("AppWindow.Changed += OnAppWindowChanged", code, StringComparison.Ordinal);

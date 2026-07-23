@@ -53,6 +53,8 @@ public static class AnnotationGeometry
                 <= tolerance + (line.StrokeWidth / 2f),
             RectangleAnnotation shape when shape.Shape == ShapeKind.Ellipse =>
                 HitEllipse(shape.Bounds, point, tolerance),
+            SpeechBubbleAnnotation bubble => Contains(bubble.Bounds, point, tolerance)
+                || SpeechBubbleGeometry.HitTail(bubble, point, tolerance),
             _ => Contains(annotation.Bounds, point, tolerance),
         };
     }
@@ -85,6 +87,30 @@ public static class AnnotationGeometry
             {
                 if (SegmentsIntersect(q0, q1, selection[j], selection[(j + 1) % 4]))
                     return true;
+            }
+        }
+        // The bubble tail extends beyond Bounds, so a band that only touches the tail must
+        // still select the object (FR-ANNO-007).
+        if (annotation is SpeechBubbleAnnotation bubble
+            && SpeechBubbleGeometry.TryGetTail(bubble, out var baseA, out var baseB, out var tip))
+        {
+            AnnotationPoint[] triangle =
+            [
+                Rotate(baseA, bubble.Bounds, bubble.RotationDegrees),
+                Rotate(baseB, bubble.Bounds, bubble.RotationDegrees),
+                Rotate(tip, bubble.Bounds, bubble.RotationDegrees),
+            ];
+            if (triangle.Any(point => Contains(selectionBounds, point, 0f)))
+                return true;
+            for (var i = 0; i < 3; i++)
+            {
+                var t0 = triangle[i];
+                var t1 = triangle[(i + 1) % 3];
+                for (var j = 0; j < 4; j++)
+                {
+                    if (SegmentsIntersect(t0, t1, selection[j], selection[(j + 1) % 4]))
+                        return true;
+                }
             }
         }
         return false;

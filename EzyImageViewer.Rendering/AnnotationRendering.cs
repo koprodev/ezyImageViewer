@@ -100,6 +100,9 @@ public static class AnnotationRendering
             case TextAnnotation text:
                 DrawText(canvas, text);
                 break;
+            case SpeechBubbleAnnotation bubble:
+                DrawSpeechBubble(canvas, bubble, scale);
+                break;
             case NumberMarkerAnnotation marker:
                 DrawNumberMarker(canvas, marker);
                 break;
@@ -387,6 +390,79 @@ public static class AnnotationRendering
         AnnotationTextRenderer.Draw(canvas, text, EffectiveColor(text.ForegroundArgb, text.Opacity));
     }
 
+    /// <summary>FR-ANNO-007: body and tail are boolean-unioned into one path so the outline never
+    /// strokes the seam where the tail base crosses into the body (SpeechBubbleGeometry overlaps
+    /// the base inward for a stable union).</summary>
+    private static void DrawSpeechBubble(SKCanvas canvas, SpeechBubbleAnnotation bubble, float scale)
+    {
+        var bounds = bubble.Bounds;
+        if (bounds.Width < 1f || bounds.Height < 1f)
+            return;
+        var rect = SKRect.Create(bounds.X, bounds.Y, bounds.Width, bounds.Height);
+        var radius = MathF.Max(0f, MathF.Min(
+            bubble.CornerRadius, MathF.Min(rect.Width, rect.Height) / 2f));
+
+        using var bodyBuilder = new SKPathBuilder();
+        bodyBuilder.AddRoundRect(rect, radius, radius, SKPathDirection.Clockwise);
+        using var bodyPath = bodyBuilder.Detach();
+        SKPath? unioned = null;
+        try
+        {
+            if (SpeechBubbleGeometry.TryGetTail(bubble, out var baseA, out var baseB, out var tip))
+            {
+                using var tailBuilder = new SKPathBuilder();
+                tailBuilder.MoveTo(baseA.X, baseA.Y);
+                tailBuilder.LineTo(tip.X, tip.Y);
+                tailBuilder.LineTo(baseB.X, baseB.Y);
+                tailBuilder.Close();
+                using var tailPath = tailBuilder.Detach();
+                unioned = bodyPath.Op(tailPath, SKPathOp.Union);
+            }
+            var outline = unioned ?? bodyPath;
+
+            using (var fill = new SKPaint
+            {
+                IsAntialias = true,
+                Style = SKPaintStyle.Fill,
+                Color = EffectiveColor(bubble.FillArgb, bubble.Opacity),
+            })
+            {
+                canvas.DrawPath(outline, fill);
+            }
+            using (var stroke = StrokePaint(
+                bubble.StrokeArgb, bubble.StrokeWidth, bubble.Opacity, scale))
+            {
+                canvas.DrawPath(outline, stroke);
+            }
+        }
+        finally
+        {
+            unioned?.Dispose();
+        }
+
+        var padding = 6f + (bubble.StrokeWidth / 2f);
+        var textBounds = new RectF(
+            bounds.X + padding, bounds.Y + padding,
+            MathF.Max(1f, bounds.Width - (padding * 2f)),
+            MathF.Max(1f, bounds.Height - (padding * 2f)));
+        // The shared text layout path keeps bubble text and plain text metrically identical.
+        var layout = new TextAnnotation
+        {
+            Id = bubble.Id,
+            Bounds = textBounds,
+            Text = bubble.Text,
+            FontFamily = bubble.FontFamily,
+            FontSize = bubble.FontSize,
+            IsBold = bubble.IsBold,
+            IsItalic = bubble.IsItalic,
+            ForegroundArgb = bubble.ForegroundArgb,
+            Alignment = bubble.Alignment,
+            Opacity = bubble.Opacity,
+        };
+        AnnotationTextRenderer.Draw(
+            canvas, layout, EffectiveColor(bubble.ForegroundArgb, bubble.Opacity));
+    }
+
     private static void DrawNumberMarker(SKCanvas canvas, NumberMarkerAnnotation marker)
     {
         var radius = MathF.Min(marker.Bounds.Width, marker.Bounds.Height) / 2f;
@@ -506,7 +582,8 @@ public static class AnnotationRendering
         foreach (var handle in Enum.GetValues<SelectionHandle>())
         {
             if (handle == SelectionHandle.None
-                || (handle == SelectionHandle.Rotate && !canRotate))
+                || (handle == SelectionHandle.Rotate && !canRotate)
+                || !SelectionGeometry.HandleApplies(annotation, handle))
                 continue;
             var native = SelectionGeometry.HandlePoint(annotation, handle, rotationOffset);
             var view = nativeToView.MapPoint(native.X, native.Y);

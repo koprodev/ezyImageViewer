@@ -61,7 +61,7 @@ public sealed record ToolDefaults
 
 public sealed record AppSettings
 {
-    public const int CurrentSchemaVersion = 3;
+    public const int CurrentSchemaVersion = 5;
 
     public int SchemaVersion { get; init; } = CurrentSchemaVersion;
     public ToolRailDock ToolRailDock { get; init; } = ToolRailDock.Vertical;
@@ -74,6 +74,13 @@ public sealed record AppSettings
     public CaptureHotkey CaptureHotkey { get; init; } = new();
     public ToolDefaults ToolDefaults { get; init; } = new();
     public bool CaptureAutoSaveEnabled { get; init; }
+    /// <summary>UR-010: each rail group collapses into its dropdown/split button independently.</summary>
+    public bool ToolbarOpenGroupEnabled { get; init; } = true;
+    public bool ToolbarSelectGroupEnabled { get; init; } = true;
+    public bool ToolbarTransformGroupEnabled { get; init; } = true;
+    public bool ToolbarCropGroupEnabled { get; init; } = true;
+    public bool ToolbarZoomGroupEnabled { get; init; } = true;
+    public bool ToolbarProtectGroupEnabled { get; init; } = true;
 }
 
 /// <summary>Merges stale window snapshots without reverting unrelated concurrent changes.</summary>
@@ -113,6 +120,36 @@ public static class AppSettingsMerger
             CaptureHotkey = Changed(baseline.CaptureHotkey, edited.CaptureHotkey)
                 ? edited.CaptureHotkey
                 : current.CaptureHotkey,
+            ToolbarOpenGroupEnabled = Changed(
+                baseline.ToolbarOpenGroupEnabled,
+                edited.ToolbarOpenGroupEnabled)
+                ? edited.ToolbarOpenGroupEnabled
+                : current.ToolbarOpenGroupEnabled,
+            ToolbarSelectGroupEnabled = Changed(
+                baseline.ToolbarSelectGroupEnabled,
+                edited.ToolbarSelectGroupEnabled)
+                ? edited.ToolbarSelectGroupEnabled
+                : current.ToolbarSelectGroupEnabled,
+            ToolbarTransformGroupEnabled = Changed(
+                baseline.ToolbarTransformGroupEnabled,
+                edited.ToolbarTransformGroupEnabled)
+                ? edited.ToolbarTransformGroupEnabled
+                : current.ToolbarTransformGroupEnabled,
+            ToolbarCropGroupEnabled = Changed(
+                baseline.ToolbarCropGroupEnabled,
+                edited.ToolbarCropGroupEnabled)
+                ? edited.ToolbarCropGroupEnabled
+                : current.ToolbarCropGroupEnabled,
+            ToolbarZoomGroupEnabled = Changed(
+                baseline.ToolbarZoomGroupEnabled,
+                edited.ToolbarZoomGroupEnabled)
+                ? edited.ToolbarZoomGroupEnabled
+                : current.ToolbarZoomGroupEnabled,
+            ToolbarProtectGroupEnabled = Changed(
+                baseline.ToolbarProtectGroupEnabled,
+                edited.ToolbarProtectGroupEnabled)
+                ? edited.ToolbarProtectGroupEnabled
+                : current.ToolbarProtectGroupEnabled,
         };
     }
 
@@ -211,6 +248,70 @@ internal sealed record LegacyAppSettingsV2
     };
 }
 
+internal sealed record LegacyAppSettingsV3
+{
+    public int SchemaVersion { get; init; }
+    public ToolRailDock ToolRailDock { get; init; } = ToolRailDock.Vertical;
+    public bool ClipboardWatchEnabled { get; init; } = true;
+    public bool RecentFilesEnabled { get; init; } = true;
+    public bool IncludeSubfoldersInNavigation { get; init; }
+    public SingleInstanceBehavior SingleInstanceBehavior { get; init; } =
+        SingleInstanceBehavior.ReuseExistingWindow;
+    public AppTheme Theme { get; init; } = AppTheme.System;
+    public CaptureHotkey CaptureHotkey { get; init; } = new();
+    public ToolDefaults ToolDefaults { get; init; } = new();
+    public bool CaptureAutoSaveEnabled { get; init; }
+
+    public AppSettings ToCurrent() => new()
+    {
+        ToolRailDock = ToolRailDock,
+        ClipboardWatchEnabled = ClipboardWatchEnabled,
+        RecentFilesEnabled = RecentFilesEnabled,
+        IncludeSubfoldersInNavigation = IncludeSubfoldersInNavigation,
+        SingleInstanceBehavior = SingleInstanceBehavior,
+        Theme = Theme,
+        CaptureHotkey = CaptureHotkey,
+        ToolDefaults = ToolDefaults,
+        CaptureAutoSaveEnabled = CaptureAutoSaveEnabled,
+    };
+}
+
+internal sealed record LegacyAppSettingsV4
+{
+    public int SchemaVersion { get; init; }
+    public ToolRailDock ToolRailDock { get; init; } = ToolRailDock.Vertical;
+    public bool ClipboardWatchEnabled { get; init; } = true;
+    public bool RecentFilesEnabled { get; init; } = true;
+    public bool IncludeSubfoldersInNavigation { get; init; }
+    public SingleInstanceBehavior SingleInstanceBehavior { get; init; } =
+        SingleInstanceBehavior.ReuseExistingWindow;
+    public AppTheme Theme { get; init; } = AppTheme.System;
+    public CaptureHotkey CaptureHotkey { get; init; } = new();
+    public ToolDefaults ToolDefaults { get; init; } = new();
+    public bool CaptureAutoSaveEnabled { get; init; }
+    public bool ToolbarDropdownsEnabled { get; init; } = true;
+
+    // The single v4 dropdown preference seeds every per-group toggle it used to control.
+    public AppSettings ToCurrent() => new()
+    {
+        ToolRailDock = ToolRailDock,
+        ClipboardWatchEnabled = ClipboardWatchEnabled,
+        RecentFilesEnabled = RecentFilesEnabled,
+        IncludeSubfoldersInNavigation = IncludeSubfoldersInNavigation,
+        SingleInstanceBehavior = SingleInstanceBehavior,
+        Theme = Theme,
+        CaptureHotkey = CaptureHotkey,
+        ToolDefaults = ToolDefaults,
+        CaptureAutoSaveEnabled = CaptureAutoSaveEnabled,
+        ToolbarOpenGroupEnabled = ToolbarDropdownsEnabled,
+        ToolbarSelectGroupEnabled = ToolbarDropdownsEnabled,
+        ToolbarTransformGroupEnabled = ToolbarDropdownsEnabled,
+        ToolbarCropGroupEnabled = ToolbarDropdownsEnabled,
+        ToolbarZoomGroupEnabled = ToolbarDropdownsEnabled,
+        ToolbarProtectGroupEnabled = ToolbarDropdownsEnabled,
+    };
+}
+
 [JsonSourceGenerationOptions(
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
     WriteIndented = true,
@@ -218,6 +319,8 @@ internal sealed record LegacyAppSettingsV2
 [JsonSerializable(typeof(AppSettings))]
 [JsonSerializable(typeof(LegacyViewerLayoutPreferences))]
 [JsonSerializable(typeof(LegacyAppSettingsV2))]
+[JsonSerializable(typeof(LegacyAppSettingsV3))]
+[JsonSerializable(typeof(LegacyAppSettingsV4))]
 internal sealed partial class AppSettingsJsonContext : JsonSerializerContext;
 
 public sealed class AppSettingsStore
@@ -228,7 +331,7 @@ public sealed class AppSettingsStore
     private static readonly HashSet<string> AllowedToolStyleNames = new(
         [
             "Pen", "Highlighter", "Line", "Arrow", "Rectangle", "RoundedRectangle",
-            "Ellipse", "Text", "Number", "Mosaic", "Blur", "Mask", "Eyedropper",
+            "Ellipse", "Text", "Number", "SpeechBubble", "Mosaic", "Blur", "Mask", "Eyedropper",
         ],
         StringComparer.Ordinal);
 
@@ -324,6 +427,30 @@ public sealed class AppSettingsStore
                 var legacy = JsonSerializer.Deserialize(
                     json, AppSettingsJsonContext.Default.LegacyAppSettingsV2);
                 var migrated = legacy is { SchemaVersion: 2 }
+                    ? legacy.ToCurrent()
+                    : null;
+                return migrated is not null && IsValid(migrated)
+                    ? migrated
+                    : PrivacySafeFallback();
+            }
+
+            if (version == 3)
+            {
+                var legacy = JsonSerializer.Deserialize(
+                    json, AppSettingsJsonContext.Default.LegacyAppSettingsV3);
+                var migrated = legacy is { SchemaVersion: 3 }
+                    ? legacy.ToCurrent()
+                    : null;
+                return migrated is not null && IsValid(migrated)
+                    ? migrated
+                    : PrivacySafeFallback();
+            }
+
+            if (version == 4)
+            {
+                var legacy = JsonSerializer.Deserialize(
+                    json, AppSettingsJsonContext.Default.LegacyAppSettingsV4);
+                var migrated = legacy is { SchemaVersion: 4 }
                     ? legacy.ToCurrent()
                     : null;
                 return migrated is not null && IsValid(migrated)

@@ -12,9 +12,11 @@ internal enum CanvasTool
     Ellipse,
     Text,
     Number,
+    SpeechBubble,
     Mosaic,
     Blur,
     Mask,
     Eyedropper,
     Crop,
+    RegionSelect,
 }

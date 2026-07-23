@@ -46,6 +46,24 @@ public static class DocumentFlattener
                 $"Export output {output.Width}x{output.Height} ({bytes:N0} bytes) exceeds the {MaxOutputBytes:N0} byte budget.");
     }
 
+    /// <summary>
+    /// FR-EDIT-007: flattens only <paramref name="region"/> (output-space, e.g. a crop review
+    /// draft) by appending a transient <see cref="CropOp"/>, so rounding, clamping, the 1px
+    /// minimum and the byte budget stay the single <see cref="TransformEvaluator"/> contract.
+    /// The caller's state is immutable and never entered into history.
+    /// </summary>
+    public static SKImage FlattenRegion(
+        SKImage frame,
+        PixelSize nativeSize,
+        DocumentState state,
+        RectF region,
+        RasterAssetImageCache? assetCache = null)
+    {
+        ArgumentNullException.ThrowIfNull(state);
+        var scoped = state.WithTransform(state.Transform.Append(new CropOp(region)));
+        return Flatten(frame, nativeSize, scoped, assetCache);
+    }
+
     public static SKImage Flatten(
         SKImage frame,
         PixelSize nativeSize,

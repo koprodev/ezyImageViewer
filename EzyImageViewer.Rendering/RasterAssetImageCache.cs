@@ -35,6 +35,15 @@ public sealed class RasterAssetImageCache : IDisposable
         Replace(asset.Id, image);
     }
 
+    /// <summary>Synchronous warm for an image the caller already materialized (UR-009 region
+    /// lift); the cache takes ownership of <paramref name="image"/>.</summary>
+    public void Warm(RasterAsset asset, SKImage image)
+    {
+        ArgumentNullException.ThrowIfNull(asset);
+        ArgumentNullException.ThrowIfNull(image);
+        Replace(asset.Id, image);
+    }
+
     public SKImage? Find(Guid assetId) =>
         _images.TryGetValue(assetId, out var image) ? image : null;
 

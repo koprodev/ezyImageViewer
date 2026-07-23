@@ -74,6 +74,19 @@ public class DocumentCompositeTests
     }
 
     [Fact]
+    public void Erase_PunchesTheBackgroundToTransparent()
+    {
+        using var frame = QuadrantImage(8, 8);
+        using var bitmap = Render(
+            frame, new PixelSize(8, 8), State(new EraseOp(new RectF(0f, 0f, 4f, 4f))));
+
+        Assert.Equal(SKColors.Empty, bitmap.GetPixel(2, 2)); // erased TL quadrant
+        Assert.Equal(TR, bitmap.GetPixel(6, 2));
+        Assert.Equal(BL, bitmap.GetPixel(2, 6));
+        Assert.Equal(BR, bitmap.GetPixel(6, 6));
+    }
+
+    [Fact]
     public void Rotate90_MovesQuadrantsClockwiseExactly()
     {
         using var frame = QuadrantImage(8, 8);

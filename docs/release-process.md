@@ -13,8 +13,11 @@ read-only artifact verifier는 구현됐지만 production Publisher·서명과 c
 
 ## 0. 확정 배포 방식
 
-- 공개 채널은 `koprodev/ezy-image-viewer-releases`의 GitHub Releases 한 곳으로 고정한다.
-- 기존 unsigned Basic Portable ZIP과 `v1.0.12-preview.1`의 unsigned Setup/단일 Portable을
+- 공개 채널은 `koprodev/ezyImageViewer`의 GitHub Releases 한 곳으로 고정한다.
+  (2026-07-23 사용자 지시로 기존 `koprodev/ezy-image-viewer-releases`·private archive 저장소를
+  삭제하고 이 단일 저장소로 통합. 기존 v0.1.0-portable.1~v1.0.12-preview.1 릴리스 자산과
+  1.0.12 이하 배포 바이너리의 `업데이트 확인` 링크는 더 이상 유효하지 않다.)
+- 기존 unsigned Basic Portable ZIP과 `v1.0.34-preview.1`의 unsigned Setup/단일 Portable을
   명시적 개인 평가·테스트 prerelease로 제공한다.
 - 향후 production 일반 사용자의 기본 다운로드는 scope 선택형 Burn Setup이다. 고정 per-user/per-machine MSI는
   관리자·고급 사용자가 scope를 직접 고를 때 사용하는 보조 자산이다.
@@ -22,7 +25,7 @@ read-only artifact verifier는 구현됐지만 production Publisher·서명과 c
   Release 페이지를 브라우저로 연다.
 - 개발 저장소에는 공개 원격을 연결하지 않는다. `packaging/public-source-allowlist.txt`에 명시된
   제품 소스·테스트·공개 문서만 별도 `ezyImageViewer-public` Git 작업트리에 동기화한 뒤
-  `koprodev/ezy-image-viewer-releases`로 게시한다. 루트 개발 명세·UI 참고 이미지, AI 협업 지침·상태,
+  `koprodev/ezyImageViewer`로 게시한다. 루트 개발 명세·UI 참고 이미지, AI 협업 지침·상태,
   내부 RTM·spike·review 문서는 공개 작업트리에 복사하지 않는다.
 - 공개 저장소에는 기존 로컬 Git history가 아니라 검토된 allowlist 기반 clean source snapshot만
   게시하고, 공개 source manifest로 원본 commit·허용 경로·파일·SHA-256을 고정한다.
@@ -33,10 +36,10 @@ read-only artifact verifier는 구현됐지만 production Publisher·서명과 c
 
 ### 0.2 Installer + 단일 Portable 개인 프리릴리스
 
-`packaging/preview-release.json`은 `v1.0.12-preview.1`의 앱·CodecHost·Portable 버전과
+`packaging/preview-release.json`은 `v1.0.34-preview.1`의 앱·CodecHost·Portable 버전과
 unsigned Publisher를 고정한다. 공개 주 실행 자산은 다음 둘이다.
 
-- `ezyImageViewerSetup-1.0.12-x64-dev-unsigned.exe`: scope 선택형 Burn Setup. 지원 이미지
+- `ezyImageViewerSetup-1.0.34-x64-dev-unsigned.exe`: scope 선택형 Burn Setup. 지원 이미지
   형식은 Open With 후보로 기본 등록하며 기본 앱을 강제하지 않는다.
 - `ezyImageViewer.exe`: 압축된 단일 파일 Portable. WinUI 내장 리소스 확인을 위해 파일명을 유지한다. 레지스트리와
   파일 연결을 등록하지 않고 실행 중 `%TEMP%` 계열에 런타임을 추출한다.
@@ -47,9 +50,9 @@ source commit에 결박된 네 자산의 길이·SHA-256을 기록한다.
 
 ```powershell
 powershell -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File `
-  packaging\build-preview-release.ps1 -OutputDirectory packaging\out\preview-1.0.12
+  packaging\build-preview-release.ps1 -OutputDirectory packaging\out\preview-1.0.34
 powershell -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File `
-  packaging\verify-preview-release.ps1 -OutputDirectory packaging\out\preview-1.0.12
+  packaging\verify-preview-release.ps1 -OutputDirectory packaging\out\preview-1.0.34
 ```
 
 GitHub에서는 `.github/workflows/release-preview.yml`을 protected `main`에서 수동 실행한다.
@@ -272,7 +275,7 @@ hardware token/KSP 인증서는 PIN prompt가 생길 수 있으므로 무인 실
 상호작용과 실패 복구를 확인한다. cloud/HSM signing은 provider가 확정된 뒤 별도 adapter로 설계한다.
 
 비용 0원 공개 신뢰 경로는 SignPath Foundation을 우선 준비한다. public source remote는
-`https://github.com/koprodev/ezy-image-viewer-releases`의 reviewed clean snapshot으로 고정한다.
+`https://github.com/koprodev/ezyImageViewer`의 reviewed clean snapshot으로 고정한다.
 아직 SignPath project·certificate·artifact configuration·provider adapter는 없다. PE/MSI/MSIX 형식 지원은
 공식 reference에서 확인했지만 Burn의 2단계 remote signing 순서는 미확정이다. 또한 self-contained
   Windows App SDK의 Microsoft 전용 재배포 조건과 WinUI 2.2.1 `license.txt`의 Engineering Preview/live

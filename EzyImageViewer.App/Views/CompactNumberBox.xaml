@@ -1,0 +1,67 @@
+<UserControl
+    x:Class="EzyImageViewer.App.Views.CompactNumberBox"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Height="32" ColumnSpacing="2">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <TextBox
+            x:Name="ValueText"
+            VerticalAlignment="Stretch"
+            Padding="6,4,6,4"
+            GotFocus="OnTextGotFocus"
+            LostFocus="OnTextLostFocus"
+            KeyDown="OnTextKeyDown">
+            <TextBox.Template>
+                <!-- Minimal template: the stock clear (X) button steals the width a compact
+                     toolbar field cannot spare and hides the value while editing. -->
+                <ControlTemplate TargetType="TextBox">
+                    <Border
+                        Background="{ThemeResource TextControlBackground}"
+                        BorderBrush="{ThemeResource TextControlBorderBrush}"
+                        BorderThickness="1"
+                        CornerRadius="{ThemeResource ControlCornerRadius}">
+                        <ScrollViewer
+                            x:Name="ContentElement"
+                            Padding="{TemplateBinding Padding}"
+                            VerticalAlignment="Center"
+                            HorizontalScrollBarVisibility="Hidden"
+                            VerticalScrollBarVisibility="Hidden"
+                            IsTabStop="False"
+                            ZoomMode="Disabled" />
+                    </Border>
+                </ControlTemplate>
+            </TextBox.Template>
+        </TextBox>
+        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
+            <RepeatButton
+                x:Name="UpButton"
+                Width="20"
+                Height="15"
+                Padding="0"
+                BorderThickness="0"
+                CornerRadius="2"
+                Background="Transparent"
+                Delay="300"
+                Interval="80"
+                Click="OnUpClicked">
+                <FontIcon Glyph="&#xE70E;" FontSize="8" />
+            </RepeatButton>
+            <RepeatButton
+                x:Name="DownButton"
+                Width="20"
+                Height="15"
+                Padding="0"
+                BorderThickness="0"
+                CornerRadius="2"
+                Background="Transparent"
+                Delay="300"
+                Interval="80"
+                Click="OnDownClicked">
+                <FontIcon Glyph="&#xE70D;" FontSize="8" />
+            </RepeatButton>
+        </StackPanel>
+    </Grid>
+</UserControl>

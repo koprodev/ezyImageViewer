@@ -74,6 +74,22 @@ public static class AnnotationValidator
                 ValidateEnum(text.Alignment, nameof(text.Alignment));
                 ValidateOpacity(text.Opacity);
                 break;
+            case SpeechBubbleAnnotation bubble:
+                if (bubble.Text is null || bubble.Text.Length > MaxTextLength)
+                    throw new ArgumentException($"Text exceeds {MaxTextLength} characters.", nameof(annotation));
+                if (string.IsNullOrWhiteSpace(bubble.FontFamily)
+                    || bubble.FontFamily.Length > MaxFontFamilyLength)
+                    throw new ArgumentException("Font family is empty or too long.", nameof(annotation));
+                ValidateFontSize(bubble.FontSize);
+                ValidateEnum(bubble.Alignment, nameof(bubble.Alignment));
+                ValidatePoint(bubble.TailTip, nameof(bubble.TailTip));
+                ValidateStroke(bubble.StrokeWidth, bubble.Opacity);
+                if (!float.IsFinite(bubble.CornerRadius) || bubble.CornerRadius < 0f)
+                    throw new ArgumentException("Corner radius must be finite and non-negative.", nameof(annotation));
+                // A degenerate body would collapse the proportional tail remap to the center.
+                if (bubble.Bounds.Width < 1f || bubble.Bounds.Height < 1f)
+                    throw new ArgumentException("Speech bubble body must be at least 1x1.", nameof(annotation));
+                break;
             case NumberMarkerAnnotation marker:
                 if (marker.Number <= 0)
                     throw new ArgumentException("Marker number must be positive.", nameof(annotation));

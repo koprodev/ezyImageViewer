@@ -32,6 +32,26 @@ public sealed record CropOp : TransformOp
     public RectF Bounds { get; }
 }
 
+/// <summary>
+/// Clears <see cref="Bounds"/> to transparency, expressed in the output space of the preceding ops
+/// (UR-009 region cut/lift). Geometry-neutral: the canvas keeps its size; the evaluator maps the
+/// region back to native space so the punch survives later rotations/crops like SourceClip does.
+/// </summary>
+public sealed record EraseOp : TransformOp
+{
+    public EraseOp(RectF bounds)
+    {
+        if (!float.IsFinite(bounds.X) || !float.IsFinite(bounds.Y)
+            || !float.IsFinite(bounds.Width) || !float.IsFinite(bounds.Height))
+            throw new ArgumentOutOfRangeException(nameof(bounds), "Erase bounds must be finite.");
+        if (bounds.Width <= 0f || bounds.Height <= 0f)
+            throw new ArgumentOutOfRangeException(nameof(bounds), "Erase bounds must have positive extent.");
+        Bounds = bounds;
+    }
+
+    public RectF Bounds { get; }
+}
+
 /// <summary>Rotates clockwise about the canvas center at this point in the pipeline (FR-EDIT-003).</summary>
 public sealed record RotateOp : TransformOp
 {

@@ -60,6 +60,13 @@ public static class DocumentComposite
         var frameToNative = SKMatrix.CreateScale(
             nativeSize.Width / (float)frame.Width, nativeSize.Height / (float)frame.Height);
         canvas.Save();
+        // Erased regions punch the BACKGROUND only: annotations above them still draw, and the
+        // viewer's checkerboard shows through instead of a cleared hole.
+        if (evaluation.ErasedNative.Count > 0)
+        {
+            using var punched = BuildErasePath(evaluation.ErasedNative, nativeToDestination);
+            canvas.ClipPath(punched, SKClipOperation.Difference, antialias: true);
+        }
         canvas.SetMatrix(nativeToDestination.PreConcat(frameToNative));
         using (var paint = new SKPaint { IsAntialias = false })
         {
@@ -89,6 +96,25 @@ public static class DocumentComposite
         path.LineTo(outputToDestination.MapPoint(outputSize.Width, outputSize.Height));
         path.LineTo(outputToDestination.MapPoint(0f, outputSize.Height));
         path.Close();
+        return path.Detach();
+    }
+
+    private static SKPath BuildErasePath(
+        IReadOnlyList<IReadOnlyList<Vector2>> erasedNative, SKMatrix nativeToDestination)
+    {
+        using var path = new SKPathBuilder();
+        foreach (var quad in erasedNative)
+        {
+            for (var i = 0; i < quad.Count; i++)
+            {
+                var point = nativeToDestination.MapPoint(quad[i].X, quad[i].Y);
+                if (i == 0)
+                    path.MoveTo(point);
+                else
+                    path.LineTo(point);
+            }
+            path.Close();
+        }
         return path.Detach();
     }
 

@@ -89,6 +89,9 @@ try {
         '-p:Platform=x64',
         '-p:Packaged=false',
         '-p:ExternalIdentity=true',
+        # Stamp the installer version into the assemblies: MSI file versioning skips files whose
+        # FileVersion is unchanged, so a constant version made major upgrades keep stale binaries.
+        "-p:FileVersion=$Version",
         '-p:DebugSymbols=false',
         '-p:DebugType=None',
         '-p:CopyOutputSymbolsToPublishDirectory=false',

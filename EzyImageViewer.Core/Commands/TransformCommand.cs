@@ -10,6 +10,7 @@ public enum TransformEditKind
     Rotate,
     Flip,
     Resize,
+    Erase,
 }
 
 /// <summary>

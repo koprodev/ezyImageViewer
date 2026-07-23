@@ -233,6 +233,13 @@ public static class DocumentStateSerializer
         RotateOp rotate => new RotateOpDto { Degrees = rotate.Degrees },
         FlipOp flip => new FlipOpDto { Horizontal = flip.Horizontal },
         ResizeOp resize => new ResizeOpDto { Width = resize.Target.Width, Height = resize.Target.Height },
+        EraseOp erase => new EraseOpDto
+        {
+            X = erase.Bounds.X,
+            Y = erase.Bounds.Y,
+            Width = erase.Bounds.Width,
+            Height = erase.Bounds.Height,
+        },
         _ => throw new NotSupportedException($"Unknown transform op {op.GetType().Name}."),
     };
 
@@ -242,6 +249,7 @@ public static class DocumentStateSerializer
         RotateOpDto rotate => new RotateOp(rotate.Degrees),
         FlipOpDto flip => new FlipOp(flip.Horizontal),
         ResizeOpDto resize => new ResizeOp(new PixelSize(resize.Width, resize.Height)),
+        EraseOpDto erase => new EraseOp(new RectF(erase.X, erase.Y, erase.Width, erase.Height)),
         _ => throw new NotSupportedException($"Unknown transform op dto {dto.GetType().Name}."),
     };
 
@@ -313,6 +321,32 @@ public static class DocumentStateSerializer
             BackgroundArgb = text.BackgroundArgb,
             Alignment = (int)text.Alignment,
             Opacity = text.Opacity,
+        },
+        SpeechBubbleAnnotation bubble => new SpeechBubbleAnnotationDto
+        {
+            Id = bubble.Id,
+            Name = bubble.Name,
+            IsVisible = bubble.IsVisible,
+            IsLocked = bubble.IsLocked,
+            RotationDegrees = bubble.RotationDegrees,
+            X = bubble.Bounds.X,
+            Y = bubble.Bounds.Y,
+            Width = bubble.Bounds.Width,
+            Height = bubble.Bounds.Height,
+            TailX = bubble.TailTip.X,
+            TailY = bubble.TailTip.Y,
+            Text = bubble.Text,
+            FontFamily = bubble.FontFamily,
+            FontSize = bubble.FontSize,
+            IsBold = bubble.IsBold,
+            IsItalic = bubble.IsItalic,
+            ForegroundArgb = bubble.ForegroundArgb,
+            Alignment = (int)bubble.Alignment,
+            FillArgb = bubble.FillArgb,
+            StrokeArgb = bubble.StrokeArgb,
+            StrokeWidth = bubble.StrokeWidth,
+            CornerRadius = bubble.CornerRadius,
+            Opacity = bubble.Opacity,
         },
         NumberMarkerAnnotation marker => new NumberMarkerAnnotationDto
         {
@@ -413,6 +447,26 @@ public static class DocumentStateSerializer
                 BackgroundArgb = text.BackgroundArgb,
                 Alignment = (AnnotationTextAlignment)text.Alignment,
                 Opacity = text.Opacity,
+            },
+            SpeechBubbleAnnotationDto bubble => new SpeechBubbleAnnotation
+            {
+                Id = bubble.Id,
+                Bounds = new RectF(bubble.X, bubble.Y, bubble.Width, bubble.Height),
+                TailTip = new AnnotationPoint(bubble.TailX, bubble.TailY),
+                Text = bubble.Text
+                    ?? throw new InvalidDataException("Speech bubble has null text."),
+                FontFamily = bubble.FontFamily
+                    ?? throw new InvalidDataException("Speech bubble has null font family."),
+                FontSize = bubble.FontSize,
+                IsBold = bubble.IsBold,
+                IsItalic = bubble.IsItalic,
+                ForegroundArgb = bubble.ForegroundArgb,
+                Alignment = (AnnotationTextAlignment)bubble.Alignment,
+                FillArgb = bubble.FillArgb,
+                StrokeArgb = bubble.StrokeArgb,
+                StrokeWidth = bubble.StrokeWidth,
+                CornerRadius = bubble.CornerRadius,
+                Opacity = bubble.Opacity,
             },
             NumberMarkerAnnotationDto marker => new NumberMarkerAnnotation
             {

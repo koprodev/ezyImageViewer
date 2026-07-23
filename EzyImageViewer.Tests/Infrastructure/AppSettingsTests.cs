@@ -67,7 +67,9 @@ public sealed class AppSettingsTests : IDisposable
         Assert.Equal(32f, final.ToolDefaults.MosaicBlockSize);
         Assert.Equal(9f, final.ToolDefaults.Styles["Pen"].StrokeWidth);
         using var document = JsonDocument.Parse(File.ReadAllText(path));
-        Assert.Equal(3, document.RootElement.GetProperty("schemaVersion").GetInt32());
+        Assert.Equal(
+            AppSettings.CurrentSchemaVersion,
+            document.RootElement.GetProperty("schemaVersion").GetInt32());
     }
 
     [Fact]
@@ -111,7 +113,7 @@ public sealed class AppSettingsTests : IDisposable
 
         var migrated = store.Load();
 
-        Assert.Equal(3, migrated.SchemaVersion);
+        Assert.Equal(AppSettings.CurrentSchemaVersion, migrated.SchemaVersion);
         Assert.False(migrated.ClipboardWatchEnabled);
         Assert.True(migrated.RecentFilesEnabled);
         Assert.True(migrated.IncludeSubfoldersInNavigation);
@@ -119,6 +121,116 @@ public sealed class AppSettingsTests : IDisposable
         store.Save(migrated);
         using var document = JsonDocument.Parse(File.ReadAllText(path));
         Assert.False(document.RootElement.TryGetProperty("updateChecksEnabled", out _));
+    }
+
+    [Fact]
+    public void SchemaV3_Migrates_AndDefaultsToolbarGroupsOn()
+    {
+        Directory.CreateDirectory(_directory);
+        var path = Path.Combine(_directory, "settings.json");
+        File.WriteAllText(path, """
+            {
+              "schemaVersion": 3,
+              "toolRailDock": 1,
+              "clipboardWatchEnabled": true,
+              "recentFilesEnabled": false,
+              "includeSubfoldersInNavigation": false,
+              "singleInstanceBehavior": 1,
+              "theme": 1,
+              "captureHotkey": {
+                "modifiers": 6,
+                "virtualKey": 69
+              },
+              "toolDefaults": {
+                "styles": {},
+                "strokeArgb": 4293475118,
+                "maskArgb": 4278190080,
+                "fillEnabled": false,
+                "mosaicBlockSize": 12,
+                "blurSigma": 8,
+                "cornerRadius": 8,
+                "arrowhead": 2,
+                "fontFamily": "Malgun Gothic",
+                "fontBold": false,
+                "fontItalic": false,
+                "textAlignment": 0,
+                "textBackgroundEnabled": false
+              },
+              "captureAutoSaveEnabled": false
+            }
+            """);
+
+        var migrated = new AppSettingsStore(path).Load();
+
+        Assert.Equal(AppSettings.CurrentSchemaVersion, migrated.SchemaVersion);
+        Assert.Equal(ToolRailDock.Horizontal, migrated.ToolRailDock);
+        Assert.True(migrated.ClipboardWatchEnabled);
+        Assert.False(migrated.RecentFilesEnabled);
+        Assert.Equal(SingleInstanceBehavior.OpenNewWindow, migrated.SingleInstanceBehavior);
+        Assert.Equal(AppTheme.Light, migrated.Theme);
+        // The new preferences did not exist in v3: every dropdown group defaults on (UR-010).
+        Assert.True(migrated.ToolbarOpenGroupEnabled);
+        Assert.True(migrated.ToolbarSelectGroupEnabled);
+        Assert.True(migrated.ToolbarTransformGroupEnabled);
+        Assert.True(migrated.ToolbarCropGroupEnabled);
+        Assert.True(migrated.ToolbarZoomGroupEnabled);
+        Assert.True(migrated.ToolbarProtectGroupEnabled);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void SchemaV4_Migrates_AndSeedsEveryGroupFromTheSingleDropdownToggle(bool dropdowns)
+    {
+        Directory.CreateDirectory(_directory);
+        var path = Path.Combine(_directory, "settings.json");
+        File.WriteAllText(path, $$"""
+            {
+              "schemaVersion": 4,
+              "toolRailDock": 0,
+              "clipboardWatchEnabled": true,
+              "recentFilesEnabled": true,
+              "includeSubfoldersInNavigation": false,
+              "singleInstanceBehavior": 0,
+              "theme": 2,
+              "captureHotkey": {
+                "modifiers": 6,
+                "virtualKey": 69
+              },
+              "toolDefaults": {
+                "styles": {},
+                "strokeArgb": 4293475118,
+                "maskArgb": 4278190080,
+                "fillEnabled": false,
+                "mosaicBlockSize": 12,
+                "blurSigma": 8,
+                "cornerRadius": 8,
+                "arrowhead": 2,
+                "fontFamily": "Malgun Gothic",
+                "fontBold": false,
+                "fontItalic": false,
+                "textAlignment": 0,
+                "textBackgroundEnabled": false
+              },
+              "captureAutoSaveEnabled": false,
+              "toolbarDropdownsEnabled": {{(dropdowns ? "true" : "false")}}
+            }
+            """);
+
+        var store = new AppSettingsStore(path);
+        var migrated = store.Load();
+
+        Assert.Equal(AppSettings.CurrentSchemaVersion, migrated.SchemaVersion);
+        Assert.Equal(AppTheme.Dark, migrated.Theme);
+        Assert.Equal(dropdowns, migrated.ToolbarOpenGroupEnabled);
+        Assert.Equal(dropdowns, migrated.ToolbarSelectGroupEnabled);
+        Assert.Equal(dropdowns, migrated.ToolbarTransformGroupEnabled);
+        Assert.Equal(dropdowns, migrated.ToolbarCropGroupEnabled);
+        Assert.Equal(dropdowns, migrated.ToolbarZoomGroupEnabled);
+        Assert.Equal(dropdowns, migrated.ToolbarProtectGroupEnabled);
+        store.Save(migrated);
+        using var document = JsonDocument.Parse(File.ReadAllText(path));
+        Assert.False(document.RootElement.TryGetProperty("toolbarDropdownsEnabled", out _));
     }
 
     [Theory]
@@ -263,6 +375,32 @@ public sealed class AppSettingsTests : IDisposable
         };
 
         Assert.Throws<ArgumentException>(() => store.Save(settings));
+    }
+
+    [Fact]
+    public void EveryStyledViewerTool_IsAcceptedByValidation()
+    {
+        // Mirrors the App CanvasTool styled set; a tool missing here crashes startup (E_INVALIDARG fail-fast).
+        string[] styledTools =
+        [
+            "Pen", "Highlighter", "Line", "Arrow", "Rectangle", "RoundedRectangle",
+            "Ellipse", "Text", "Number", "SpeechBubble", "Mosaic", "Blur", "Mask", "Eyedropper",
+        ];
+        var store = new AppSettingsStore(Path.Combine(_directory, "settings.json"));
+        var settings = new AppSettings
+        {
+            ToolDefaults = new ToolDefaults
+            {
+                Styles = styledTools.ToDictionary(
+                    name => name,
+                    _ => new ToolStylePreference(),
+                    StringComparer.Ordinal),
+            },
+        };
+
+        store.Save(settings);
+
+        Assert.Equal(styledTools.Length, store.Load().ToolDefaults.Styles.Count);
     }
 
     [Fact]

@@ -92,7 +92,7 @@ Assert-ContainsLiteral $readme 'Basic Portable preview' `
     'README'
 Assert-ContainsLiteral $readme 'Installer + Portable preview' `
     'README'
-Assert-ContainsLiteral $releaseProcess 'koprodev/ezy-image-viewer-releases' `
+Assert-ContainsLiteral $releaseProcess 'koprodev/ezyImageViewer' `
     'Release process'
 Assert-ContainsLiteral $releaseProcess '0.1.0-portable.1' `
     'Release process'

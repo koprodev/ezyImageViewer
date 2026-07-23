@@ -24,6 +24,13 @@ public sealed class TransformEvaluation
     /// </summary>
     public required IReadOnlyList<Vector2> SourceClip { get; init; }
 
+    /// <summary>
+    /// Native-space quads punched transparent by <see cref="EraseOp"/>s. Tracked in native space
+    /// (stable under later ops) and clipped out of the background draw only — annotations above an
+    /// erased region are untouched.
+    /// </summary>
+    public IReadOnlyList<IReadOnlyList<Vector2>> ErasedNative { get; init; } = [];
+
     public bool TryGetOutputToNative(out Matrix3x2 inverse) => Matrix3x2.Invert(NativeToOutput, out inverse);
 
     /// <summary>True when the native point survives every crop. Boundary points count as inside.</summary>
@@ -82,10 +89,32 @@ public static class TransformEvaluator
             new(nativeSize.Width, nativeSize.Height), new(0f, nativeSize.Height),
         };
 
+        var erased = new List<IReadOnlyList<Vector2>>();
         foreach (var op in transform.Ops)
         {
             switch (op)
             {
+                case EraseOp erase:
+                {
+                    // Clamped to the current canvas like a crop; a punch that misses it entirely is
+                    // a caller bug, not a silent no-op.
+                    var x0 = MathF.Max(0f, erase.Bounds.X);
+                    var y0 = MathF.Max(0f, erase.Bounds.Y);
+                    var x1 = MathF.Min(size.X, erase.Bounds.Right);
+                    var y1 = MathF.Min(size.Y, erase.Bounds.Bottom);
+                    if (x1 - x0 <= 0f || y1 - y0 <= 0f)
+                        throw new InvalidOperationException("Erase region misses the canvas.");
+                    if (!Matrix3x2.Invert(matrix, out var eraseToNative))
+                        throw new InvalidOperationException("Transform chain is not invertible.");
+                    erased.Add(
+                    [
+                        Vector2.Transform(new Vector2(x0, y0), eraseToNative),
+                        Vector2.Transform(new Vector2(x1, y0), eraseToNative),
+                        Vector2.Transform(new Vector2(x1, y1), eraseToNative),
+                        Vector2.Transform(new Vector2(x0, y1), eraseToNative),
+                    ]);
+                    break;
+                }
                 case CropOp crop:
                 {
                     // Snapped outward to the pixel grid: the kept region always contains the
@@ -173,7 +202,13 @@ public static class TransformEvaluator
             Math.Max(1, (int)MathF.Round(size.X)),
             Math.Max(1, (int)MathF.Round(size.Y)));
 
-        return new TransformEvaluation { NativeToOutput = matrix, OutputSize = output, SourceClip = clip };
+        return new TransformEvaluation
+        {
+            NativeToOutput = matrix,
+            OutputSize = output,
+            SourceClip = clip,
+            ErasedNative = erased,
+        };
     }
 
     private static void ValidateCanvas(Vector2 size, in Matrix3x2 matrix)

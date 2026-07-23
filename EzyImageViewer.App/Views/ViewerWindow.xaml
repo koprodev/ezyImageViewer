@@ -3,8 +3,11 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:skia="using:SkiaSharp.Views.Windows"
+    xmlns:views="using:EzyImageViewer.App.Views"
     Title="ezy Image Viewer">
-    <Grid x:Name="Root">
+    <!-- Hidden: window-wide accelerators must not auto-surface as a pointer tooltip
+         (default Auto shows the first accelerator, the Left arrow key, at the cursor). -->
+    <Grid x:Name="Root" KeyboardAcceleratorPlacementMode="Hidden">
         <Grid.Resources>
             <ResourceDictionary>
                 <ResourceDictionary.MergedDictionaries>
@@ -52,34 +55,125 @@
                         <ScrollViewer x:Name="ToolRailScroll" VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled">
                             <StackPanel x:Name="ToolRailItems" Orientation="Vertical">
                     <StackPanel x:Name="FileToolGroup" Orientation="Vertical" Spacing="2">
+                        <Button x:Name="OpenGroupButton" Style="{StaticResource RailButtonStyle}">
+                            <Button.Flyout>
+                                <MenuFlyout>
+                                    <MenuFlyoutItem x:Name="OpenMenuItem" Click="OnOpenClicked" />
+                                    <MenuFlyoutItem x:Name="RecentMenuItem" Click="OnRecentClicked" />
+                                    <MenuFlyoutItem x:Name="ClipboardMenuItem" Click="OnClipboardClicked" />
+                                    <MenuFlyoutItem x:Name="CaptureMenuItem" Click="OnCaptureClicked" />
+                                    <MenuFlyoutSubItem x:Name="WhiteboardSubMenu">
+                                        <!-- Data mirrors Icon.File.Whiteboard: PathIconSource cannot feed MenuFlyout icons and FontIcon is banned in this file. -->
+                                        <MenuFlyoutSubItem.Icon><PathIcon Data="F0 M4,4 L16,4 Q18,4 18,6 L18,14 Q18,16 16,16 L4,16 Q2,16 2,14 L2,6 Q2,4 4,4 Z M4.4,5.4 L15.6,5.4 Q16.6,5.4 16.6,6.4 L16.6,13.6 Q16.6,14.6 15.6,14.6 L4.4,14.6 Q3.4,14.6 3.4,13.6 L3.4,6.4 Q3.4,5.4 4.4,5.4 Z M9.2,7 L10.8,7 L10.8,9.2 L13,9.2 L13,10.8 L10.8,10.8 L10.8,13 L9.2,13 L9.2,10.8 L7,10.8 L7,9.2 L9.2,9.2 Z" /></MenuFlyoutSubItem.Icon>
+                                        <MenuFlyoutItem x:Name="WhiteboardWhiteMenuItem" Click="OnWhiteboardWhiteClicked" />
+                                        <MenuFlyoutItem x:Name="WhiteboardBlackMenuItem" Click="OnWhiteboardBlackClicked" />
+                                    </MenuFlyoutSubItem>
+                                    <MenuFlyoutItem x:Name="NewWindowMenuItem" Click="OnNewWindowClicked" />
+                                </MenuFlyout>
+                            </Button.Flyout>
+                            <Grid>
+                                <IconSourceElement IconSource="{StaticResource Icon.Group.Open}" Style="{StaticResource ToolIconStyle}" Margin="0,0,4,0" />
+                                <IconSourceElement Width="8" Height="8" IconSource="{StaticResource Icon.Chevron.Small.Open}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,4,-6,0" />
+                            </Grid>
+                        </Button>
                         <Button x:Name="OpenButton" Click="OnOpenClicked" Style="{StaticResource RailButtonStyle}"><IconSourceElement IconSource="{StaticResource Icon.File.Open}" Style="{StaticResource ToolIconStyle}" /></Button>
                         <Button x:Name="RecentButton" Click="OnRecentClicked" Style="{StaticResource RailButtonStyle}"><IconSourceElement IconSource="{StaticResource Icon.File.Recent}" Style="{StaticResource ToolIconStyle}" /></Button>
                         <Button x:Name="ClipboardButton" Click="OnClipboardClicked" Style="{StaticResource RailButtonStyle}"><IconSourceElement IconSource="{StaticResource Icon.File.Clipboard}" Style="{StaticResource ToolIconStyle}" /></Button>
                         <Button x:Name="CaptureButton" Click="OnCaptureClicked" Style="{StaticResource RailButtonStyle}"><IconSourceElement IconSource="{StaticResource Icon.File.Capture}" Style="{StaticResource ToolIconStyle}" /></Button>
+                        <Button x:Name="WhiteboardButton" Style="{StaticResource RailButtonStyle}">
+                            <Button.Flyout>
+                                <MenuFlyout>
+                                    <MenuFlyoutItem x:Name="WhiteboardWhiteItem" Click="OnWhiteboardWhiteClicked" />
+                                    <MenuFlyoutItem x:Name="WhiteboardBlackItem" Click="OnWhiteboardBlackClicked" />
+                                </MenuFlyout>
+                            </Button.Flyout>
+                            <IconSourceElement IconSource="{StaticResource Icon.File.Whiteboard}" Style="{StaticResource ToolIconStyle}" />
+                        </Button>
                         <Button x:Name="NewWindowButton" Click="OnNewWindowClicked" Style="{StaticResource RailButtonStyle}"><IconSourceElement IconSource="{StaticResource Icon.File.NewWindow}" Style="{StaticResource ToolIconStyle}" /></Button>
                         <Button x:Name="SaveButton" Click="OnSaveClicked" Style="{StaticResource RailButtonStyle}"><IconSourceElement IconSource="{StaticResource Icon.File.Save}" Style="{StaticResource ToolIconStyle}" /></Button>
                     </StackPanel>
-                    <Border x:Name="FileHistorySeparator" Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
+                    <Border x:Name="FileZoomSeparator" Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
+                    <StackPanel x:Name="ZoomToolGroup" Orientation="Vertical" Spacing="2">
+                        <Button x:Name="ZoomGroupButton" Style="{StaticResource RailButtonStyle}">
+                            <Button.Flyout>
+                                <MenuFlyout>
+                                    <MenuFlyoutItem x:Name="FitMenuItem" Click="OnFitClicked" />
+                                    <MenuFlyoutItem x:Name="ActualSizeMenuItem" Click="OnActualSizeClicked">
+                                        <!-- Data mirrors Icon.View.ActualSize (custom path; FontIcon is banned in this file). -->
+                                        <MenuFlyoutItem.Icon><PathIcon Data="F1 M4,4 L7,2 L8,2 L8,17 L6,17 L6,5 L4,6 Z M10,7 L12,7 L12,9 L10,9 Z M10,12 L12,12 L12,14 L10,14 Z M14,4 L17,2 L18,2 L18,17 L16,17 L16,5 L14,6 Z" /></MenuFlyoutItem.Icon>
+                                    </MenuFlyoutItem>
+                                </MenuFlyout>
+                            </Button.Flyout>
+                            <Grid>
+                                <IconSourceElement IconSource="{StaticResource Icon.Group.Zoom}" Style="{StaticResource ToolIconStyle}" Margin="0,0,4,0" />
+                                <IconSourceElement Width="8" Height="8" IconSource="{StaticResource Icon.Chevron.Small.Zoom}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,4,-6,0" />
+                            </Grid>
+                        </Button>
+                        <Button x:Name="FitButton" Click="OnFitClicked" Style="{StaticResource RailButtonStyle}"><IconSourceElement IconSource="{StaticResource Icon.View.Fit}" Style="{StaticResource ToolIconStyle}" /></Button>
+                        <Button x:Name="ActualSizeButton" Click="OnActualSizeClicked" Style="{StaticResource RailButtonStyle}"><IconSourceElement IconSource="{StaticResource Icon.View.ActualSize}" Style="{StaticResource ToolIconStyle}" /></Button>
+                    </StackPanel>
+                    <Border x:Name="ZoomHistorySeparator" Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
                     <StackPanel x:Name="HistoryToolGroup" Orientation="Vertical" Spacing="2">
                         <Button x:Name="UndoButton" Click="OnUndoClicked" Style="{StaticResource RailButtonStyle}"><IconSourceElement IconSource="{StaticResource Icon.History.Undo}" Style="{StaticResource ToolIconStyle}" /></Button>
                         <Button x:Name="RedoButton" Click="OnRedoClicked" Style="{StaticResource RailButtonStyle}"><IconSourceElement IconSource="{StaticResource Icon.History.Redo}" Style="{StaticResource ToolIconStyle}" /></Button>
                     </StackPanel>
                     <Border x:Name="HistoryImageSeparator" Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
                     <StackPanel x:Name="ImageToolGroup" Orientation="Vertical" Spacing="2">
-                        <ToggleButton x:Name="SelectButton" Tag="Select" Click="OnAnnotationToolClicked" Style="{StaticResource RailToggleStyle}"><IconSourceElement IconSource="{StaticResource Icon.Image.Select}" Style="{StaticResource ToolIconStyle}" /></ToggleButton>
+                        <ToggleButton x:Name="SelectButton" Tag="Select" Click="OnAnnotationToolClicked" Style="{StaticResource RailToggleStyle}">
+                            <Grid>
+                                <IconSourceElement x:Name="SelectObjectIcon" IconSource="{StaticResource Icon.Image.Select}" Style="{StaticResource ToolIconStyle}" />
+                                <IconSourceElement x:Name="SelectRegionIcon" IconSource="{StaticResource Icon.Image.RegionSelect}" Style="{StaticResource ToolIconStyle}" Visibility="Collapsed" />
+                            </Grid>
+                        </ToggleButton>
+                        <Button x:Name="SelectModeButton" Width="36" Height="14" Padding="0" Background="Transparent" BorderThickness="0" CornerRadius="4" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+                            <Button.Flyout>
+                                <MenuFlyout>
+                                    <MenuFlyoutItem x:Name="SelectModeObjectItem" Click="OnSelectModeObjectClicked" />
+                                    <MenuFlyoutItem x:Name="SelectModeRegionItem" Click="OnSelectModeRegionClicked">
+                                        <!-- Data mirrors Icon.Image.RegionSelect (same constraint as the whiteboard submenu icon). -->
+                                        <MenuFlyoutItem.Icon><PathIcon Data="F1 M3,3 L6,3 L6,4.5 L3,4.5 Z M8.5,3 L11.5,3 L11.5,4.5 L8.5,4.5 Z M14,3 L17,3 L17,4.5 L14,4.5 Z M3,15.5 L6,15.5 L6,17 L3,17 Z M8.5,15.5 L11.5,15.5 L11.5,17 L8.5,17 Z M14,15.5 L17,15.5 L17,17 L14,17 Z M3,6.5 L4.5,6.5 L4.5,9 L3,9 Z M3,11 L4.5,11 L4.5,13.5 L3,13.5 Z M15.5,6.5 L17,6.5 L17,9 L15.5,9 Z M15.5,11 L17,11 L17,13.5 L15.5,13.5 Z" /></MenuFlyoutItem.Icon>
+                                    </MenuFlyoutItem>
+                                </MenuFlyout>
+                            </Button.Flyout>
+                            <IconSourceElement Width="12" Height="12" IconSource="{StaticResource Icon.Common.ChevronDown}" />
+                        </Button>
+                        <ToggleButton x:Name="RegionSelectButton" Tag="RegionSelect" Click="OnAnnotationToolClicked" Style="{StaticResource RailToggleStyle}" Visibility="Collapsed"><IconSourceElement IconSource="{StaticResource Icon.Image.RegionSelectFlat}" Style="{StaticResource ToolIconStyle}" /></ToggleButton>
+                        <Button x:Name="CropGroupButton" Style="{StaticResource RailButtonStyle}">
+                            <Button.Flyout>
+                                <MenuFlyout>
+                                    <MenuFlyoutItem x:Name="CropMenuItem" Tag="Crop" Click="OnToolMenuItemClicked" />
+                                    <MenuFlyoutItem x:Name="CropRatioMenuItem" Click="OnCropRatioClicked" />
+                                    <MenuFlyoutItem x:Name="ResizeMenuItem" Click="OnResizeClicked" />
+                                </MenuFlyout>
+                            </Button.Flyout>
+                            <Grid>
+                                <IconSourceElement IconSource="{StaticResource Icon.Group.Crop}" Style="{StaticResource ToolIconStyle}" Margin="0,0,4,0" />
+                                <IconSourceElement Width="8" Height="8" IconSource="{StaticResource Icon.Chevron.Small.Crop}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,4,-6,0" />
+                            </Grid>
+                        </Button>
                         <ToggleButton x:Name="CropButton" Click="OnCropClicked" Style="{StaticResource RailToggleStyle}"><IconSourceElement IconSource="{StaticResource Icon.Image.Crop}" Style="{StaticResource ToolIconStyle}" /></ToggleButton>
                         <Button x:Name="CropRatioButton" Click="OnCropRatioClicked" Style="{StaticResource RailButtonStyle}"><IconSourceElement IconSource="{StaticResource Icon.Image.CropRatio}" Style="{StaticResource ToolIconStyle}" /></Button>
                         <Button x:Name="ResizeButton" Click="OnResizeClicked" Style="{StaticResource RailButtonStyle}"><IconSourceElement IconSource="{StaticResource Icon.Image.Resize}" Style="{StaticResource ToolIconStyle}" /></Button>
+                        <Button x:Name="TransformGroupButton" Style="{StaticResource RailButtonStyle}">
+                            <Button.Flyout>
+                                <MenuFlyout>
+                                    <MenuFlyoutItem x:Name="RotateCwMenuItem" Click="OnRotateClicked" />
+                                    <MenuFlyoutItem x:Name="RotateCcwMenuItem" Click="OnRotateCcwClicked" />
+                                    <MenuFlyoutItem x:Name="FlipHorizontalMenuItem" Click="OnFlipHorizontalClicked" />
+                                    <MenuFlyoutItem x:Name="FlipVerticalMenuItem" Click="OnFlipVerticalClicked" />
+                                </MenuFlyout>
+                            </Button.Flyout>
+                            <Grid>
+                                <IconSourceElement IconSource="{StaticResource Icon.Group.Rotate}" Style="{StaticResource ToolIconStyle}" Margin="0,0,4,0" />
+                                <IconSourceElement Width="8" Height="8" IconSource="{StaticResource Icon.Chevron.Small.Transform}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,4,-6,0" />
+                            </Grid>
+                        </Button>
                         <Button x:Name="RotateButton" Click="OnRotateClicked" Style="{StaticResource RailButtonStyle}"><IconSourceElement IconSource="{StaticResource Icon.Image.Rotate}" Style="{StaticResource ToolIconStyle}" /></Button>
                         <Button x:Name="FlipHorizontalButton" Click="OnFlipHorizontalClicked" Style="{StaticResource RailButtonStyle}"><IconSourceElement IconSource="{StaticResource Icon.Image.FlipHorizontal}" Style="{StaticResource ToolIconStyle}" /></Button>
                         <Button x:Name="FlipVerticalButton" Click="OnFlipVerticalClicked" Style="{StaticResource RailButtonStyle}"><IconSourceElement IconSource="{StaticResource Icon.Image.FlipVertical}" Style="{StaticResource ToolIconStyle}" RenderTransformOrigin="0.5,0.5"><IconSourceElement.RenderTransform><RotateTransform Angle="90" /></IconSourceElement.RenderTransform></IconSourceElement></Button>
                     </StackPanel>
                     <Border x:Name="ImageDrawingSeparator" Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
                     <StackPanel x:Name="DrawingToolGroup" Orientation="Vertical" Spacing="2">
-                        <ToggleButton x:Name="PenButton" Tag="Pen" Click="OnAnnotationToolClicked" Style="{StaticResource RailToggleStyle}"><IconSourceElement IconSource="{StaticResource Icon.Draw.Pen}" Style="{StaticResource ToolIconStyle}" /></ToggleButton>
-                        <ToggleButton x:Name="HighlighterButton" Tag="Highlighter" Click="OnAnnotationToolClicked" Style="{StaticResource RailToggleStyle}"><IconSourceElement IconSource="{StaticResource Icon.Draw.Highlighter}" Style="{StaticResource ToolIconStyle}" /></ToggleButton>
-                        <ToggleButton x:Name="LineButton" Tag="Line" Click="OnAnnotationToolClicked" Style="{StaticResource RailToggleStyle}"><IconSourceElement IconSource="{StaticResource Icon.Draw.Line}" Style="{StaticResource ToolIconStyle}" /></ToggleButton>
-                        <ToggleButton x:Name="ArrowButton" Tag="Arrow" Click="OnAnnotationToolClicked" Style="{StaticResource RailToggleStyle}"><IconSourceElement IconSource="{StaticResource Icon.Draw.Arrow}" Style="{StaticResource ToolIconStyle}" /></ToggleButton>
                         <Button x:Name="ColorButton" Style="{StaticResource RailButtonStyle}">
                         <Button.Flyout>
                             <Flyout x:Name="ColorFlyout">
@@ -104,6 +198,10 @@
                             <Grid><IconSourceElement IconSource="{StaticResource Icon.Draw.ColorPalette}" Style="{StaticResource ToolIconStyle}" /><Border x:Name="CurrentColorSwatch" Width="12" Height="12" HorizontalAlignment="Right" VerticalAlignment="Bottom" CornerRadius="6" BorderThickness="2" /></Grid>
                         </Button>
                         <ToggleButton x:Name="EyedropperButton" Tag="Eyedropper" Click="OnAnnotationToolClicked" Style="{StaticResource RailToggleStyle}"><IconSourceElement IconSource="{StaticResource Icon.Draw.Eyedropper}" Style="{StaticResource ToolIconStyle}" /></ToggleButton>
+                        <ToggleButton x:Name="PenButton" Tag="Pen" Click="OnAnnotationToolClicked" Style="{StaticResource RailToggleStyle}"><IconSourceElement IconSource="{StaticResource Icon.Draw.Pen}" Style="{StaticResource ToolIconStyle}" /></ToggleButton>
+                        <ToggleButton x:Name="HighlighterButton" Tag="Highlighter" Click="OnAnnotationToolClicked" Style="{StaticResource RailToggleStyle}"><IconSourceElement IconSource="{StaticResource Icon.Draw.Highlighter}" Style="{StaticResource ToolIconStyle}" /></ToggleButton>
+                        <ToggleButton x:Name="LineButton" Tag="Line" Click="OnAnnotationToolClicked" Style="{StaticResource RailToggleStyle}"><IconSourceElement IconSource="{StaticResource Icon.Draw.Line}" Style="{StaticResource ToolIconStyle}" /></ToggleButton>
+                        <ToggleButton x:Name="ArrowButton" Tag="Arrow" Click="OnAnnotationToolClicked" Style="{StaticResource RailToggleStyle}"><IconSourceElement IconSource="{StaticResource Icon.Draw.Arrow}" Style="{StaticResource ToolIconStyle}" /></ToggleButton>
                     </StackPanel>
                     <Border x:Name="DrawingShapeSeparator" Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
                     <StackPanel x:Name="ShapeToolGroup" Orientation="Vertical" Spacing="2">
@@ -111,6 +209,7 @@
                         <ToggleButton x:Name="RoundedRectangleButton" Tag="RoundedRectangle" Click="OnAnnotationToolClicked" Style="{StaticResource RailToggleStyle}"><IconSourceElement IconSource="{StaticResource Icon.Shape.RoundedRectangle}" Style="{StaticResource ToolIconStyle}" /></ToggleButton>
                         <ToggleButton x:Name="EllipseButton" Tag="Ellipse" Click="OnAnnotationToolClicked" Style="{StaticResource RailToggleStyle}"><IconSourceElement IconSource="{StaticResource Icon.Shape.Ellipse}" Style="{StaticResource ToolIconStyle}" /></ToggleButton>
                         <ToggleButton x:Name="NumberButton" Tag="Number" Click="OnAnnotationToolClicked" Style="{StaticResource RailToggleStyle}"><IconSourceElement IconSource="{StaticResource Icon.Shape.Number}" Style="{StaticResource ToolIconStyle}" /></ToggleButton>
+                        <ToggleButton x:Name="SpeechBubbleButton" Tag="SpeechBubble" Click="OnAnnotationToolClicked" Style="{StaticResource RailToggleStyle}"><IconSourceElement IconSource="{StaticResource Icon.Shape.SpeechBubble}" Style="{StaticResource ToolIconStyle}" /></ToggleButton>
                     </StackPanel>
                     <Border x:Name="ShapeTextSeparator" Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
                     <StackPanel x:Name="TextToolGroup" Orientation="Vertical" Spacing="2">
@@ -118,15 +217,25 @@
                     </StackPanel>
                     <Border x:Name="TextProtectionSeparator" Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
                     <StackPanel x:Name="ProtectionToolGroup" Orientation="Vertical" Spacing="2">
+                        <Button x:Name="ProtectGroupButton" Style="{StaticResource RailButtonStyle}">
+                            <Button.Flyout>
+                                <MenuFlyout>
+                                    <MenuFlyoutItem x:Name="MosaicMenuItem" Tag="Mosaic" Click="OnToolMenuItemClicked" />
+                                    <MenuFlyoutItem x:Name="BlurMenuItem" Tag="Blur" Click="OnToolMenuItemClicked" />
+                                    <MenuFlyoutItem x:Name="MaskMenuItem" Tag="Mask" Click="OnToolMenuItemClicked" />
+                                </MenuFlyout>
+                            </Button.Flyout>
+                            <Grid>
+                                <IconSourceElement IconSource="{StaticResource Icon.Group.Protect}" Style="{StaticResource ToolIconStyle}" Margin="0,0,4,0" />
+                                <IconSourceElement Width="8" Height="8" IconSource="{StaticResource Icon.Chevron.Small.Protect}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,4,-6,0" />
+                            </Grid>
+                        </Button>
                         <ToggleButton x:Name="MosaicButton" Tag="Mosaic" Click="OnAnnotationToolClicked" Style="{StaticResource RailToggleStyle}"><IconSourceElement IconSource="{StaticResource Icon.Protect.Mosaic}" Style="{StaticResource ToolIconStyle}" /></ToggleButton>
                         <ToggleButton x:Name="BlurButton" Tag="Blur" Click="OnAnnotationToolClicked" Style="{StaticResource RailToggleStyle}"><IconSourceElement IconSource="{StaticResource Icon.Protect.Blur}" Style="{StaticResource ToolIconStyle}" /></ToggleButton>
                         <ToggleButton x:Name="MaskButton" Tag="Mask" Click="OnAnnotationToolClicked" Style="{StaticResource RailToggleStyle}"><IconSourceElement IconSource="{StaticResource Icon.Protect.Mask}" Style="{StaticResource ToolIconStyle}" /></ToggleButton>
                     </StackPanel>
                     <Border x:Name="ProtectionViewSeparator" Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
                     <StackPanel x:Name="ViewToolGroup" Orientation="Vertical" Spacing="2">
-                        <Button x:Name="FitButton" Click="OnFitClicked" Style="{StaticResource RailButtonStyle}"><IconSourceElement IconSource="{StaticResource Icon.View.Fit}" Style="{StaticResource ToolIconStyle}" /></Button>
-                        <Button x:Name="ActualSizeButton" Click="OnActualSizeClicked" Style="{StaticResource RailButtonStyle}"><IconSourceElement IconSource="{StaticResource Icon.View.ActualSize}" Style="{StaticResource ToolIconStyle}" /></Button>
-                        <ToggleButton x:Name="LayerPanelButton" Click="OnLayerPanelToggleClicked" Style="{StaticResource RailToggleStyle}"><IconSourceElement IconSource="{StaticResource Icon.View.LayerPanel}" Style="{StaticResource ToolIconStyle}" /></ToggleButton>
                         <Button x:Name="SettingsButton" Click="OnSettingsClicked" Style="{StaticResource RailButtonStyle}"><IconSourceElement IconSource="{StaticResource Icon.App.Settings}" Style="{StaticResource ToolIconStyle}" /></Button>
                     </StackPanel>
                             </StackPanel>
@@ -155,15 +264,16 @@
                 </Grid>
             </Border>
 
+            <!-- Bottom-right like Photoshop; the top strip belongs to the context bar. -->
             <Border
                 x:Name="LayerPanel"
                 Grid.ColumnSpan="2"
-                Margin="68,12,0,0"
+                Margin="0,0,12,12"
                 Padding="10"
                 Width="240"
                 MaxHeight="360"
-                HorizontalAlignment="Left"
-                VerticalAlignment="Top"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Bottom"
                 Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}"
                 CornerRadius="10"
                 Canvas.ZIndex="19"
@@ -178,9 +288,11 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <TextBlock x:Name="LayerPanelTitle" Text="레이어" FontWeight="SemiBold" VerticalAlignment="Center" />
                         <Button x:Name="LayerAddButton" Grid.Column="1" Click="OnLayerAddClicked" Style="{StaticResource CompactIconButtonStyle}"><IconSourceElement IconSource="{StaticResource Icon.Layer.Add}" Style="{StaticResource ToolIconStyle}" /></Button>
+                        <Button x:Name="LayerCollapseButton" Grid.Column="2" Click="OnLayerCollapseClicked" Style="{StaticResource CompactIconButtonStyle}"><IconSourceElement x:Name="LayerCollapseIcon" Style="{StaticResource ToolIconStyle}" /></Button>
                     </Grid>
                     <ListView
                         x:Name="LayerList"
@@ -189,7 +301,7 @@
                         MaxHeight="260"
                         SelectionMode="Single"
                         SelectionChanged="OnLayerSelectionChanged" />
-                    <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="2">
+                    <StackPanel x:Name="LayerFooterButtons" Grid.Row="2" Orientation="Horizontal" Spacing="2">
                         <Button x:Name="LayerUpButton" Click="OnLayerUpClicked" Style="{StaticResource CompactIconButtonStyle}"><IconSourceElement IconSource="{StaticResource Icon.Layer.Up}" Style="{StaticResource ToolIconStyle}" /></Button>
                         <Button x:Name="LayerDownButton" Click="OnLayerDownClicked" Style="{StaticResource CompactIconButtonStyle}"><IconSourceElement IconSource="{StaticResource Icon.Layer.Down}" Style="{StaticResource ToolIconStyle}" /></Button>
                         <Button x:Name="LayerRenameButton" Click="OnLayerRenameClicked" Style="{StaticResource CompactIconButtonStyle}"><IconSourceElement IconSource="{StaticResource Icon.Layer.Rename}" Style="{StaticResource ToolIconStyle}" /></Button>
@@ -265,114 +377,145 @@
                 Grid.Column="1"
                 Margin="68,12,12,0"
                 Padding="10,6"
-                MaxWidth="480"
+                MaxWidth="960"
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Top"
                 Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}"
                 CornerRadius="6"
                 Canvas.ZIndex="10">
-                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                <Border.Resources>
+                    <!-- Small caption above each option: raw units (px, %, T) read as jargon. -->
+                    <Style x:Key="ContextCaptionStyle" TargetType="TextBlock">
+                        <Setter Property="FontSize" Value="10" />
+                        <Setter Property="Opacity" Value="0.7" />
+                        <Setter Property="Margin" Value="2,0,0,0" />
+                    </Style>
+                </Border.Resources>
+                <!-- Bottom padding reserves room for the overlay scrollbar so it never covers values. -->
+                <ScrollViewer
+                    x:Name="ContextBarScroll"
+                    HorizontalScrollBarVisibility="Auto"
+                    VerticalScrollBarVisibility="Disabled"
+                    Padding="0,0,0,12">
                 <StackPanel Orientation="Horizontal" Spacing="8">
                     <TextBlock x:Name="ToolContextLabel" VerticalAlignment="Center" FontWeight="SemiBold" />
-                    <TextBlock x:Name="StrokeWidthLabel" Text="px" VerticalAlignment="Center" Opacity="0.7" />
-                    <NumberBox
-                        x:Name="StrokeWidthBox"
-                        Width="76"
-                        Minimum="1"
-                        Maximum="1000"
-                        Value="3"
-                        SmallChange="1"
-                        SpinButtonPlacementMode="Compact"
-                        ValueChanged="OnStrokeWidthChanged" />
-                    <TextBlock x:Name="BlockSizeLabel" VerticalAlignment="Center" Opacity="0.7" />
-                    <NumberBox
-                        x:Name="BlockSizeBox"
-                        Width="76"
-                        Minimum="2"
-                        Maximum="1024"
-                        Value="12"
-                        SmallChange="1"
-                        SpinButtonPlacementMode="Compact"
-                        ValueChanged="OnBlockSizeChanged" />
-                    <TextBlock x:Name="BlurSigmaLabel" VerticalAlignment="Center" Opacity="0.7" />
-                    <NumberBox
-                        x:Name="BlurSigmaBox"
-                        Width="76"
-                        Minimum="1"
-                        Maximum="80"
-                        Value="8"
-                        SmallChange="1"
-                        SpinButtonPlacementMode="Compact"
-                        ValueChanged="OnBlurSigmaChanged" />
-                    <TextBlock x:Name="OpacityLabel" Text="%" VerticalAlignment="Center" Opacity="0.7" />
-                    <NumberBox
-                        x:Name="OpacityBox"
-                        Width="78"
-                        Minimum="1"
-                        Maximum="100"
-                        Value="100"
-                        SmallChange="5"
-                        SpinButtonPlacementMode="Compact"
-                        ValueChanged="OnOpacityChanged" />
-                    <TextBlock x:Name="FontSizeLabel" Text="T" VerticalAlignment="Center" Opacity="0.7" />
-                    <NumberBox
-                        x:Name="FontSizeBox"
-                        Width="78"
-                        Minimum="6"
-                        Maximum="10000"
-                        Value="24"
-                        SmallChange="1"
-                        SpinButtonPlacementMode="Compact"
-                        ValueChanged="OnFontSizeChanged" />
+                    <StackPanel x:Name="StrokeWidthGroup" Spacing="1" VerticalAlignment="Center">
+                        <TextBlock x:Name="StrokeWidthLabel" Style="{StaticResource ContextCaptionStyle}" />
+                        <views:CompactNumberBox
+                            x:Name="StrokeWidthBox"
+                            Width="76"
+                            Minimum="1"
+                            Maximum="1000"
+                            Value="3"
+                            SmallChange="1"
+                            ValueChanged="OnStrokeWidthChanged" />
+                    </StackPanel>
+                    <StackPanel x:Name="BlockSizeGroup" Spacing="1" VerticalAlignment="Center">
+                        <TextBlock x:Name="BlockSizeLabel" Style="{StaticResource ContextCaptionStyle}" />
+                        <views:CompactNumberBox
+                            x:Name="BlockSizeBox"
+                            Width="76"
+                            Minimum="2"
+                            Maximum="1024"
+                            Value="12"
+                            SmallChange="1"
+                            ValueChanged="OnBlockSizeChanged" />
+                    </StackPanel>
+                    <StackPanel x:Name="BlurSigmaGroup" Spacing="1" VerticalAlignment="Center">
+                        <TextBlock x:Name="BlurSigmaLabel" Style="{StaticResource ContextCaptionStyle}" />
+                        <views:CompactNumberBox
+                            x:Name="BlurSigmaBox"
+                            Width="76"
+                            Minimum="1"
+                            Maximum="80"
+                            Value="8"
+                            SmallChange="1"
+                            ValueChanged="OnBlurSigmaChanged" />
+                    </StackPanel>
+                    <StackPanel x:Name="OpacityGroup" Spacing="1" VerticalAlignment="Center">
+                        <TextBlock x:Name="OpacityLabel" Style="{StaticResource ContextCaptionStyle}" />
+                        <views:CompactNumberBox
+                            x:Name="OpacityBox"
+                            Width="78"
+                            Minimum="1"
+                            Maximum="100"
+                            Value="100"
+                            SmallChange="5"
+                            ValueChanged="OnOpacityChanged" />
+                    </StackPanel>
+                    <StackPanel x:Name="FontSizeGroup" Spacing="1" VerticalAlignment="Center">
+                        <TextBlock x:Name="FontSizeLabel" Style="{StaticResource ContextCaptionStyle}" />
+                        <views:CompactNumberBox
+                            x:Name="FontSizeBox"
+                            Width="78"
+                            Minimum="6"
+                            Maximum="10000"
+                            Value="24"
+                            SmallChange="1"
+                            ValueChanged="OnFontSizeChanged" />
+                    </StackPanel>
                     <CheckBox
                         x:Name="FillCheckBox"
                         VerticalAlignment="Center"
                         Click="OnFillChanged" />
-                    <NumberBox
-                        x:Name="CornerRadiusBox"
-                        Width="76"
-                        Minimum="0"
-                        Maximum="1000000"
-                        Value="8"
-                        SmallChange="1"
-                        SpinButtonPlacementMode="Compact"
-                        ValueChanged="OnCornerRadiusChanged" />
-                    <ComboBox
-                        x:Name="ArrowheadBox"
-                        Width="110"
-                        SelectionChanged="OnArrowheadChanged" />
-                    <TextBox
-                        x:Name="FontFamilyBox"
-                        Width="130"
-                        MaxLength="128"
-                        Text="Malgun Gothic"
-                        TextChanged="OnFontFamilyChanged" />
+                    <StackPanel x:Name="CornerRadiusGroup" Spacing="1" VerticalAlignment="Center">
+                        <TextBlock x:Name="CornerRadiusLabel" Style="{StaticResource ContextCaptionStyle}" />
+                        <views:CompactNumberBox
+                            x:Name="CornerRadiusBox"
+                            Width="76"
+                            Minimum="0"
+                            Maximum="1000000"
+                            Value="8"
+                            SmallChange="1"
+                            ValueChanged="OnCornerRadiusChanged" />
+                    </StackPanel>
+                    <StackPanel x:Name="ArrowheadGroup" Spacing="1" VerticalAlignment="Center">
+                        <TextBlock x:Name="ArrowheadLabel" Style="{StaticResource ContextCaptionStyle}" />
+                        <ComboBox
+                            x:Name="ArrowheadBox"
+                            Width="110"
+                            SelectionChanged="OnArrowheadChanged" />
+                    </StackPanel>
+                    <StackPanel x:Name="FontFamilyGroup" Spacing="1" VerticalAlignment="Center">
+                        <TextBlock x:Name="FontFamilyLabel" Style="{StaticResource ContextCaptionStyle}" />
+                        <ComboBox
+                            x:Name="FontFamilyBox"
+                            Width="150"
+                            SelectionChanged="OnFontFamilyChanged" />
+                    </StackPanel>
                     <ToggleButton
                         x:Name="BoldButton"
                         Content="B"
                         FontWeight="Bold"
+                        VerticalAlignment="Center"
                         Click="OnTextStyleChanged" />
                     <ToggleButton
                         x:Name="ItalicButton"
                         Content="I"
                         FontStyle="Italic"
+                        VerticalAlignment="Center"
                         Click="OnTextStyleChanged" />
-                    <ComboBox
-                        x:Name="TextAlignmentBox"
-                        Width="90"
-                        SelectionChanged="OnTextAlignmentChanged" />
+                    <StackPanel x:Name="AlignmentGroup" Spacing="1" VerticalAlignment="Center">
+                        <TextBlock x:Name="AlignmentLabel" Style="{StaticResource ContextCaptionStyle}" />
+                        <ComboBox
+                            x:Name="TextAlignmentBox"
+                            Width="90"
+                            SelectionChanged="OnTextAlignmentChanged" />
+                    </StackPanel>
                     <CheckBox
                         x:Name="TextBackgroundCheckBox"
                         VerticalAlignment="Center"
                         Click="OnTextBackgroundChanged" />
-                    <NumberBox
-                        x:Name="ObjectRotationBox"
-                        Width="84"
-                        Minimum="0"
-                        Maximum="359.9"
-                        SmallChange="1"
-                        SpinButtonPlacementMode="Compact"
-                        ValueChanged="OnObjectRotationChanged" />
+                    <StackPanel x:Name="RotationGroup" Spacing="1" VerticalAlignment="Center">
+                        <TextBlock x:Name="RotationLabel" Style="{StaticResource ContextCaptionStyle}" />
+                        <views:CompactNumberBox
+                            x:Name="ObjectRotationBox"
+                            Width="84"
+                            Minimum="0"
+                            Maximum="359.9"
+                            SmallChange="1"
+                            ValueChanged="OnObjectRotationChanged" />
+                    </StackPanel>
                     <Button x:Name="SendToBackButton" Style="{StaticResource CompactIconButtonStyle}" Click="OnSendToBackClicked"><IconSourceElement IconSource="{StaticResource Icon.Object.SendToBack}" Style="{StaticResource ToolIconStyle}" /></Button>
                     <Button x:Name="SendBackwardButton" Style="{StaticResource CompactIconButtonStyle}" Click="OnSendBackwardClicked"><IconSourceElement IconSource="{StaticResource Icon.Object.SendBackward}" Style="{StaticResource ToolIconStyle}" /></Button>
                     <Button x:Name="BringForwardButton" Style="{StaticResource CompactIconButtonStyle}" Click="OnBringForwardClicked"><IconSourceElement IconSource="{StaticResource Icon.Object.BringForward}" Style="{StaticResource ToolIconStyle}" /></Button>
@@ -391,6 +534,7 @@
                 VerticalAlignment="Center"
                 FontSize="14"
                 TextWrapping="Wrap"
+                IsHitTestVisible="False"
                 Visibility="Collapsed" />
         </Grid>
 

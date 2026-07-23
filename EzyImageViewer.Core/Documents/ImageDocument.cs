@@ -9,6 +9,8 @@ public enum DocumentSourceKind
     Capture,
     /// <summary>An .ezyimg project; Path is the project file, not the embedded background.</summary>
     Project,
+    /// <summary>An in-app generated document (e.g. a whiteboard); saving always prompts for a path.</summary>
+    Generated,
 }
 
 public sealed record DocumentSource(DocumentSourceKind Kind, string? Path)
@@ -16,6 +18,7 @@ public sealed record DocumentSource(DocumentSourceKind Kind, string? Path)
     public static DocumentSource FromFile(string path) => new(DocumentSourceKind.File, path);
     public static DocumentSource FromClipboard() => new(DocumentSourceKind.Clipboard, null);
     public static DocumentSource FromProject(string path) => new(DocumentSourceKind.Project, path);
+    public static DocumentSource FromGenerated() => new(DocumentSourceKind.Generated, null);
 }
 
 /// <summary>

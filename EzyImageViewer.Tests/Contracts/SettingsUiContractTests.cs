@@ -89,6 +89,30 @@ public sealed class SettingsUiContractTests
     }
 
     [Fact]
+    public void FileAssociations_AreOpenWithCandidatesOnlyAndNeverTouchTheUserChoice()
+    {
+        var registrar = File.ReadAllText(RepoFile(
+            "EzyImageViewer.App", "FileAssociationRegistrar.cs"));
+        var settingsUi = File.ReadAllText(RepoFile(
+            "EzyImageViewer.App", "SettingsDialogContent.cs"));
+        var viewer = File.ReadAllText(RepoFile(
+            "EzyImageViewer.App", "Views", "ViewerWindow.xaml.cs"));
+
+        // FR-APP-001: per-user candidate registration only — never the default-app choice.
+        Assert.Contains("Registry.CurrentUser", registrar, StringComparison.Ordinal);
+        Assert.DoesNotContain("Registry.LocalMachine", registrar, StringComparison.Ordinal);
+        Assert.DoesNotContain("UserChoice", registrar, StringComparison.Ordinal);
+        Assert.Contains(
+            "FileAssociationPolicy.OpenWithProgidsKeyPath", registrar, StringComparison.Ordinal);
+        Assert.Contains("SHChangeNotify", registrar, StringComparison.Ordinal);
+        Assert.Contains(
+            "FileAssociationRegistrar.Apply", settingsUi, StringComparison.Ordinal);
+        Assert.Contains(
+            "FileAssociationPolicy.DefaultAppsSettingsUri", settingsUi, StringComparison.Ordinal);
+        Assert.Contains("Launcher.LaunchUriAsync(target)", viewer, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void HotkeyPolicy_IsSharedByUiPersistenceAndRuntime()
     {
         var settingsUi = File.ReadAllText(RepoFile(

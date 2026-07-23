@@ -111,6 +111,38 @@ public class CropInteractionTests
             interaction.CompleteDrag(null, 100f, 100f, minimumSide));
     }
 
+    [Fact]
+    public void TryGetValidReview_MatchingDocumentAndRevision_ReturnsBounds()
+    {
+        var interaction = Reviewed();
+
+        Assert.True(interaction.TryGetValidReview(DocumentId, 7, out var review));
+        Assert.Equal(new RectF(10f, 10f, 40f, 40f), review.Bounds);
+    }
+
+    [Fact]
+    public void TryGetValidReview_StaleDocumentOrRevision_IsFalse()
+    {
+        var interaction = Reviewed();
+
+        Assert.False(interaction.TryGetValidReview(Guid.NewGuid(), 7, out _));
+        Assert.False(interaction.TryGetValidReview(DocumentId, 8, out _));
+        // The stale probe must not disturb the review draft itself.
+        Assert.Equal(CropInteractionPhase.Reviewing, interaction.Phase);
+        Assert.NotNull(interaction.Review);
+    }
+
+    [Fact]
+    public void TryGetValidReview_OutsideReviewingPhase_IsFalse()
+    {
+        var idle = new CropInteraction();
+        Assert.False(idle.TryGetValidReview(DocumentId, 7, out _));
+
+        var dragging = new CropInteraction();
+        dragging.BeginDrag(10f, 10f, DocumentId, 7);
+        Assert.False(dragging.TryGetValidReview(DocumentId, 7, out _));
+    }
+
     private static CropInteraction Reviewed()
     {
         var interaction = new CropInteraction();

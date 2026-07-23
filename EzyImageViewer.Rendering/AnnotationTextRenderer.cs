@@ -25,7 +25,11 @@ internal static class AnnotationTextRenderer
         canvas.ClipRect(SKRect.Create(
             annotation.Bounds.X, annotation.Bounds.Y,
             annotation.Bounds.Width, annotation.Bounds.Height));
-        foreach (var line in annotation.Text.Replace("\r\n", "\n", StringComparison.Ordinal).Split('\n'))
+        // WinUI TextBox emits bare '\r' line breaks, so lone CR must break lines too.
+        foreach (var line in annotation.Text
+            .Replace("\r\n", "\n", StringComparison.Ordinal)
+            .Replace('\r', '\n')
+            .Split('\n'))
         {
             if (baseline > annotation.Bounds.Bottom + metrics.Descent)
                 break;

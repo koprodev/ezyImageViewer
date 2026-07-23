@@ -74,6 +74,10 @@ public static class AppStrings
     public static string SafeModeContinue => Get("SafeModeContinue", "일반 모드 계속");
     public static string SafeModeLabel => Get("SafeModeLabel", "안전 모드");
     public static string ToolClipboard => Get("ToolClipboard", "클립보드에서 문서 열기");
+    public static string ToolWhiteboard => Get("ToolWhiteboard", "화이트보드 열기");
+    public static string TipWhiteboard => Get("TipWhiteboard", "격자 배경의 4K 화이트보드를 새 문서로 엽니다.");
+    public static string WhiteboardWhite => Get("WhiteboardWhite", "흰색 화이트보드");
+    public static string WhiteboardBlack => Get("WhiteboardBlack", "검은색 화이트보드");
     public static string ToolNewWindow => Get("ToolNewWindow", "새 창 열기");
     public static string ToolSettings => Get("ToolSettings", "설정");
     public static string TipSettings => Get("TipSettings", "앱 동작과 개인정보 설정을 변경합니다.");
@@ -98,6 +102,39 @@ public static class AppStrings
     public static string SettingsApplicationInformation => Get("SettingsApplicationInformation", "앱 정보");
     public static string SettingsCurrentVersion => Get("SettingsCurrentVersion", "현재 버전: {0}");
     public static string SettingsCheckForUpdates => Get("SettingsCheckForUpdates", "업데이트 확인");
+    public static string SettingsNavGeneral => Get("SettingsNavGeneral", "언어 및 기타 설정");
+    public static string SettingsNavToolbarGroups => Get("SettingsNavToolbarGroups", "툴바 그룹 설정");
+    public static string SettingsNavFileAssoc => Get("SettingsNavFileAssoc", "파일 연결");
+    public static string SettingsNavAbout => Get("SettingsNavAbout", "프로그램 소개");
+    public static string SettingsNavUpdate => Get("SettingsNavUpdate", "프로그램 업데이트");
+    public static string SettingsNavSupport => Get("SettingsNavSupport", "개발자 지원");
+    public static string SettingsLanguage => Get("SettingsLanguage", "언어");
+    public static string SettingsLanguageKorean => Get("SettingsLanguageKorean", "한국어");
+    public static string SettingsLanguageNote => Get("SettingsLanguageNote",
+        "현재 버전은 한국어를 제공합니다. 영어는 이후 버전에서 지원할 예정입니다.");
+    public static string FileAssocDescription => Get("FileAssocDescription",
+        "선택한 확장자를 이 앱의 '연결 프로그램' 후보로 등록합니다. 기존 기본 앱은 변경하지 않습니다.");
+    public static string FileAssocWindowsSettings => Get("FileAssocWindowsSettings", "Windows 기본 프로그램 설정");
+    public static string FileAssocSelectEssential => Get("FileAssocSelectEssential", "필수 파일 선택");
+    public static string FileAssocSelectAll => Get("FileAssocSelectAll", "전부 선택");
+    public static string FileAssocSelectNone => Get("FileAssocSelectNone", "선택 안 함");
+    public static string FileAssocApply => Get("FileAssocApply", "지금 적용");
+    public static string FileAssocApplied => Get("FileAssocApplied", "파일 연결을 적용했습니다");
+    public static string FileAssocApplyFailed => Get("FileAssocApplyFailed", "파일 연결을 적용하지 못했습니다");
+    public static string FileAssocUnavailable => Get("FileAssocUnavailable",
+        "파일 연결 정보를 읽지 못해 이 페이지를 사용할 수 없습니다");
+    public static string FileAssocGroupRaster => Get("FileAssocGroupRaster", "래스터 이미지");
+    public static string FileAssocGroupCodec => Get("FileAssocGroupCodec", "코덱 확장 형식 (AVIF·HEIC)");
+    public static string FileAssocGroupVector => Get("FileAssocGroupVector", "벡터 이미지");
+    public static string AboutDescription => Get("AboutDescription", "가볍고 빠른 Windows 이미지 뷰어·편집기");
+    public static string AboutLicense => Get("AboutLicense", "MIT 라이선스 · © 2026 koprodev");
+    public static string AboutProjectPage => Get("AboutProjectPage", "GitHub에서 릴리스 보기");
+    public static string UpdatePolicyNote => Get("UpdatePolicyNote",
+        "자동 업데이트 확인은 수행하지 않습니다. 아래 버튼은 최신 릴리스 페이지를 기본 브라우저로 엽니다.");
+    public static string SupportNote => Get("SupportNote",
+        "ezy Image Viewer는 무료로 제공됩니다. 도움이 되었다면 개발을 응원해 주세요.");
+    public static string SupportAction => Get("SupportAction", "개발 응원하기 ☕");
+    public static string LinkOpenFailed => Get("LinkOpenFailed", "페이지를 열 수 없습니다");
     public static string StatusPreview => Get("StatusPreview", "미리보기");
     public static string UpdateOpenFailed => Get("UpdateOpenFailed", "릴리스 페이지를 열 수 없습니다");
     public static string ToolPrevious => Get("ToolPrevious", "이전 파일 (←)");
@@ -107,6 +144,39 @@ public static class AppStrings
     public static string ToolFit => Get("ToolFit", "화면 맞춤 (Ctrl+0)");
     public static string ToolActualSize => Get("ToolActualSize", "실제 크기 (Ctrl+1)");
     public static string ToolRotate => Get("ToolRotate", "시계 방향으로 문서 회전");
+    public static string ToolRotateCcw => Get("ToolRotateCcw", "반시계 방향으로 문서 회전");
+    public static string ToolOpenGroup => Get("ToolOpenGroup", "열기 메뉴");
+    public static string TipOpenGroup => Get("TipOpenGroup",
+        "파일·최근·클립보드·캡처·화이트보드·새 창 열기를 한 메뉴로 엽니다.");
+    public static string ToolTransformGroup => Get("ToolTransformGroup", "회전·반전 메뉴");
+    public static string TipTransformGroup => Get("TipTransformGroup",
+        "시계·반시계 회전과 좌우·상하 반전을 한 메뉴로 엽니다.");
+    public static string ToolCropGroup => Get("ToolCropGroup", "자르기·크기 메뉴");
+    public static string TipCropGroup => Get("TipCropGroup",
+        "자르기, 자르기 비율, 크기 조절을 한 메뉴로 엽니다.");
+    public static string ToolZoomGroup => Get("ToolZoomGroup", "배율 메뉴");
+    public static string TipZoomGroup => Get("TipZoomGroup",
+        "화면 맞춤과 실제 크기를 한 메뉴로 엽니다.");
+    public static string ToolProtectGroup => Get("ToolProtectGroup", "정보 보호 메뉴");
+    public static string TipProtectGroup => Get("TipProtectGroup",
+        "모자이크, 블러, 가림막을 한 메뉴로 엽니다.");
+    public static string MenuCrop => Get("MenuCrop", "자르기");
+    public static string MenuCropRatio => Get("MenuCropRatio", "자르기 비율");
+    public static string MenuResize => Get("MenuResize", "크기 조절");
+    public static string SettingsToolbarGroups => Get("SettingsToolbarGroups",
+        "그룹별로 툴바 묶음 버튼(드롭다운) 사용 여부를 선택합니다.");
+    public static string SettingsToolbarGroupOpen => Get("SettingsToolbarGroupOpen",
+        "열기 묶음 (열기·최근·클립보드·캡처·화이트보드·새 창)");
+    public static string SettingsToolbarGroupSelect => Get("SettingsToolbarGroupSelect",
+        "선택 분할 버튼 (객체/박스형 선택)");
+    public static string SettingsToolbarGroupTransform => Get("SettingsToolbarGroupTransform",
+        "회전·반전 묶음");
+    public static string SettingsToolbarGroupCrop => Get("SettingsToolbarGroupCrop",
+        "자르기·크기 묶음 (자르기·비율·크기 조절)");
+    public static string SettingsToolbarGroupZoom => Get("SettingsToolbarGroupZoom",
+        "배율 묶음 (화면 맞춤·실제 크기)");
+    public static string SettingsToolbarGroupProtect => Get("SettingsToolbarGroupProtect",
+        "정보 보호 묶음 (모자이크·블러·가림막)");
     public static string ToolFullScreen => Get("ToolFullScreen", "전체 화면 (F11)");
     public static string ToolDockToggle => Get("ToolDockToggle", "도구 레일 방향 전환");
     public static string ToolRail => Get("ToolRail", "도구 모음");
@@ -129,6 +199,7 @@ public static class AppStrings
     public static string LayerTypeEllipse => Get("LayerTypeEllipse", "타원");
     public static string LayerTypeText => Get("LayerTypeText", "텍스트");
     public static string LayerTypeNumber => Get("LayerTypeNumber", "번호");
+    public static string LayerTypeSpeechBubble => Get("LayerTypeSpeechBubble", "말풍선");
     public static string LayerTypeImage => Get("LayerTypeImage", "이미지");
     public static string LayerTypeMosaic => Get("LayerTypeMosaic", "모자이크");
     public static string LayerTypeBlur => Get("LayerTypeBlur", "블러");
@@ -139,6 +210,16 @@ public static class AppStrings
     public static string ToolZoomOut => Get("ToolZoomOut", "축소");
     public static string ToolZoomIn => Get("ToolZoomIn", "확대");
     public static string ToolSelect => Get("ToolSelect", "선택 및 이동");
+    public static string ToolSelectMode => Get("ToolSelectMode", "선택 모드 변경");
+    public static string TipSelectMode => Get("TipSelectMode", "객체 선택과 박스형 선택 중 선택 도구의 동작을 고릅니다.");
+    public static string SelectModeRegion => Get("SelectModeRegion", "박스형 선택");
+    public static string TipRegionSelect => Get("TipRegionSelect",
+        "배경에서 사각 영역을 선택합니다. 안쪽을 드래그하면 들어올려 이동하고, Ctrl+X로 잘라냅니다.");
+    public static string RegionReviewHint => Get("RegionReviewHint",
+        "선택 영역: 안쪽 드래그 = 들어올려 이동 · Ctrl+X = 잘라내기 · Ctrl+C = 복사 · Esc = 취소");
+    public static string RegionCutDone => Get("RegionCutDone", "선택 영역을 클립보드로 잘라냈습니다");
+    public static string RegionNeedsFullRes => Get("RegionNeedsFullRes",
+        "미리보기 해상도 문서에서는 영역 편집을 사용할 수 없습니다");
     public static string ToolPen => Get("ToolPen", "펜");
     public static string ToolHighlighter => Get("ToolHighlighter", "형광펜");
     public static string ToolLine => Get("ToolLine", "직선");
@@ -148,6 +229,7 @@ public static class AppStrings
     public static string ToolEllipse => Get("ToolEllipse", "타원");
     public static string ToolText => Get("ToolText", "텍스트 상자");
     public static string ToolNumber => Get("ToolNumber", "번호 마커");
+    public static string ToolSpeechBubble => Get("ToolSpeechBubble", "말풍선");
     public static string ToolMosaic => Get("ToolMosaic", "모자이크");
     public static string TipMosaic => Get("TipMosaic", "드래그한 영역을 블록으로 가립니다");
     public static string ToolBlur => Get("ToolBlur", "블러");
@@ -202,12 +284,20 @@ public static class AppStrings
     public static string ResizePercentLabel => Get("ResizePercentLabel", "배율 (%)");
     public static string ResizeKeepAspect => Get("ResizeKeepAspect", "종횡비 유지");
     public static string TextTitle => Get("TextTitle", "텍스트 추가");
+    public static string SpeechBubbleTitle => Get("SpeechBubbleTitle", "말풍선 텍스트");
     public static string TextContentLabel => Get("TextContentLabel", "내용");
     public static string MarkerLimitReached => Get("MarkerLimitReached", "번호 마커 한도에 도달했습니다.");
     public static string StyleFill => Get("StyleFill", "채우기");
     public static string StyleBackground => Get("StyleBackground", "배경");
     public static string StyleBlockSize => Get("StyleBlockSize", "블록 크기");
     public static string StyleBlurSigma => Get("StyleBlurSigma", "강도");
+    public static string LayerCollapse => Get("LayerCollapse", "레이어 접기");
+    public static string LayerExpand => Get("LayerExpand", "레이어 펼치기");
+    public static string TipLayerCollapse => Get("TipLayerCollapse", "레이어 목록을 접거나 펼칩니다.");
+    public static string StyleStrokeWidth => Get("StyleStrokeWidth", "선 굵기(px)");
+    public static string StyleOpacity => Get("StyleOpacity", "불투명도(%)");
+    public static string StyleFontSize => Get("StyleFontSize", "글자 크기");
+    public static string StyleRotation => Get("StyleRotation", "회전(°)");
     public static string ToolCapture => Get("ToolCapture", "화면 캡처");
     public static string TipCapture => Get("TipCapture", "Windows 캡처 도구를 열고 결과를 자동으로 가져옵니다");
     public static string CaptureNoticeTitle => Get("CaptureNoticeTitle", "클립보드에서 새 캡처를 감지했습니다");
@@ -233,6 +323,10 @@ public static class AppStrings
         "원본 파일이 디스크에서 바뀌어 저장할 수 없습니다. 문서를 다시 열어 주세요");
     public static string SaveDefaultName => Get("SaveDefaultName", "이미지");
     public static string CopyDone => Get("CopyDone", "클립보드에 복사했습니다");
+
+    public static string CopyRegionDone => Get("CopyRegionDone", "선택 영역을 클립보드에 복사했습니다");
+
+    public static string CopyRegionStale => Get("CopyRegionStale", "자르기 검토 영역이 더 이상 유효하지 않아 복사하지 않았습니다");
     public static string ExportOptionsTitle => Get("ExportOptionsTitle", "내보내기 설정");
     public static string ExportQualityLabel => Get("ExportQualityLabel", "품질");
     public static string ExportLosslessLabel => Get("ExportLosslessLabel", "무손실");
@@ -330,6 +424,7 @@ public static class AppStrings
     public static string TipEllipse => Get("TipEllipse", "포인터를 드래그해 타원을 그립니다.");
     public static string TipText => Get("TipText", "영역을 지정한 뒤 텍스트를 입력합니다.");
     public static string TipNumber => Get("TipNumber", "순서가 증가하는 번호 마커를 배치합니다.");
+    public static string TipSpeechBubble => Get("TipSpeechBubble", "텍스트 말풍선을 그립니다. 꼬리 핸들로 말꼬리 위치를 조정합니다.");
     public static string TipUndo => Get("TipUndo", "가장 최근 편집 한 단계를 되돌립니다.");
     public static string TipRedo => Get("TipRedo", "되돌린 편집 한 단계를 다시 적용합니다.");
     public static string TipCrop => Get("TipCrop", "영역을 드래그하고 Enter로 적용하거나 Esc로 취소합니다.");

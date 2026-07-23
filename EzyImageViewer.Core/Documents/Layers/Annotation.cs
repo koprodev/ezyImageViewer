@@ -139,6 +139,37 @@ public sealed record TextAnnotation : Annotation
     public override Annotation WithBounds(RectF bounds) => this with { Bounds = bounds };
 }
 
+/// <summary>Speech bubble (FR-ANNO-007): rounded body with editable text plus a tail whose tip
+/// the user drags. <see cref="TailTip"/> is pre-rotation annotation-local native pixels and
+/// remaps proportionally with the body, so move and resize carry the tail along.</summary>
+public sealed record SpeechBubbleAnnotation : Annotation
+{
+    public override required RectF Bounds { get; init; }
+    public required AnnotationPoint TailTip { get; init; }
+    public required string Text { get; init; }
+    public string FontFamily { get; init; } = "Malgun Gothic";
+    public float FontSize { get; init; } = 24f;
+    public bool IsBold { get; init; }
+    public bool IsItalic { get; init; }
+    public uint ForegroundArgb { get; init; } = 0xFF00_0000;
+    public AnnotationTextAlignment Alignment { get; init; }
+    public uint FillArgb { get; init; } = 0xFFFF_FFFF;
+    public uint StrokeArgb { get; init; } = 0xFF00_0000;
+    public float StrokeWidth { get; init; } = 2f;
+    public float CornerRadius { get; init; } = 8f;
+    public float Opacity { get; init; } = 1f;
+
+    public override long EstimatedRetainedBytes => checked(
+        CommonRetainedBytes + ((long)Text.Length * sizeof(char)) +
+        ((long)FontFamily.Length * sizeof(char)) + 64);
+
+    public override Annotation WithBounds(RectF bounds) => this with
+    {
+        Bounds = bounds,
+        TailTip = AnnotationGeometry.Remap(TailTip, Bounds, bounds),
+    };
+}
+
 public sealed record NumberMarkerAnnotation : Annotation
 {
     public override required RectF Bounds { get; init; }

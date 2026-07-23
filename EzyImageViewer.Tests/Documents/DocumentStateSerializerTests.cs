@@ -17,7 +17,8 @@ public class DocumentStateSerializerTests
             .Append(new CropOp(new RectF(10.25f, 20.5f, 300f, 200f)))
             .Append(new RotateOp(17.5f))
             .Append(new FlipOp(Horizontal: true))
-            .Append(new ResizeOp(new PixelSize(640, 480)));
+            .Append(new ResizeOp(new PixelSize(640, 480)))
+            .Append(new EraseOp(new RectF(12f, 14f, 40f, 30f)));
         return new DocumentState { Transform = transform }
             .AddAnnotation(new RectangleAnnotation
             {
@@ -62,6 +63,7 @@ public class DocumentStateSerializerTests
         Assert.Contains("\"kind\":\"rotate\"", json);
         Assert.Contains("\"kind\":\"flip\"", json);
         Assert.Contains("\"kind\":\"resize\"", json);
+        Assert.Contains("\"kind\":\"erase\"", json);
         Assert.Contains("\"kind\":\"rectangle\"", json);
     }
 
@@ -117,11 +119,13 @@ public class DocumentStateSerializerTests
     [Fact]
     public void OutOfRangeNumbers_FailTheRead()
     {
-        // 1e39 overflows float; a negative crop extent fails the domain constructor.
+        // 1e39 overflows float; a negative crop/erase extent fails the domain constructor.
         const string overflow = """{"transform":[{"kind":"rotate","degrees":1e39}],"annotations":[]}""";
         const string negative = """{"transform":[{"kind":"crop","x":0,"y":0,"width":-5,"height":10}],"annotations":[]}""";
+        const string negativeErase = """{"transform":[{"kind":"erase","x":0,"y":0,"width":10,"height":-1}],"annotations":[]}""";
         Assert.Throws<InvalidDataException>(() => DocumentStateSerializer.Read(overflow));
         Assert.Throws<InvalidDataException>(() => DocumentStateSerializer.Read(negative));
+        Assert.Throws<InvalidDataException>(() => DocumentStateSerializer.Read(negativeErase));
     }
 
     [Fact]

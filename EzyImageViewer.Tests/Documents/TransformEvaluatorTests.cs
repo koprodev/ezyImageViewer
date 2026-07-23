@@ -45,6 +45,40 @@ public class TransformEvaluatorTests
         Assert.Throws<ArgumentOutOfRangeException>(() => Evaluate(new PixelSize(0, 10)));
     }
 
+    // ---- erase (UR-009): geometry-neutral, tracked in native space ----
+
+    [Fact]
+    public void Erase_TracksNativeQuad_AndKeepsGeometry()
+    {
+        var evaluation = Evaluate(
+            new PixelSize(100, 50), new EraseOp(new RectF(10f, 20f, 30f, 10f)));
+
+        Assert.Equal(new PixelSize(100, 50), evaluation.OutputSize);
+        Assert.Equal(Matrix3x2.Identity, evaluation.NativeToOutput);
+        var quad = Assert.Single(evaluation.ErasedNative);
+        Assert.Contains(quad, point => point == new Vector2(10f, 20f));
+        Assert.Contains(quad, point => point == new Vector2(40f, 30f));
+    }
+
+    [Fact]
+    public void Erase_AfterRotate90_MapsBackToNativeSpace()
+    {
+        // The erase rect lives in the rotated 50×100 output space; the tracked quad is native.
+        var evaluation = Evaluate(
+            new PixelSize(100, 50), new RotateOp(90f), new EraseOp(new RectF(0f, 0f, 50f, 100f)));
+
+        var quad = Assert.Single(evaluation.ErasedNative);
+        Assert.Contains(quad, point => point == new Vector2(0f, 0f));
+        Assert.Contains(quad, point => point == new Vector2(100f, 50f));
+    }
+
+    [Fact]
+    public void Erase_MissingTheCanvas_Throws()
+    {
+        Assert.Throws<InvalidOperationException>(() =>
+            Evaluate(new PixelSize(100, 50), new EraseOp(new RectF(200f, 0f, 10f, 10f))));
+    }
+
     // ---- quarter turns: exact path ----
 
     [Fact]

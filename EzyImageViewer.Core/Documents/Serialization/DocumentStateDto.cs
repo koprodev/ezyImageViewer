@@ -58,6 +58,7 @@ public sealed class RasterAssetDto
 [JsonDerivedType(typeof(RotateOpDto), "rotate")]
 [JsonDerivedType(typeof(FlipOpDto), "flip")]
 [JsonDerivedType(typeof(ResizeOpDto), "resize")]
+[JsonDerivedType(typeof(EraseOpDto), "erase")]
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public abstract class TransformOpDto
 {
@@ -92,6 +93,15 @@ public sealed class ResizeOpDto : TransformOpDto
     public required int Height { get; init; }
 }
 
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed class EraseOpDto : TransformOpDto
+{
+    public required float X { get; init; }
+    public required float Y { get; init; }
+    public required float Width { get; init; }
+    public required float Height { get; init; }
+}
+
 /// <summary>Closed annotation discriminator set. New optional fields preserve v1 rectangle input.</summary>
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "kind",
     UnknownDerivedTypeHandling = JsonUnknownDerivedTypeHandling.FailSerialization)]
@@ -100,6 +110,7 @@ public sealed class ResizeOpDto : TransformOpDto
 [JsonDerivedType(typeof(LineAnnotationDto), "line")]
 [JsonDerivedType(typeof(TextAnnotationDto), "text")]
 [JsonDerivedType(typeof(NumberMarkerAnnotationDto), "number")]
+[JsonDerivedType(typeof(SpeechBubbleAnnotationDto), "speechBubble")]
 [JsonDerivedType(typeof(ImageAnnotationDto), "image")]
 [JsonDerivedType(typeof(ProtectionAnnotationDto), "protection")]
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
@@ -173,6 +184,29 @@ public sealed class TextAnnotationDto : AnnotationDto
     public required uint ForegroundArgb { get; init; }
     public uint? BackgroundArgb { get; init; }
     public required int Alignment { get; init; }
+    public required float Opacity { get; init; }
+}
+
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed class SpeechBubbleAnnotationDto : AnnotationDto
+{
+    public required float X { get; init; }
+    public required float Y { get; init; }
+    public required float Width { get; init; }
+    public required float Height { get; init; }
+    public required float TailX { get; init; }
+    public required float TailY { get; init; }
+    public required string Text { get; init; }
+    public required string FontFamily { get; init; }
+    public required float FontSize { get; init; }
+    public required bool IsBold { get; init; }
+    public required bool IsItalic { get; init; }
+    public required uint ForegroundArgb { get; init; }
+    public required int Alignment { get; init; }
+    public required uint FillArgb { get; init; }
+    public required uint StrokeArgb { get; init; }
+    public required float StrokeWidth { get; init; }
+    public required float CornerRadius { get; init; }
     public required float Opacity { get; init; }
 }
 
