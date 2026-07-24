@@ -2,20 +2,10 @@ using EzyImageViewer.Core.Documents.Layers;
 
 namespace EzyImageViewer.Rendering;
 
-/// <summary>
-/// Pure geometry for the crop draft (FR-EDIT-001): ratio constraint and canvas containment are
-/// solved together — clamping the axes independently after fitting the ratio silently breaks the
-/// ratio at the canvas edge. Preview and commit both consume this one result, so what the overlay
-/// shows is exactly what the CropOp keeps.
-/// </summary>
+/// <summary>자르기 초안 순수 기하. 비율과 캔버스 포함을 함께 풀어 미리보기·확정 일치.</summary>
 public static class CropGeometry
 {
-    /// <summary>
-    /// Rectangle from a fixed <paramref name="anchor"/> (inside the canvas) toward
-    /// <paramref name="pointer"/>, optionally ratio-locked (width/height), never leaving the
-    /// <paramref name="canvasWidth"/>×<paramref name="canvasHeight"/> canvas. Returns a zero-extent
-    /// rectangle at the anchor when nothing fits in the dragged direction.
-    /// </summary>
+    /// <summary>고정 기준점에서 포인터 방향으로 만든 캔버스 안 사각형. 선택적으로 비율 잠금.</summary>
     public static RectF Constrain(
         (float X, float Y) anchor, (float X, float Y) pointer, float? ratio,
         float canvasWidth, float canvasHeight)
@@ -32,8 +22,7 @@ public static class CropGeometry
         float width, height;
         if (ratio is { } r)
         {
-            // Dominant drag axis wins, then the whole rectangle shrinks uniformly until it fits —
-            // the ratio survives the canvas edge.
+            // 주 드래그 축을 고른 뒤 전체를 균일 축소해 캔버스 끝에서도 비율 유지.
             width = MathF.Abs(dx);
             height = MathF.Abs(dy);
             if (width / r >= height)

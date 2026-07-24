@@ -252,8 +252,8 @@ per-user 또는 per-machine MSI를 선택한다. 하나의 MSI에서 `ALLUSERS`�
 
 | 설치 범위 | 기본 경로 | identity 작업 | 제거 책임 |
 |---|---|---|---|
-| 현재 사용자 | `%LOCALAPPDATA%\Programs\ezy Image Viewer` | 현재 사용자의 CodecHost→main package 등록 | main→Host 역순 제거. 설치 전에 존재한 package는 보존 |
-| 모든 사용자 | `%ProgramFiles%\ezy Image Viewer` | Host stage 후 main을 전체 사용자 provisioning | main→Host 역순 deprovision/remove. 다른 package dependent와 pre-existing package는 보존 |
+| 현재 사용자 | `%LOCALAPPDATA%\Programs\ezy Image Viewer` | 현재 사용자의 main package 등록 | installer가 등록한 main만 제거. 설치 전에 존재한 package는 보존 |
+| 모든 사용자 | `%ProgramFiles%\ezy Image Viewer` | main을 전체 사용자 provisioning | installer가 provision한 main만 제거. pre-existing package는 보존 |
 
 두 MSI 모두 프로그램 파일과 같은 scope의 `App Paths\ezyImageViewer.exe`를 등록한다. Burn
 완료 화면은 이 이름을 Windows Shell에 전달하므로 per-user·per-machine 실제 경로를 추측하지
@@ -288,9 +288,8 @@ PC에서 진단 편의를 위해 `Remove-AppxPackage`를 자동 실행하지 않
 확인할 수 없으므로 package 제거만 건너뛰고 프로그램 제거를 계속한다. MSI 로그의
 `Identity ownership state` 경고와 AppxDeployment-Server Operational 이벤트를 보존한다. 이후 위
 inventory에서 main package의 external location이 이미 제거된 설치 폴더를 가리키는 고아 상태로
-확인될 때만, 복원 가능한 snapshot 또는 승인된 유지보수 창에서 main→Host 순으로 수동 정리한다.
-Host에 다른 dependent가 있으면 Host는 제거하지 않는다. 실제 Appx remove/deprovision 명령은
-scope와 dependent 확인 없이 실행하지 않는다.
+확인될 때만, 복원 가능한 snapshot 또는 승인된 유지보수 창에서 main을 수동 정리한다.
+실제 Appx remove/deprovision 명령은 scope와 ownership 확인 없이 실행하지 않는다.
 
 현재 자동 gate는 fake adapter와 설치 파일의 MSI database/Burn manifest를 검증한 것이다.
 실제 UAC, package provisioning, Snipping Tool callback, repair·upgrade·rollback·다중 사용자 제거는

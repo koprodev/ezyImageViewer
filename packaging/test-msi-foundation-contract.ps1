@@ -95,16 +95,6 @@ try {
         Assert-EzyMsiPayload $pdbPayload $pdbList
     }
 
-    $hostPayload = Join-Path $tempRoot 'payload-host'
-    $hostList = New-SyntheticPayload $hostPayload
-    $hostPath = Join-Path $hostPayload 'EzyImageViewer.CodecHost.dll'
-    [IO.File]::WriteAllText($hostPath, 'host')
-    [IO.File]::AppendAllText($hostList, $hostPath + [Environment]::NewLine,
-        [Text.UTF8Encoding]::new($false))
-    Assert-FoundationThrows 'CodecHost payload mixing' {
-        Assert-EzyMsiPayload $hostPayload $hostList
-    }
-
     $escapedPayload = Join-Path $tempRoot 'payload-escaped'
     $escapedList = New-SyntheticPayload $escapedPayload
     [IO.File]::AppendAllText($escapedList,
@@ -118,20 +108,18 @@ try {
     $installRoot = Join-Path $tempRoot "$localizedDirectoryName with space's"
     [void][IO.Directory]::CreateDirectory($installRoot)
     [IO.File]::WriteAllText((Join-Path $installRoot 'ezyImageViewer.exe'), 'app')
-    $codecPackage = Join-Path $tempRoot 'codec host.msix'
     $externalPackage = Join-Path $tempRoot "main identity's.msix"
-    [IO.File]::WriteAllText($codecPackage, 'codec')
     [IO.File]::WriteAllText($externalPackage, 'main')
 
     foreach ($scope in @('CurrentUser', 'AllUsers')) {
         $register = New-EzyIdentityRegistrationPlan 'Register' $scope $installRoot `
-            $codecPackage $externalPackage
+            $externalPackage
         $unregister = New-EzyIdentityRegistrationPlan 'Unregister' $scope $installRoot
-        Assert-Foundation ($register.Steps[0].StepId -ceq 'codec-host') `
+        Assert-Foundation ($register.Steps[0].StepId -ceq 'main-identity') `
             "$scope register order is invalid."
         Assert-Foundation ($unregister.Steps[0].StepId -ceq 'main-identity') `
             "$scope unregister order is invalid."
-        Assert-Foundation ($register.Steps[1].Arguments.ExternalLocation -ceq $installRoot) `
+        Assert-Foundation ($register.Steps[0].Arguments.ExternalLocation -ceq $installRoot) `
             "$scope external location lost path characters."
         $firstJson = ConvertTo-EzyIdentityRegistrationPlanJson $register
         $secondJson = ConvertTo-EzyIdentityRegistrationPlanJson $register
@@ -309,13 +297,12 @@ try {
         $preflightIndex -lt $stagingIndex) `
         'Production signing preflight does not run before output and staging mutations.'
 
-    Assert-FoundationThrows 'same package path' {
-        New-EzyIdentityRegistrationPlan 'Register' 'CurrentUser' $installRoot `
-            $codecPackage $codecPackage
+    Assert-FoundationThrows 'missing register package path' {
+        New-EzyIdentityRegistrationPlan 'Register' 'CurrentUser' $installRoot
     }
     Assert-FoundationThrows 'unregister package arguments' {
         New-EzyIdentityRegistrationPlan 'Unregister' 'CurrentUser' $installRoot `
-            $codecPackage $externalPackage
+            $externalPackage
     }
 
     Write-Output "MSI foundation contract tests passed: $script:PassCount"

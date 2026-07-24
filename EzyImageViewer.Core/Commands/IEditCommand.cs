@@ -3,26 +3,18 @@ using EzyImageViewer.Core.Documents.Layers;
 namespace EzyImageViewer.Core.Commands;
 
 /// <summary>
-/// One undoable document edit (FR-HIST-001). Contract: <see cref="Apply"/> and <see cref="Revert"/>
-/// are pure functions of the state passed in — no I/O, no capture of live document instances — so
-/// replaying either direction is exact and a failed command leaves state and history untouched.
-/// Payload shape is unconstrained; <see cref="EstimatedRetainedBytes"/> is what the history budget
-/// enforces (ADR-0008).
+/// 실행 취소 가능한 문서 편집 하나. 적용·복원은 입력 상태의 순수 함수이며 I/O·실문서 참조 금지.
+/// 실패한 명령은 상태·기록을 건드리지 않고 보유 바이트가 기록 예산 기준.
 /// </summary>
 public interface IEditCommand
 {
-    /// <summary>Stable, non-localized identifier for diagnostics and history inspection.
-    /// Display only — never a coalescing identity (that is <see cref="MergeKey"/>).</summary>
+    /// <summary>진단·기록 검사용 비지역화 식별자. 병합 식별자는 아님.</summary>
     string Name { get; }
 
-    /// <summary>Bytes this command retains while it sits in the undo or redo stack (FR-HIST-002).</summary>
+    /// <summary>명령이 실행 취소·다시 실행 스택에서 보유하는 바이트.</summary>
     long EstimatedRetainedBytes { get; }
 
-    /// <summary>
-    /// Structured coalescing identity (§7.8): a command replaces the newest history entry only when
-    /// both carry equal non-null keys — same kind, same target, same authoring gesture. Null means
-    /// this command never coalesces.
-    /// </summary>
+    /// <summary>구조화 병합 키. 같은 종류·대상·제스처의 null 아닌 키끼리만 병합.</summary>
     object? MergeKey { get; }
 
     DocumentState Apply(DocumentState state);

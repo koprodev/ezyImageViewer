@@ -1,7 +1,6 @@
 <Project>
-  <!-- Native dependency symbols are runtime assets, so standard DebugSymbols properties do not
-       remove them. Filter after publish resolution to keep the copied payload and PublishOutputs
-       inventory identical. -->
+  <!-- 네이티브 종속성 기호는 런타임 자산이라 일반 DebugSymbols 속성으로 빠지지 않음.
+       게시 해석 뒤 걸러 복사 페이로드와 PublishOutputs 목록을 맞춤. -->
   <Target Name="EzyFilterMsiPublishSymbols" AfterTargets="ComputeFilesToPublish">
     <ItemGroup>
       <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)"

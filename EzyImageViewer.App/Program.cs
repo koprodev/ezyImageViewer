@@ -8,10 +8,9 @@ using Microsoft.Windows.AppLifecycle;
 namespace EzyImageViewer.App;
 
 /// <summary>
-/// Custom entry point (DISABLE_XAML_GENERATED_MAIN) so single-instancing is decided before any
-/// window exists: capture initial args -> claim key -> subscribe Activated -> buffer into the
-/// router -> Application.Start. Redirect waits on a worker thread with a COM-aware wait
-/// (never a blocking .Wait() on the STA).
+/// 창 생성 전 단일 인스턴스를 결정하는 사용자 진입점.
+/// 초기 인수 → 키 점유 → 활성화 구독 → 라우터 적재 → 앱 시작 순서.
+/// 리디렉션은 작업자에서 COM 인식 대기하며 STA를 동기 차단하지 않음.
 /// </summary>
 public static class Program
 {
@@ -35,7 +34,9 @@ public static class Program
     private static int Main(string[] args)
     {
         ProcessStartTimestamp = Stopwatch.GetTimestamp();
+        StartupTimeline.Mark("mainEntry");
         WinRT.ComWrappersSupport.InitializeComWrappers();
+        StartupTimeline.Mark("comWrappers");
 
         if (!DiagnosticLaunchArguments.TryParse(args, out var diagnostic))
             return 2;
@@ -68,8 +69,7 @@ public static class Program
         else if (diagnostic.IsDiagnostic && DiagnosticDataRoot is null)
             DiagnosticDataRoot = CreateOwnedDiagnosticDataRoot("standalone");
 
-        // Visual spikes and smoke runs are standalone. Startup measurement deliberately uses
-        // the normal AppInstance path so it includes the production cold-start pipeline.
+        // 시각 스파이크·스모크는 독립 실행. 시작 측정은 실제 콜드 스타트 경로 포함.
         var standalone = diagnostic.IsStandalone;
         IsStandaloneRun = standalone;
         if (!standalone && !IsStartupBenchmark)
@@ -88,15 +88,37 @@ public static class Program
             {
                 var decision = DecideRedirection(args);
                 if (decision is not null)
-                    return decision.Value; // redirected (0) or redirect failed (non-zero)
+                    return decision.Value; // 리디렉션 성공 0, 실패는 0 아님.
+                StartupTimeline.Mark("singleInstance");
+            }
+
+            // 무거운 서비스 초기화와 XAML 기동을 겹침. 첫 UI 접근은 남은 초기화를 기다리고
+            // 실패는 동기 실행과 같은 형식 초기화 예외로 다시 노출.
+            // 줌·팬 벤치는 서비스를 안 쓰므로 괜한 I/O 준비를 생략.
+            if (diagnostic.Mode != DiagnosticLaunchMode.ZoomPanBenchmark)
+            {
+                _ = Task.Run(static () =>
+                {
+                    try
+                    {
+                        System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(
+                            typeof(AppServices).TypeHandle);
+                    }
+                    catch
+                    {
+                        // CLR이 실패를 보관하고 UI 스레드 첫 접근 때 노출.
+                    }
+                });
             }
 
             Microsoft.UI.Xaml.Application.Start(p =>
             {
                 _ = p;
+                StartupTimeline.Mark("xamlRuntime");
                 var context = new DispatcherQueueSynchronizationContext(DispatcherQueue.GetForCurrentThread());
                 SynchronizationContext.SetSynchronizationContext(context);
                 _ = new App();
+                StartupTimeline.Mark("appCtor");
             });
             return 0;
         }
@@ -118,7 +140,7 @@ public static class Program
         }
         catch
         {
-            // A crash recorder must never replace the original unhandled exception.
+            // 충돌 기록기가 원래 처리되지 않은 예외를 덮으면 안 됨.
         }
     }
 
@@ -132,35 +154,35 @@ public static class Program
         }
         catch
         {
-            // Startup state is diagnostic and must not block a healthy application.
+            // 시작 상태는 진단용. 멀쩡한 앱 기동을 막지 않음.
         }
     }
 
-    /// <summary>Null = this process is primary and must start the UI; otherwise the exit code.</summary>
+    /// <summary>null이면 주 인스턴스로 UI 시작, 아니면 종료 코드.</summary>
     private static int? DecideRedirection(string[] commandLineArgs)
     {
         var activationArgs = AppInstance.GetCurrent().GetActivatedEventArgs();
         var keyInstance = AppInstance.FindOrRegisterForKey(InstanceKey);
+        StartupTimeline.Mark("appInstance");
 
         if (keyInstance.IsCurrent)
         {
             _registeredInstance = keyInstance;
             keyInstance.Activated += OnRedirectedActivation;
-            // Prefer our own command line for the unpackaged initial launch; fall back to
-            // activation payloads (file/protocol) when they carry data. initial=true marks a
-            // genuine cold start — the capture callback gate relies on it ([25차] 보완 2).
+            // 비패키지 최초 실행은 자체 명령줄 우선. 파일·프로토콜 데이터가 있으면 활성화값 사용.
+            // initial=true는 캡처 콜백이 믿는 실제 콜드 스타트 표식.
             var initial = ActivationArgsConverter.Convert(activationArgs, initial: true);
             if (initial is Core.Activation.LaunchActivation)
                 initial = ActivationArgsConverter.FromCommandLine(commandLineArgs, initial: true);
-            AppServices.Router.Post(initial);
+            // 이 스레드에서 서비스 초기화를 깨우지 않도록 직접 채널에 게시.
+            ActivationChannel.Router.Post(initial);
             return null;
         }
 
         return RedirectActivationTo(activationArgs, keyInstance) ? 0 : 1;
     }
 
-    /// <summary>Releases the single-instance key after durable session cleanup. A launch racing
-    /// the final log drain can then become a new primary instead of targeting terminal services.</summary>
+    /// <summary>세션 영구 정리 뒤 단일 인스턴스 키 해제.</summary>
     internal static void ReleaseInstanceKey()
     {
         var instance = Interlocked.Exchange(ref _registeredInstance, null);
@@ -180,9 +202,9 @@ public static class Program
     }
 
     private static void OnRedirectedActivation(object? sender, AppActivationArguments e)
-        => AppServices.Router.Post(ActivationArgsConverter.Convert(e));
+        => ActivationChannel.Router.Post(ActivationArgsConverter.Convert(e));
 
-    /// <summary>Waits for the redirect on a worker thread with a COM-aware wait; false = redirect failed.</summary>
+    /// <summary>작업자에서 COM 인식 리디렉션 대기. false면 실패.</summary>
     private static bool RedirectActivationTo(AppActivationArguments args, AppInstance keyInstance)
     {
         var redirectDone = CreateEvent(nint.Zero, bManualReset: true, bInitialState: false, lpName: null);
@@ -253,7 +275,7 @@ public static class Program
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            // The OS can reclaim a diagnostic directory if a late framework handle remains.
+            // 늦은 프레임워크 핸들이 남아도 진단 폴더는 OS가 회수 가능.
         }
     }
 

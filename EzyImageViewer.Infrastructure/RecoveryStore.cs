@@ -17,8 +17,7 @@ public sealed record RecoveryRecord
     public required byte[] Payload { get; init; }
 }
 
-/// <summary>Header-only recovery candidate used during startup. The payload is authenticated
-/// and allocated only after the user selects the candidate through <see cref="RecoveryStore.TryLoad"/>.</summary>
+/// <summary>시작 시 헤더만 읽는 복구 후보. 사용자가 고른 뒤에만 데이터 인증·할당.</summary>
 public sealed record RecoveryRecordSummary
 {
     public required Guid SessionId { get; init; }
@@ -173,14 +172,11 @@ public sealed class RecoveryStore
         }
     }
 
-    /// <summary>Enumerates structurally valid recovery headers without reading or allocating
-    /// their metadata and payload bodies. Full SHA-256 validation happens in <see cref="TryLoad"/>.</summary>
+    /// <summary>메타데이터·본문 할당 없이 구조상 유효한 복구 헤더만 열거.</summary>
     public IReadOnlyList<RecoveryRecordSummary> EnumerateSummaries()
         => EnumerateSummaryState().Summaries;
 
-    /// <summary>Returns whether every candidate file could be classified. Callers must not
-    /// delete orphan markers from an incomplete result because a temporarily locked snapshot
-    /// is deliberately omitted for retry.</summary>
+    /// <summary>모든 후보 분류 완료 여부. 불완전하면 잠긴 스냅샷이 있을 수 있어 고아 표식 삭제 금지.</summary>
     public RecoverySummaryEnumeration EnumerateSummaryState()
     {
         lock (_sync)
@@ -236,8 +232,7 @@ public sealed class RecoveryStore
         }
     }
 
-    /// <summary>Loads and authenticates one selected recovery candidate. Corrupt or concurrently
-    /// replaced content is quarantined and reported as unavailable.</summary>
+    /// <summary>선택 복구 후보 로드·인증. 손상·동시 교체 내용은 격리 후 사용 불가 보고.</summary>
     public RecoveryRecord? TryLoad(Guid sessionId, Guid windowId)
     {
         ValidateId(sessionId, nameof(sessionId));
@@ -317,9 +312,7 @@ public sealed class RecoveryStore
             DeleteIfPresent(GetRecoveryPath(sessionId, windowId));
     }
 
-    /// <summary>Deletes only the candidates the user actually saw. Session-wide cleanup is
-    /// allowed only after a fresh complete enumeration proves that the session has no remaining
-    /// checkpoint.</summary>
+    /// <summary>사용자가 본 후보만 삭제. 세션 전체 정리는 새 완전 열거가 잔여 없음 증명 뒤 허용.</summary>
     public RecoverySummaryEnumeration DiscardCandidates(
         IReadOnlyList<RecoveryRecordSummary> candidates)
     {

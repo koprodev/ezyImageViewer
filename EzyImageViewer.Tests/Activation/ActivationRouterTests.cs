@@ -70,7 +70,7 @@ public class ActivationRouterTests
         })));
 
         await done.Task.WaitAsync(TimeSpan.FromSeconds(5));
-        // Atomic assign+enqueue: FIFO dispatch must be strictly increasing, not merely unique.
+        // 순번 부여와 큐 삽입은 한 덩어리. FIFO 전달은 고유하기만 해선 부족하고 오름차순이어야 함.
         Assert.Equal(Enumerable.Range(0, total).Select(i => (long)i), dispatched);
     }
 
@@ -108,7 +108,7 @@ public class ActivationRouterTests
         router.Start(envelope =>
         {
             if (envelope.Sequence == 0)
-                _ = longWork.Task; // kicked-off work is NOT awaited (handler contract)
+        _ = longWork.Task; // 시작한 작업은 기다리지 않음. 처리기 계약의 핵심.
             else
                 secondDispatched.TrySetResult();
             return Task.CompletedTask;

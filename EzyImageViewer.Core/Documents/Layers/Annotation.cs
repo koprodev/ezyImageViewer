@@ -2,7 +2,7 @@ using System.Collections.Immutable;
 
 namespace EzyImageViewer.Core.Documents.Layers;
 
-/// <summary>Axis-aligned rectangle in native image pixels.</summary>
+/// <summary>원본 이미지 픽셀 기준 축 정렬 사각형.</summary>
 public readonly record struct RectF(float X, float Y, float Width, float Height)
 {
     public float Right => X + Width;
@@ -45,7 +45,7 @@ public enum AnnotationTextAlignment
     Right,
 }
 
-/// <summary>Immutable object on the document's annotation layer; geometry uses native pixels.</summary>
+/// <summary>문서 주석 레이어의 불변 개체. 도형 좌표는 원본 픽셀 기준.</summary>
 public abstract record Annotation
 {
     public required Guid Id { get; init; }
@@ -139,9 +139,8 @@ public sealed record TextAnnotation : Annotation
     public override Annotation WithBounds(RectF bounds) => this with { Bounds = bounds };
 }
 
-/// <summary>Speech bubble (FR-ANNO-007): rounded body with editable text plus a tail whose tip
-/// the user drags. <see cref="TailTip"/> is pre-rotation annotation-local native pixels and
-/// remaps proportionally with the body, so move and resize carry the tail along.</summary>
+/// <summary>말풍선(FR-ANNO-007): 편집 가능한 글이 든 둥근 몸통과 사용자가 끄는 꼬리.
+/// <see cref="TailTip"/>은 회전 전 주석 로컬 픽셀이며 몸통에 비례해 재배치되어 이동·크기 변경을 함께 따라감.</summary>
 public sealed record SpeechBubbleAnnotation : Annotation
 {
     public override required RectF Bounds { get; init; }
@@ -200,18 +199,17 @@ public enum ProtectionKind
     Mask,
 }
 
-/// <summary>Privacy region (FR-ANNO-008~010). Always fully opaque — a protection that could be
-/// faded would defeat its purpose, so there is no Opacity. Mosaic/blur parameters are in native
-/// pixels; only the field matching <see cref="Kind"/> is meaningful.</summary>
+/// <summary>개인정보 보호 영역(FR-ANNO-008~010). 흐려지면 보호가 아니므로 항상 완전 불투명.
+/// 모자이크·흐림 값은 원본 픽셀 기준이며 <see cref="Kind"/>에 맞는 필드만 유효.</summary>
 public sealed record ProtectionAnnotation : Annotation
 {
     public override required RectF Bounds { get; init; }
     public required ProtectionKind Kind { get; init; }
-    /// <summary>Mosaic: native pixels per block edge.</summary>
+/// <summary>모자이크: 블록 한 변당 원본 픽셀 수.</summary>
     public float BlockSize { get; init; } = 12f;
-    /// <summary>Blur: gaussian sigma in native pixels.</summary>
+/// <summary>흐림: 원본 픽셀 기준 가우시안 시그마.</summary>
     public float BlurSigma { get; init; } = 8f;
-    /// <summary>Mask: fill color; the alpha byte is forced opaque at render.</summary>
+/// <summary>가리기: 채우기 색. 렌더 때 알파를 불투명으로 강제.</summary>
     public uint MaskArgb { get; init; } = 0xFF00_0000;
 
     public override long EstimatedRetainedBytes => CommonRetainedBytes + 32;

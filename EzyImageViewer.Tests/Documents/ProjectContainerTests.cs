@@ -125,7 +125,7 @@ public class ProjectContainerTests
         Assert.Equal("원본 사진.jpg", loaded.SourceName);
         Assert.Equal(project.SourceBytes, loaded.SourceBytes);
 
-        // Traversal names are refused on write, and a bytes-without-name project cannot exist.
+        // 경로 순회 이름은 쓰기에서 거절. 이름 없는 바이트 프로젝트는 존재 불가.
         using var refused = new MemoryStream();
         Assert.Throws<InvalidDataException>(() => EzyProjectArchive.Write(refused, new EzyProject
         {
@@ -145,9 +145,7 @@ public class ProjectContainerTests
     [Fact]
     public void Write_RefusesWhatItsOwnReaderWouldRefuse_AndPassesAtTheExactBoundary()
     {
-        // Same limits govern both directions: an entry at the cap must round-trip, one byte over
-        // must be refused at write time — never discovered on the next open. 512 leaves room for
-        // the fixed entries (manifest ≈106B) while the source probes the exact boundary.
+        // 양방향 같은 상한. 경계는 왕복, 한 바이트 초과는 다음 열기가 아니라 쓰기에서 거절.
         var boundary = new EzyProjectLimits { MaxEntryBytes = 512 };
         EzyProject WithSource(int sourceBytes) => new()
         {
@@ -167,7 +165,7 @@ public class ProjectContainerTests
         var entryEx = Assert.Throws<InvalidDataException>(
             () => EzyProjectArchive.Write(over, WithSource(513), boundary));
         Assert.Contains("size limit", entryEx.Message);
-        Assert.Equal(0, over.Length); // refused before any byte lands
+        Assert.Equal(0, over.Length); // 한 바이트도 쓰기 전에 거절.
 
         using var overTotal = new MemoryStream();
         var totalEx = Assert.Throws<InvalidDataException>(() => EzyProjectArchive.Write(
@@ -178,8 +176,7 @@ public class ProjectContainerTests
     [Fact]
     public void DefaultLimits_AdmitTheLargestLoadableSourceFile()
     {
-        // The loader admits files up to InputLimits.MaxFileBytes; a project embedding one must
-        // not exceed its own reader's caps (write/read asymmetry regression, [15차] 보완 3).
+        // 로더 최대 파일을 내장한 프로젝트도 자기 읽기 상한을 넘으면 안 됨.
         Assert.Equal(
             EzyImageViewer.Core.Imaging.InputLimits.Default.MaxFileBytes,
             EzyProjectLimits.Default.MaxEntryBytes);
@@ -207,7 +204,7 @@ public class ProjectContainerTests
         using var stream = new MemoryStream();
         EzyProjectArchive.Write(stream, SampleProject());
 
-        // Local file header: name at offset 30, stored payload directly after.
+        // 로컬 파일 헤더: 이름은 오프셋 30, 저장 데이터는 바로 뒤.
         var bytes = stream.ToArray();
         var head = Encoding.ASCII.GetString(bytes, 30, "mimetype".Length + EzyProjectArchive.MimeType.Length);
         Assert.Equal("mimetype" + EzyProjectArchive.MimeType, head);
@@ -355,7 +352,7 @@ public class ProjectContainerTests
         return stream;
     }
 
-    /// <summary>Builds archives EzyProjectArchive.Write would refuse to produce (duplicates, bad order, traversal).</summary>
+    /// <summary>실제 작성기가 거절할 중복·잘못된 순서·경로 순회 아카이브 생성.</summary>
     private static MemoryStream BuildRawArchive(params (string Name, string Content)[] entries)
     {
         var stream = new MemoryStream();

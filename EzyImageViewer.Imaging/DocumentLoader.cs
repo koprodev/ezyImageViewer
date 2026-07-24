@@ -1,8 +1,6 @@
 using EzyImageViewer.Core.Documents;
 using EzyImageViewer.Core.Imaging;
 using System.IO.Compression;
-using EzyImageViewer.CodecProtocol;
-using EzyImageViewer.Imaging.Codecs;
 using EzyImageViewer.Imaging.Skia;
 using EzyImageViewer.Imaging.Sources;
 using EzyImageViewer.Imaging.Svg;
@@ -11,8 +9,8 @@ using EzyImageViewer.Imaging.Wic;
 namespace EzyImageViewer.Imaging;
 
 /// <summary>
-/// Sniff-first document loading with a fixed dispatch table (§8.5): a decode failure is final for
-/// that format — the file is never re-interpreted by another decoder.
+/// 시그니처 우선 판별과 고정 디스패치 표로 문서 로드(§8.5).
+/// 한 형식의 해석 실패를 다른 디코더로 다시 우기지 않음.
 /// </summary>
 public sealed class DocumentLoader
 {
@@ -20,9 +18,6 @@ public sealed class DocumentLoader
     private readonly IImageDecoder _skia;
     private readonly IImageDecoder _svg;
     private readonly IWicCodecCatalog _wicCodecs;
-    private readonly IImageDecoder? _pdf;
-    private readonly IImageDecoder? _psd;
-    private readonly string? _isolatedCodecVersion;
     private readonly InputLimits _limits;
 
     public DocumentLoader(InputLimits? limits = null)
@@ -31,26 +26,12 @@ public sealed class DocumentLoader
             new WicImageDecoder(),
             new SkiaImageDecoder(),
             new SvgImageDecoder(),
-            new WicCodecCatalog(),
-            isolatedCodec: null)
-    {
-    }
-
-    public DocumentLoader(
-        InputLimits? limits,
-        IsolatedCodecHostConfiguration isolatedCodecHost)
-        : this(
-            limits,
-            new WicImageDecoder(),
-            new SkiaImageDecoder(),
-            new SvgImageDecoder(),
-            new WicCodecCatalog(),
-            new IsolatedDocumentCodecClient(isolatedCodecHost))
+            new WicCodecCatalog())
     {
     }
 
     internal DocumentLoader(InputLimits? limits, IImageDecoder wic, IImageDecoder skia)
-        : this(limits, wic, skia, new SvgImageDecoder(), new WicCodecCatalog(), isolatedCodec: null)
+        : this(limits, wic, skia, new SvgImageDecoder(), new WicCodecCatalog())
     {
     }
 
@@ -60,30 +41,12 @@ public sealed class DocumentLoader
         IImageDecoder skia,
         IImageDecoder svg,
         IWicCodecCatalog wicCodecs)
-        : this(limits, wic, skia, svg, wicCodecs, isolatedCodec: null)
-    {
-    }
-
-    internal DocumentLoader(
-        InputLimits? limits,
-        IImageDecoder wic,
-        IImageDecoder skia,
-        IImageDecoder svg,
-        IWicCodecCatalog wicCodecs,
-        IIsolatedDocumentCodecClient? isolatedCodec)
     {
         _limits = limits ?? InputLimits.Default;
         _wic = wic;
         _skia = skia;
         _svg = svg;
         _wicCodecs = wicCodecs;
-        _pdf = isolatedCodec is null
-            ? null
-            : new IsolatedCodecImageDecoder(isolatedCodec, CodecFormat.Pdf);
-        _psd = isolatedCodec is null
-            ? null
-            : new IsolatedCodecImageDecoder(isolatedCodec, CodecFormat.Psd);
-        _isolatedCodecVersion = isolatedCodec?.RendererVersion;
     }
 
     public async Task<ImageDocument> LoadFileAsync(string path, CancellationToken cancellationToken)
@@ -118,7 +81,7 @@ public sealed class DocumentLoader
     public async Task<ImageDocument> LoadMemoryAsync(
         ReadOnlyMemory<byte> bytes, DocumentSource source, CancellationToken cancellationToken)
     {
-        // Memory ingress honors the same byte cap as files (clipboard payloads are untrusted too).
+        // 메모리 입력도 파일과 같은 바이트 상한 적용. 클립보드도 남의 데이터임.
         var sizePlan = _limits.PlanFileSize(bytes.Length);
         if (sizePlan.Action == DecodeAction.Reject)
             throw new SecurityLimitExceededException(sizePlan.RejectReason!);
@@ -164,7 +127,8 @@ public sealed class DocumentLoader
         {
             SniffStatus.Supported => Dispatch(sniff.Format),
             SniffStatus.Conditional => DispatchConditional(sniff.Format),
-            SniffStatus.KnownButUnsupported => DispatchKnownFormat(sniff.Format),
+            SniffStatus.KnownButUnsupported => throw new UnsupportedFormatException(
+                $"{sniff.Format} files are not supported."),
             SniffStatus.CorruptOrTruncated => throw new CorruptImageException(
                 "The file is truncated or is not image data."),
             _ => throw new UnsupportedFormatException("Unrecognized image format."),
@@ -178,7 +142,7 @@ public sealed class DocumentLoader
         }
         catch (OutOfMemoryException) when (stream.CanSeek)
         {
-            // One low-resolution retry, then the failure propagates (NFR-PERF-008).
+            // 저해상도로 딱 한 번 재시도한 뒤 실패 전달(NFR-PERF-008).
             stream.Position = 0;
             var reduced = _limits with
             {
@@ -204,7 +168,6 @@ public sealed class DocumentLoader
                     encodedSource,
                     decoder,
                     _skia,
-                    result,
                     _limits,
                     cancellationToken)
                 .ConfigureAwait(false);
@@ -250,27 +213,6 @@ public sealed class DocumentLoader
             throw new CodecUnavailableException(
                 $"{format} requires a compatible Windows system codec.");
         return new DecoderSelection(_wic, renderer);
-    }
-
-    private DecoderSelection DispatchKnownFormat(ImageFormat format)
-    {
-        var decoder = format switch
-        {
-            ImageFormat.Pdf => _pdf,
-            ImageFormat.Psd => _psd,
-            _ => null,
-        };
-        if (decoder is null)
-        {
-            throw new UnsupportedFormatException(
-                $"{format} display is planned for a later milestone.");
-        }
-
-        return new DecoderSelection(
-            decoder,
-            new DocumentRendererInfo(
-                $"Isolated CodecHost ({format.ToString().ToUpperInvariant()})",
-                _isolatedCodecVersion ?? "Unknown"));
     }
 
     private static DocumentRendererInfo DescribeRenderer(ImageFormat format, IImageDecoder decoder)

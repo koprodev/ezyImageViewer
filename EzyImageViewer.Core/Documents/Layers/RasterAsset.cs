@@ -3,7 +3,7 @@ using EzyImageViewer.Core.Imaging;
 
 namespace EzyImageViewer.Core.Documents.Layers;
 
-/// <summary>Immutable encoded raster owned once by a document and referenced by image annotations.</summary>
+/// <summary>문서가 한 번 소유하고 이미지 주석이 참조하는 불변 인코딩 래스터.</summary>
 public sealed record RasterAsset
 {
     public required Guid Id { get; init; }

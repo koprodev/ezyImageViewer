@@ -10,12 +10,9 @@ public enum ViewMode
 }
 
 /// <summary>
-/// Pure view-state math for the canvas: fit / actual size / anchored zoom / 90° view rotation.
-/// All coordinates are physical pixels (the GL canvas and pointer input are unified to device px),
-/// so "actual size" is scale 1.0: one image pixel per physical pixel (FR-VIEW-002).
-/// Content space = post-EXIF decoded pixels (rotation here is view-only and never re-applies EXIF).
-/// The active <see cref="Mode"/> is re-applied when the viewport changes (resize/DPI):
-/// Fit refits, ActualSize re-centers, Custom keeps the viewport-center content point stationary.
+/// 캔버스 맞춤·실제 크기·기준점 줌·90° 보기 회전 계산.
+/// 좌표는 물리 픽셀이며 실제 크기 1.0은 이미지 한 픽셀당 화면 한 픽셀.
+/// 뷰포트 변경 시 현재 모드의 불변 조건을 다시 적용.
 /// </summary>
 public sealed class ViewTransform
 {
@@ -24,32 +21,27 @@ public sealed class ViewTransform
 
     public float Scale { get; private set; } = 1f;
     public SKPoint Offset { get; private set; }
-    /// <summary>0/90/180/270, clockwise.</summary>
+    /// <summary>0/90/180/270도 시계 방향.</summary>
     public int RotationDegrees { get; private set; }
     public ViewMode Mode { get; private set; } = ViewMode.Fit;
 
     public SKSize Viewport { get; private set; }
     public SKSize ContentSize { get; private set; }
 
-    /// <summary>Content size as seen by the viewport (axis swap at 90/270).</summary>
+    /// <summary>뷰포트에서 본 콘텐츠 크기. 90/270도면 축 교환.</summary>
     public SKSize RotatedContentSize =>
         RotationDegrees is 90 or 270
             ? new SKSize(ContentSize.Height, ContentSize.Width)
             : ContentSize;
 
-    /// <summary>New-source reset: view rotation returns to 0 (it belongs to the previous image).</summary>
+    /// <summary>새 원본은 이전 이미지의 보기 회전을 버리고 0도로 시작.</summary>
     public void SetContent(float width, float height)
     {
         ContentSize = new SKSize(width, height);
         RotationDegrees = 0;
     }
 
-    /// <summary>
-    /// Same-document content-size change (an edit moved the transform output). Unlike
-    /// <see cref="SetContent"/> this preserves the view rotation and the mode: Fit refits to the
-    /// new canvas; ActualSize and Custom keep their scale and re-center — an edited canvas has no
-    /// stable anchor across output spaces, so centering is the declared policy (ADR-0009).
-    /// </summary>
+    /// <summary>같은 문서의 출력 크기 변경. 보기 회전·모드는 유지하고 새 캔버스에 재정렬.</summary>
     public void UpdateContentSize(float width, float height)
     {
         if (ContentSize.Width == width && ContentSize.Height == height)
@@ -61,7 +53,7 @@ public sealed class ViewTransform
             CenterInViewport();
     }
 
-    /// <summary>Applies a viewport change and re-establishes the active mode's invariant.</summary>
+    /// <summary>뷰포트 변경 적용 후 현재 모드 불변 조건 복원.</summary>
     public void SetViewport(float width, float height)
     {
         var previous = Viewport;
@@ -78,7 +70,7 @@ public sealed class ViewTransform
                 CenterInViewport();
                 break;
             case ViewMode.Custom when previous.Width > 0 && previous.Height > 0:
-                // Keep the content point at the old viewport center under the new center.
+                // 이전 뷰포트 중심의 콘텐츠 점을 새 중심에도 유지.
                 Offset = new SKPoint(
                     Offset.X + (Viewport.Width - previous.Width) / 2f,
                     Offset.Y + (Viewport.Height - previous.Height) / 2f);
@@ -96,27 +88,21 @@ public sealed class ViewTransform
             Offset = SKPoint.Empty;
             return;
         }
-        // MinScale bounds manual zoom only: Fit must actually fit, and a max-side output (65,500px
-        // logical canvas) needs scales well below the interactive floor.
+        // 최소 배율은 수동 줌만 제한. 맞춤은 큰 캔버스를 위해 더 작아질 수 있음.
         Scale = Math.Min(Math.Min(Viewport.Width / rotated.Width, Viewport.Height / rotated.Height), MaxScale);
         CenterInViewport();
     }
 
-    /// <summary>
-    /// Opens at an explicit scale, centered. Initial window sizing picks the scale so the image
-    /// keeps a margin on every side, which Fit — edge-to-edge by definition — cannot express.
-    /// Scale 1 reports as ActualSize so the view mode matches what the user sees.
-    /// </summary>
+    /// <summary>지정 배율로 중앙 열기. 1배면 실제 크기 모드로 표시.</summary>
     public void OpenAtScale(float scale)
     {
-        // No MinScale floor, for the same reason Fit has none: a max-side image needs a scale below
-        // the interactive zoom floor to sit on a monitor.
+        // 맞춤과 같은 이유로 최소 배율 없음. 큰 이미지는 화면에 앉으려면 더 작아져야 함.
         Scale = Math.Clamp(scale, float.Epsilon, MaxScale);
         Mode = Scale == 1f ? ViewMode.ActualSize : ViewMode.Custom;
         CenterInViewport();
     }
 
-    /// <summary>1 image pixel = 1 physical pixel (all coordinates here are physical).</summary>
+    /// <summary>이미지 한 픽셀 = 물리 화면 한 픽셀.</summary>
     public void ActualSize()
     {
         Mode = ViewMode.ActualSize;
@@ -124,7 +110,7 @@ public sealed class ViewTransform
         CenterInViewport();
     }
 
-    /// <summary>Zooms keeping the content point under <paramref name="viewAnchor"/> stationary (FR-VIEW-003).</summary>
+    /// <summary>기준점 아래 콘텐츠를 고정한 채 줌.</summary>
     public void ZoomAt(SKPoint viewAnchor, float factor)
     {
         Mode = ViewMode.Custom;
@@ -144,7 +130,7 @@ public sealed class ViewTransform
         Offset = new SKPoint(Offset.X + dx, Offset.Y + dy);
     }
 
-    /// <summary>View-only clockwise rotation; Fit refits, other modes re-center (FR-VIEW-005).</summary>
+    /// <summary>보기 전용 시계 방향 회전. 맞춤은 재맞춤, 나머지는 재중앙.</summary>
     public void RotateClockwise()
     {
         RotationDegrees = (RotationDegrees + 90) % 360;
@@ -162,7 +148,7 @@ public sealed class ViewTransform
             (Viewport.Height - rotated.Height * Scale) / 2f);
     }
 
-    /// <summary>Matrix mapping content pixels to view coordinates (rotation about the content center).</summary>
+    /// <summary>콘텐츠 픽셀을 보기 좌표로 옮기는 중심 회전 행렬.</summary>
     public SKMatrix ToViewMatrix()
     {
         var rotated = RotatedContentSize;

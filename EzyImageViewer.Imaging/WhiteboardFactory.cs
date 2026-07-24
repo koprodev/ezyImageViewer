@@ -9,15 +9,15 @@ public enum WhiteboardStyle
 }
 
 /// <summary>
-/// Renders the blank whiteboard document as encoded PNG bytes so it enters the app through the
-/// same hardened decode path as every other in-memory source (limits, sniffing, budget).
+/// 빈 화이트보드를 PNG 바이트로 렌더.
+/// 다른 메모리 원본과 같은 방어형 해석 경로(상한·판별·예산)로 앱에 넣음.
 /// </summary>
 public static class WhiteboardFactory
 {
-    // Fixed 4K canvas (user decision 2026-07-22): 66MB display cost, well inside the 384MB budget.
+    // 4K 캔버스 고정(2026-07-22 결정). 표시 비용 66MB로 384MB 예산 안쪽.
     public const int Width = 3840;
     public const int Height = 2160;
-    /// <summary>Grid pitch in pixels; the grid is baked into the pixels by design.</summary>
+    /// <summary>픽셀 단위 격자 간격. 설계상 격자를 픽셀에 구워 넣음.</summary>
     public const int GridCellSize = 32;
 
     public static byte[] CreatePng(WhiteboardStyle style)
@@ -36,7 +36,7 @@ public static class WhiteboardFactory
             StrokeWidth = 1f,
             IsAntialias = false,
         };
-        // 0.5 offset centers each 1px line on the pixel row/column so no line doubles or vanishes.
+        // 0.5 오프셋으로 1px 선을 픽셀 행·열 중심에 맞춰 두껍거나 사라지는 일을 방지.
         for (var x = GridCellSize; x < Width; x += GridCellSize)
             canvas.DrawLine(x + 0.5f, 0f, x + 0.5f, Height, paint);
         for (var y = GridCellSize; y < Height; y += GridCellSize)

@@ -6,10 +6,7 @@ using Xunit;
 
 namespace EzyImageViewer.Tests.Rendering;
 
-/// <summary>
-/// The native → content mapping is what makes annotations authored over a reduced preview land in
-/// the right place after a full-resolution re-decode (ADR-0008).
-/// </summary>
+/// <summary>축소 미리보기 주석이 전체 해상도 재디코드 뒤에도 같은 곳에 놓이는 좌표 검증.</summary>
 public class AnnotationRenderingTests
 {
     [Fact]
@@ -23,7 +20,7 @@ public class AnnotationRenderingTests
     [Fact]
     public void ReducedPreview_ScalesNativeCoordinatesOntoTheSmallerFrame()
     {
-        // A 4000x3000 source opened as a 1000x750 preview: quarter scale on both axes.
+        // 4000x3000 원본을 1000x750 미리보기로 열면 양축 1/4.
         var matrix = AnnotationRendering.NativeToContent(new PixelSize(4000, 3000), 1000, 750);
 
         var mapped = matrix.MapPoint(new SKPoint(2000, 1500));
@@ -38,8 +35,7 @@ public class AnnotationRenderingTests
         var matrix = AnnotationRendering.NativeToContent(new PixelSize(4000, 3000), 1000, 750);
         Assert.True(matrix.TryInvert(out var inverse));
 
-        // An annotation authored at preview scale resolves to the same native pixel it came from —
-        // the property that lets a later full-res decode reuse the coordinates unchanged.
+        // 미리보기에서 만든 주석이 같은 원본 픽셀로 돌아가 전체 해상도에서도 좌표 재사용.
         var native = inverse.MapPoint(matrix.MapPoint(new SKPoint(1234, 567)));
 
         Assert.Equal(1234f, native.X, 2);
@@ -49,7 +45,7 @@ public class AnnotationRenderingTests
     [Fact]
     public void NonUniformDecoderRounding_ScalesEachAxisIndependently()
     {
-        // Decoders round each side, so the axes are not always the same ratio.
+        // 디코더가 각 변을 반올림해 축 비율이 항상 같지는 않음.
         var matrix = AnnotationRendering.NativeToContent(new PixelSize(1000, 1000), 501, 500);
 
         var mapped = matrix.MapPoint(new SKPoint(1000, 1000));
@@ -83,7 +79,7 @@ public class AnnotationRenderingTests
             AnnotationRendering.DrawAnnotations(canvas, state, SKMatrix.Identity);
         }
 
-        // Stroke centred on the edge at y=10; the interior stays untouched.
+        // y=10 가장자리에 중심을 둔 선, 내부는 그대로.
         Assert.Equal(SKColors.Black, bitmap.GetPixel(20, 20));
         Assert.NotEqual(SKColors.Black, bitmap.GetPixel(20, 10));
     }
@@ -101,7 +97,7 @@ public class AnnotationRenderingTests
         var locked = state.ReplaceLayer(state.Layers[0] with { IsLocked = true });
         var hidden = state.ReplaceLayer(state.Layers[0] with { IsVisible = false });
 
-        // Lock freezes editing, not visibility (ADR-0014 §6); only hiding removes the paint.
+        // 잠금은 편집만 막고 표시는 유지. 숨김만 그리기 제거.
         Assert.NotEqual(SKColors.Black, RenderPixel(locked, 20, 10));
         Assert.Equal(SKColors.Black, RenderPixel(hidden, 20, 10));
     }

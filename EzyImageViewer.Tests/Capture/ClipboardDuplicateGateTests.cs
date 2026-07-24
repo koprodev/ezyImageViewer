@@ -3,9 +3,9 @@ using Xunit;
 
 namespace EzyImageViewer.Tests.Capture;
 
-/// <summary>FR-CAP-005 ([21차] 보완 3): the marker is primary; the hash backup covers only the
-/// immediate byte-exact re-post of a RECENT internal copy — a ring absorbs multi-window bursts
-/// and a TTL prevents a stale hash from suppressing an unrelated future image.</summary>
+/// <summary>FR-CAP-005: 표식이 우선이며 해시는 다음 한 가지 경우만 보조.
+/// 최근 내부 복사본을 바이트 그대로 즉시 다시 올린 경우만 감지.
+/// 고리는 여러 창의 연속 복사를 흡수하고 TTL은 묵은 해시가 미래 이미지를 막지 않게 함.</summary>
 public sealed class ClipboardDuplicateGateTests
 {
     private static readonly DateTimeOffset T0 = new(2026, 7, 18, 12, 0, 0, TimeSpan.Zero);
@@ -31,7 +31,7 @@ public sealed class ClipboardDuplicateGateTests
     [Fact]
     public void Ring_AbsorbsAMultiWindowBurst_NotJustTheLastCopy()
     {
-        // A→B copies in quick succession: a marker-less re-post of A must still read as internal.
+        // A→B를 연달아 복사해도 표식 없이 다시 올라온 A는 내부 복사로 읽어야 함.
         var gate = new ClipboardDuplicateGate();
         gate.NoteInternalCopy([1, 1, 1], T0);
         gate.NoteInternalCopy([2, 2, 2], T0.AddSeconds(1));

@@ -8,25 +8,20 @@
     <RootNamespace>EzyImageViewer.App</RootNamespace>
     <AssemblyName>ezyImageViewer</AssemblyName>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <!-- External-location release builds inject a generated fusion manifest whose Publisher
-         must match the signed identity package; normal and full-MSIX builds keep app.manifest. -->
+    <!-- 외부 위치 릴리스는 서명 ID 패키지의 게시자와 맞춘 퓨전 매니페스트 주입. 일반·MSIX 빌드는 app.manifest 유지. -->
     <ApplicationManifest Condition="'$(ExternalApplicationManifest)' != ''">$(ExternalApplicationManifest)</ApplicationManifest>
     <ApplicationIcon>Assets\ezyImageViewer.ico</ApplicationIcon>
     <Platforms>x64</Platforms>
     <PlatformTarget>x64</PlatformTarget>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <UseWinUI>true</UseWinUI>
-    <!-- Neutral resource language: without it MRT has no fallback candidate and every string in
-         Strings/ko-KR warns PRI263. -->
+    <!-- 중립 리소스 언어 지정. 빠지면 MRT 대체 후보가 없어 ko-KR 문자열마다 PRI263 경고 발생. -->
     <DefaultLanguage>ko-KR</DefaultLanguage>
-    <!-- Single-instance decision must run before any window exists (custom Program.Main). -->
+    <!-- 단일 인스턴스 판단은 창보다 먼저 실행(사용자 Program.Main). -->
     <DefineConstants>$(DefineConstants);DISABLE_XAML_GENERATED_MAIN</DefineConstants>
-    <!-- Dev loop runs unpackaged; -p:Packaged=true builds the MSIX flavor (Q7=b) which
-         packaging\pack-msix.ps1 lays out and signs. Self-contained WASDK works in both. -->
+    <!-- 개발은 비패키지로 실행. -p:Packaged=true면 pack-msix.ps1이 배치·서명할 MSIX 빌드(Q7=b). -->
     <WindowsPackageType Condition="'$(Packaged)' != 'true'">None</WindowsPackageType>
-    <!-- The experimental UserChoice default-app writer is unsupported by Microsoft and must not
-         ship in Store/packaged flavors, nor in the registry-free Portable flavor; it compiles
-         only into the installer (MSI) build, which already writes per-user registry entries. -->
+    <!-- 실험용 UserChoice 기본 앱 기록기는 Microsoft 미지원. Store·패키지·무레지스트리 포터블에서 제외하고 MSI에만 포함. -->
     <DefineConstants Condition="'$(Packaged)' != 'true' and '$(Portable)' != 'true'">$(DefineConstants);EZY_UNPACKAGED</DefineConstants>
     <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
   </PropertyGroup>
@@ -63,6 +58,35 @@
              Link="Assets\Square150x150Logo.png"
              CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
+
+  <!-- WindowsAppSDK가 끌고 오는 미사용 ML 런타임(ONNX Runtime + DirectML, win-x64 약 39MB) 제거.
+       관련 WinRT 클래스를 쓰지 않으며 패키지 ID로 찾아 버전이 바뀌어도 따라감. -->
+  <PropertyGroup>
+    <EzyMachineLearningPackageId>Microsoft.Windows.AI.MachineLearning</EzyMachineLearningPackageId>
+    <!-- 훗날 WindowsAppSDK가 ML 런타임을 필수로 만들면 true로 탈출. -->
+    <EzyIncludeMachineLearningRuntime
+        Condition="'$(EzyIncludeMachineLearningRuntime)' == ''">false</EzyIncludeMachineLearningRuntime>
+  </PropertyGroup>
+
+  <Target Name="EzyRemoveUnusedMachineLearningRuntime"
+          AfterTargets="ResolveReferences"
+          Condition="'$(EzyIncludeMachineLearningRuntime)' != 'true'">
+    <ItemGroup>
+      <ReferenceCopyLocalPaths
+          Remove="@(ReferenceCopyLocalPaths)"
+          Condition="'%(ReferenceCopyLocalPaths.NuGetPackageId)' == '$(EzyMachineLearningPackageId)'" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="EzyRemoveUnusedMachineLearningRuntimeFromPublish"
+          AfterTargets="ComputeResolvedFilesToPublishList"
+          Condition="'$(EzyIncludeMachineLearningRuntime)' != 'true'">
+    <ItemGroup>
+      <ResolvedFileToPublish
+          Remove="@(ResolvedFileToPublish)"
+          Condition="'%(ResolvedFileToPublish.NuGetPackageId)' == '$(EzyMachineLearningPackageId)'" />
+    </ItemGroup>
+  </Target>
 
   <Target Name="ValidateExternalIdentityBuild" BeforeTargets="PrepareForBuild">
     <Error Condition="'$(ExternalIdentity)' == 'true' and '$(Packaged)' == 'true'"

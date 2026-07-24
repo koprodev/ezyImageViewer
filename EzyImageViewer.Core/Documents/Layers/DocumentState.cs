@@ -1,25 +1,18 @@
 namespace EzyImageViewer.Core.Documents.Layers;
 
 /// <summary>
-/// The editable content of a document (§6.3 BackgroundLayer + AnnotationLayers), immutable so a
-/// command's result is a value and undo is an exact replacement rather than a reversal in place.
-/// Annotations live inside ordered <see cref="AnnotationLayer"/> containers (UR-007): layer order is
-/// the coarse paint order, object order inside a layer is the fine one. There is always at least one
-/// layer. The active (authoring) layer is UI state owned by the window, not part of this value —
-/// selecting a layer is not an undoable document edit.
-/// The background raster itself is not held here: it is the <see cref="ImageDocument"/>'s frame,
-/// which commands never mutate (annotations composite over it at paint time — ADR-0008).
+/// 불변 문서 편집 상태. 레이어와 내부 객체 순서가 그리기 순서를 결정.
+/// 활성 레이어는 창 UI 상태이며 배경 래스터는 원본 문서가 소유.
 /// </summary>
 public sealed record DocumentState
 {
     public static DocumentState Empty { get; } = new();
 
-    /// <summary>Paint order: index 0 is farthest back. Never empty.</summary>
+    /// <summary>그리기 순서. 0번이 맨 뒤이며 비어 있지 않음.</summary>
     public IReadOnlyList<AnnotationLayer> Layers { get; init; } =
         [new AnnotationLayer { Id = AnnotationLayer.InitialLayerId }];
 
-    /// <summary>Flattened paint order across all layers (computed; hidden layers included).
-    /// Fine-grained operations should address (layer, index) pairs instead.</summary>
+    /// <summary>숨김 포함 전체 레이어의 평탄화된 그리기 순서.</summary>
     public IReadOnlyList<Annotation> Annotations
     {
         get
@@ -31,11 +24,10 @@ public sealed record DocumentState
         }
     }
 
-    /// <summary>Encoded raster payloads are owned once and referenced by <see cref="ImageAnnotation"/>.</summary>
+    /// <summary>인코딩 래스터는 한 번 소유하고 이미지 주석이 참조.</summary>
     public IReadOnlyList<RasterAsset> Assets { get; init; } = [];
 
-    /// <summary>Background transform pipeline (FR-EDIT-001~004). Annotations share it: their native
-    /// coordinates ride the same derived matrix, so they stay glued to the image (ADR-0009).</summary>
+    /// <summary>배경 변환 파이프라인. 주석도 같은 행렬을 타서 이미지에 붙어 다님.</summary>
     public BackgroundTransform Transform { get; init; } = BackgroundTransform.Identity;
 
     public DocumentState WithTransform(BackgroundTransform transform)
@@ -44,7 +36,7 @@ public sealed record DocumentState
         return this with { Transform = transform };
     }
 
-    // ---- Layer operations -------------------------------------------------------------------
+    // ---- 레이어 작업 ------------------------------------------------------------------------
 
     public AnnotationLayer? FindLayer(Guid layerId)
     {
@@ -62,7 +54,7 @@ public sealed record DocumentState
         return -1;
     }
 
-    /// <summary>The layer containing the annotation, or null.</summary>
+    /// <summary>주석이 든 레이어. 없으면 null.</summary>
     public AnnotationLayer? FindLayerOf(Guid annotationId)
     {
         foreach (var layer in Layers)
@@ -97,8 +89,7 @@ public sealed record DocumentState
         return this with { Layers = next };
     }
 
-    /// <summary>Removes a layer and its objects. The last layer cannot be removed (§UR-007: a
-    /// document always has an authoring target).</summary>
+    /// <summary>레이어와 객체 제거. 마지막 레이어는 작업 자리라 제거 불가.</summary>
     public DocumentState RemoveLayer(Guid layerId)
     {
         var index = LayerIndexOf(layerId);
@@ -111,8 +102,7 @@ public sealed record DocumentState
         return this with { Layers = next };
     }
 
-    /// <summary>Replaces layer-level properties (name, visibility, lock). The contained object
-    /// sequence must be value-equal — membership AND content move through the dedicated operations.</summary>
+    /// <summary>레이어 속성만 교체. 객체 목록 변경은 전용 작업으로만 처리.</summary>
     public DocumentState ReplaceLayer(AnnotationLayer layer)
     {
         AnnotationValidator.Validate(layer);
@@ -148,7 +138,7 @@ public sealed record DocumentState
         return this with { Layers = next };
     }
 
-    /// <summary>Moves one object into another layer at the given inner index (UR-007 layer transfer).</summary>
+    /// <summary>객체 하나를 다른 레이어의 지정 위치로 이동.</summary>
     public DocumentState MoveAnnotationToLayer(Guid annotationId, Guid targetLayerId, int targetInnerIndex)
     {
         var sourceLayer = FindLayerOf(annotationId)
@@ -175,9 +165,9 @@ public sealed record DocumentState
         });
     }
 
-    // ---- Annotation operations --------------------------------------------------------------
+    // ---- 주석 작업 --------------------------------------------------------------------------
 
-    /// <summary>Adds on top of the given layer, or the topmost layer when none is specified.</summary>
+    /// <summary>지정 레이어 맨 위에 추가. 미지정이면 최상단 레이어 사용.</summary>
     public DocumentState AddAnnotation(Annotation annotation, Guid? layerId = null)
     {
         AnnotationValidator.Validate(annotation);
@@ -203,8 +193,7 @@ public sealed record DocumentState
         });
     }
 
-    /// <summary>Re-inserts at a recorded (layer, index) position so an undone delete restores paint
-    /// order exactly.</summary>
+    /// <summary>기록한 레이어·위치에 재삽입해 삭제 취소 시 순서까지 복원.</summary>
     public DocumentState InsertAnnotation(Guid layerId, int innerIndex, Annotation annotation)
     {
         AnnotationValidator.Validate(annotation);
@@ -238,8 +227,7 @@ public sealed record DocumentState
         });
     }
 
-    /// <summary>Reorders within the object's own layer (UR-007: layer z-order and in-layer object
-    /// z-order are separate axes).</summary>
+    /// <summary>객체가 속한 레이어 안에서만 순서 변경.</summary>
     public DocumentState ReorderAnnotation(Guid id, int targetInnerIndex)
     {
         var layer = FindLayerOf(id)
@@ -263,7 +251,7 @@ public sealed record DocumentState
         ? layer.Annotations[layer.IndexOf(id)]
         : null;
 
-    /// <summary>Flat paint index across layers, for display/diagnostic purposes only.</summary>
+    /// <summary>표시·진단용 전체 레이어 평탄화 순번.</summary>
     public int IndexOf(Guid id)
     {
         var offset = 0;
@@ -277,12 +265,12 @@ public sealed record DocumentState
         return -1;
     }
 
-    /// <summary>Visible on screen: both the object and its layer are visible.</summary>
+    /// <summary>객체와 레이어가 모두 보이면 true.</summary>
     public bool IsEffectivelyVisible(Guid id) =>
         FindLayerOf(id) is { IsVisible: true } layer
         && layer.Annotations[layer.IndexOf(id)].IsVisible;
 
-    /// <summary>Immutable to edits: the object or its layer is locked.</summary>
+    /// <summary>객체나 레이어가 잠겨 편집 불가면 true.</summary>
     public bool IsEffectivelyLocked(Guid id) =>
         FindLayerOf(id) is not { } layer
         || layer.IsLocked
@@ -322,8 +310,7 @@ public sealed record DocumentState
         return this with { Assets = next };
     }
 
-    /// <summary>Topmost editable object at the point; hit order is the reverse of paint order.
-    /// Hidden or locked layers are transparent to hits, like their objects.</summary>
+    /// <summary>점에 걸린 최상단 편집 가능 객체. 숨김·잠금 레이어는 통과.</summary>
     public Annotation? HitTest(float x, float y, float tolerance = 0f)
     {
         for (var l = Layers.Count - 1; l >= 0; l--)
@@ -342,7 +329,7 @@ public sealed record DocumentState
         return null;
     }
 
-    /// <summary>Topmost single object intersecting a rubber-band; multi-selection remains FR-LAYER-005.</summary>
+    /// <summary>고무줄 선택과 겹친 최상단 단일 객체.</summary>
     public Annotation? HitTest(RectF selectionBounds)
     {
         AnnotationValidator.ValidateBounds(selectionBounds);

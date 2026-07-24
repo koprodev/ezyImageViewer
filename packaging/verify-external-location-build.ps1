@@ -4,9 +4,6 @@ param(
     [string]$Version,
 
     [Parameter(Mandatory)]
-    [string]$CodecHostVersion,
-
-    [Parameter(Mandatory)]
     [string]$Publisher,
 
     [Parameter(Mandatory)]
@@ -23,7 +20,6 @@ $scriptRoot = Split-Path -Parent $PSCommandPath
 . (Join-Path $scriptRoot 'external-location-helpers.ps1')
 
 Assert-EzyExternalFourPartVersion $Version 'Version'
-Assert-EzyExternalFourPartVersion $CodecHostVersion 'CodecHostVersion'
 Assert-EzyExternalPublisher $Publisher
 Assert-EzyExternalMinVersion $MinVersion
 
@@ -76,7 +72,6 @@ try {
 
     $common = @{
         Version = $Version
-        CodecHostVersion = $CodecHostVersion
         Publisher = $Publisher
         MinVersion = $MinVersion
     }

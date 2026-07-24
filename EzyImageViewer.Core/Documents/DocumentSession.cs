@@ -10,11 +10,8 @@ public enum SessionState
 }
 
 /// <summary>
-/// Owns the current document of one window. Concurrency contract:
-/// latest-wins (a new load cancels the active one); cancel/supersede never publishes Failed;
-/// stale results are disposed without publishing; publish + document swap + old-document dispose
-/// happen atomically under one gate; Dispose bumps the generation first, permanently blocking
-/// any in-flight publish. A failed reload keeps the existing Ready document (LastError is set).
+/// 창 하나의 현재 문서 소유. 최신 로드 우선이며 묵은 결과는 게시 없이 해제.
+/// 게시·교체·이전 문서 해제는 한 게이트에서 처리하고 실패한 재로드는 기존 문서 유지.
 /// </summary>
 public sealed class DocumentSession : IDisposable
 {
@@ -25,14 +22,10 @@ public sealed class DocumentSession : IDisposable
     private SessionState _state = SessionState.Idle;
     private Exception? _lastError;
 
-    /// <summary>
-    /// Raised outside the gate after any observable state/document change. Subscribers are isolated:
-    /// one that throws neither aborts the load nor stops the remaining subscribers — the exception
-    /// surfaces on <see cref="SubscriberFaulted"/> instead.
-    /// </summary>
+    /// <summary>상태·문서 변경 뒤 게이트 밖에서 발생. 구독자 예외는 서로 격리.</summary>
     public event Action? Changed;
 
-    /// <summary>Diagnostics for exceptions escaping <see cref="Changed"/> subscribers.</summary>
+    /// <summary>Changed 구독자에서 빠져나온 예외 진단.</summary>
     public event Action<Exception>? SubscriberFaulted;
 
     public SessionState State
@@ -50,7 +43,7 @@ public sealed class DocumentSession : IDisposable
         get { lock (_gate) return _lastError; }
     }
 
-    /// <summary>Kicks off a load and returns immediately (router handlers must not block on completion).</summary>
+    /// <summary>로드를 시작하고 즉시 반환. 라우터 완료 대기 금지.</summary>
     public Task StartLoadAsync(Func<CancellationToken, Task<ImageDocument>> loader)
     {
         ArgumentNullException.ThrowIfNull(loader);
@@ -65,8 +58,7 @@ public sealed class DocumentSession : IDisposable
             _activeCts?.Cancel();
             _activeCts?.Dispose();
             _activeCts = new CancellationTokenSource();
-            // Captured under the gate: a successor may dispose the CTS before this load's
-            // worker body runs, and a disposed CTS must never be touched afterwards.
+            // 게이트 안에서 토큰 확보. 후속 로드가 CTS를 먼저 해제해도 안전.
             token = _activeCts.Token;
             _state = SessionState.Loading;
         }
@@ -77,8 +69,7 @@ public sealed class DocumentSession : IDisposable
             ImageDocument? document = null;
             Exception? error = null;
             var canceled = false;
-            // The catch scope covers the loader only: a Complete inside it would re-enter on its own
-            // notification exception and publish a successful load as failed.
+            // catch는 로더만 감쌈. 완료 알림 예외를 로드 실패로 오인하지 않게 함.
             try
             {
                 document = await loader(token).ConfigureAwait(false);
@@ -103,11 +94,11 @@ public sealed class DocumentSession : IDisposable
         {
             if (_state == SessionState.Disposed || generation != _generation)
             {
-                toDispose = document; // stale or post-dispose result: never published
+                toDispose = document; // 묵었거나 해제 뒤 결과라 게시 안 함.
             }
             else if (canceled)
             {
-                toDispose = document; // a canceled load may still have produced a frame
+                toDispose = document; // 취소 로드도 프레임을 만들었을 수 있어 해제.
                 _state = _current is null ? SessionState.Idle : SessionState.Ready;
                 publish = true;
             }
@@ -170,8 +161,7 @@ public sealed class DocumentSession : IDisposable
     {
         if (SubscriberFaulted is not { } sinks)
             return;
-        // Same isolation the Changed fan-out gets: one faulting sink must not suppress the others,
-        // and a fault in a fault sink has nowhere left to go but swallowed.
+        // Changed와 같은 구독자 격리. 오류 처리 구독자의 오류는 더 갈 곳 없어 삼킴.
         foreach (var sink in sinks.GetInvocationList())
         {
             try
@@ -180,7 +170,7 @@ public sealed class DocumentSession : IDisposable
             }
             catch
             {
-                // Nothing left to report to.
+                // 더 보고할 곳 없음.
             }
         }
     }

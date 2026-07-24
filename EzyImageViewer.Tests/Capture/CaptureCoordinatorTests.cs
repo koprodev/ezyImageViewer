@@ -4,11 +4,7 @@ using Xunit;
 
 namespace EzyImageViewer.Tests.Capture;
 
-/// <summary>
-/// [21차] 보완 2 race contracts, driven through injected clipboard/launcher fakes: a second
-/// update during a read is coalesced (not lost), a result completing after dispose touches
-/// nothing, a closed armed target falls back, and a stale launch failure stays silent.
-/// </summary>
+/// <summary>가짜 클립보드·실행기로 병합·해제·닫힌 대상·묵은 실패 경합 계약 검증.</summary>
 public sealed class CaptureCoordinatorTests
 {
     private sealed class FakeTarget : ICaptureTarget
@@ -31,8 +27,7 @@ public sealed class CaptureCoordinatorTests
         public void PrepareForCapture() => Prepared++;
     }
 
-    /// <summary>Deterministic stand-in for the coordinator's Delay seam: pending timers fire
-    /// only when a test says so, keyed by the requested duration.</summary>
+    /// <summary>테스트가 지시할 때만 요청 시간별 타이머를 깨우는 결정적 대역.</summary>
     private sealed class DelayHub
     {
         private readonly List<(TimeSpan Duration, TaskCompletionSource Source)> _pending = [];
@@ -149,17 +144,17 @@ public sealed class CaptureCoordinatorTests
         }, listen: false);
 
         var first = coordinator.PumpClipboardUpdateAsync();
-        var second = coordinator.PumpClipboardUpdateAsync(); // arrives while read #1 is in flight
-        await second; // returns immediately: marked pending
+        var second = coordinator.PumpClipboardUpdateAsync(); // 첫 읽기 중 도착.
+        await second; // 대기 표시만 하고 즉시 반환.
 
         Assert.Single(issued);
-        reads.Dequeue().SetResult(Payload(1)); // read #1 completes → pending turn issues read #2
+        reads.Dequeue().SetResult(Payload(1)); // 첫 읽기 완료 후 다음 회차 시작.
         await Task.Yield();
         Assert.Equal(2, issued.Count);
         reads.Dequeue().SetResult(Payload(2));
         await first;
 
-        // Both images were served: the first notified, the second (different content) too.
+        // 서로 다른 두 이미지 모두 알림. 둘째도 줄에서 안 떨어짐.
         Assert.Equal(2, target.Notices.Count);
     }
 
@@ -243,7 +238,7 @@ public sealed class CaptureCoordinatorTests
             LaunchCaptureAsync = () => Task.FromResult(true),
         }, listen: false);
 
-        await coordinator.RequestCaptureAsync(closed); // armed on a window that then closes
+        await coordinator.RequestCaptureAsync(closed); // 대기 뒤 닫히는 창.
         coordinator.HandlePayload(Payload(4), hasMarker: false);
 
         Assert.Empty(closed.Opened);
@@ -272,13 +267,13 @@ public sealed class CaptureCoordinatorTests
         var launch1 = launches.Dequeue();
         var launch2 = launches.Dequeue();
         launch2.SetResult(true);
-        launch1.SetResult(false); // the OLDER request fails after a newer one superseded it
+        launch1.SetResult(false); // 이전 요청이 교체 뒤 늦게 실패.
         await request1;
         await request2;
 
-        Assert.Empty(target.Statuses); // stale failure may not speak
+        Assert.Empty(target.Statuses); // 묵은 실패는 침묵.
         coordinator.HandlePayload(Payload(5), hasMarker: false);
-        Assert.Single(target.Opened); // the newer arm still auto-opens
+        Assert.Single(target.Opened); // 새 대기는 그대로 자동 열기.
     }
 
     [Fact]
@@ -295,7 +290,7 @@ public sealed class CaptureCoordinatorTests
         await coordinator.RequestCaptureAsync(target);
 
         Assert.Equal(["fallback"], target.Statuses);
-        // The user follows the guidance (Win+Shift+S): that capture still auto-opens.
+        // 사용자가 안내대로 Win+Shift+S를 쓰면 자동 열기 유지.
         coordinator.HandlePayload(Payload(6), hasMarker: false);
         Assert.Single(target.Opened);
     }
@@ -351,9 +346,9 @@ public sealed class CaptureCoordinatorTests
         using var _1 = coordinator;
 
         await coordinator.RequestCaptureAsync(target);
-        await coordinator.RequestCaptureAsync(target); // supersedes the first request
+        await coordinator.RequestCaptureAsync(target); // 첫 요청 교체.
         await coordinator.HandleProtocolResponseAsync(Response(launched[0]));
-        Assert.Empty(target.Opened); // the older callback may not deliver
+        Assert.Empty(target.Opened); // 이전 콜백은 배달 금지.
 
         await coordinator.HandleProtocolResponseAsync(Response(launched[1]));
         Assert.Single(target.Opened);
@@ -372,7 +367,7 @@ public sealed class CaptureCoordinatorTests
         Assert.Empty(target.Statuses);
         Assert.Empty(target.Opened);
         Assert.Empty(redeemed);
-        // The request ended: a later clipboard image is unsolicited (notice), never auto-open.
+        // 요청 종료 뒤 클립보드 이미지는 수동 알림. 자동 열기 금지.
         coordinator.HandlePayload(Payload(10), hasMarker: false);
         Assert.Empty(target.Opened);
         Assert.Single(target.Notices);
@@ -406,7 +401,7 @@ public sealed class CaptureCoordinatorTests
         await coordinator.RequestCaptureAsync(target);
 
         Assert.Equal(["fallback"], target.Statuses);
-        // Win+Shift+S guidance: the manual capture arrives via clipboard and still auto-opens.
+        // Win+Shift+S 수동 캡처도 클립보드로 와 자동 열기.
         coordinator.HandlePayload(Payload(12), hasMarker: false);
         Assert.Single(target.Opened);
     }
@@ -472,7 +467,7 @@ public sealed class CaptureCoordinatorTests
         await coordinator.RequestCaptureAsync(target);
         var callback = Response(launched.Single());
         await coordinator.HandleProtocolResponseAsync(callback);
-        await coordinator.HandleProtocolResponseAsync(callback); // OS re-delivery / replay
+        await coordinator.HandleProtocolResponseAsync(callback); // OS 재배송·재생.
 
         Assert.Single(redeemed);
         Assert.Single(target.Opened);
@@ -499,11 +494,11 @@ public sealed class CaptureCoordinatorTests
 
         await coordinator.RequestCaptureAsync(targetA);
         var callbackA = coordinator.HandleProtocolResponseAsync(Response(launched[0]));
-        await coordinator.RequestCaptureAsync(targetB); // arrives while A's token is redeeming
+        await coordinator.RequestCaptureAsync(targetB); // A 토큰 교환 중 B 요청.
         redeems.Dequeue().SetResult(Payload(21));
         await callbackA;
 
-        // A completed on ITS origin; B's request state was not consumed or disarmed.
+        // A는 자기 원래 창에서 완료. B 요청 상태는 소비·해제되지 않음.
         Assert.Single(targetA.Opened);
         Assert.Empty(targetB.Opened);
 
@@ -526,7 +521,7 @@ public sealed class CaptureCoordinatorTests
             LaunchOfficialCaptureAsync = id =>
             {
                 launched.Add(id);
-                return Task.FromResult(launched.Count == 1); // A launches, B fails
+                return Task.FromResult(launched.Count == 1); // A 성공, B 실패.
             },
             RedeemTokenAsync = (token, _) =>
             {
@@ -537,12 +532,12 @@ public sealed class CaptureCoordinatorTests
         }, listen: false);
 
         await coordinator.RequestCaptureAsync(targetA);
-        await coordinator.RequestCaptureAsync(targetB); // launch fails → clipboard fallback armed
+        await coordinator.RequestCaptureAsync(targetB); // 실행 실패 후 클립보드 대기.
 
-        await coordinator.HandleProtocolResponseAsync(Response(launched[0])); // stale A callback
-        Assert.Empty(redeemed); // superseded: it may not redeem or be treated as cold-start
+        await coordinator.HandleProtocolResponseAsync(Response(launched[0])); // 묵은 A 콜백.
+        Assert.Empty(redeemed); // 교체됐으니 교환·콜드 스타트 취급 금지.
 
-        // The user follows the fallback (Win+Shift+S): B's armed clipboard contract is intact.
+        // 사용자가 대체 경로를 쓰면 B의 클립보드 대기 계약은 살아 있음.
         coordinator.HandlePayload(Payload(24), hasMarker: false);
         Assert.Single(targetB.Opened);
         Assert.Empty(targetA.Opened);
@@ -593,7 +588,7 @@ public sealed class CaptureCoordinatorTests
         await coordinator.HandleProtocolResponseAsync(Response(launched.Single()));
         Assert.Single(target.Opened);
 
-        // Settle mutes only a byte-identical copy of the capture that just opened.
+        // 안정 구간은 막 연 캡처와 바이트가 같은 복사만 숨김.
         coordinator.HandlePayload(Payload(13), hasMarker: false);
         Assert.Empty(target.Notices);
         coordinator.HandlePayload(Payload(26), hasMarker: false);
@@ -603,8 +598,7 @@ public sealed class CaptureCoordinatorTests
     [Fact]
     public async Task InstantOpen_MutesDuplicateClipboardUpdates_OfTheSameCapture()
     {
-        // A single copy can raise several WM_CLIPBOARDUPDATEs: after the capture opened, its
-        // byte-identical re-post must not raise the passive notice (사용자 게이트 2026-07-18).
+        // 한 번 복사도 갱신 메시지가 여러 번 올 수 있어 같은 바이트 재게시 알림 차단.
         var (coordinator, target, _, _) = OfficialSetup(Payload(36));
         using var _1 = coordinator;
 
@@ -612,9 +606,9 @@ public sealed class CaptureCoordinatorTests
         coordinator.HandlePayload(Payload(37), hasMarker: false);
         Assert.Single(target.Opened);
 
-        coordinator.HandlePayload(Payload(37), hasMarker: false); // duplicate update
+        coordinator.HandlePayload(Payload(37), hasMarker: false); // 중복 갱신.
         Assert.Empty(target.Notices);
-        coordinator.HandlePayload(Payload(38), hasMarker: false); // genuinely new image
+        coordinator.HandlePayload(Payload(38), hasMarker: false); // 실제 새 이미지.
         Assert.Single(target.Notices);
     }
 
@@ -631,7 +625,7 @@ public sealed class CaptureCoordinatorTests
         coordinator.HandlePayload(Payload(39), hasMarker: false);
         Assert.Single(target.Opened);
 
-        coordinator.HandlePayload(Payload(39), hasMarker: false); // duplicate update
+        coordinator.HandlePayload(Payload(39), hasMarker: false); // 중복 갱신.
         Assert.Empty(target.Notices);
     }
 
@@ -643,12 +637,12 @@ public sealed class CaptureCoordinatorTests
 
         await coordinator.RequestCaptureAsync(target);
         coordinator.HandlePayload(Payload(28), hasMarker: false);
-        Assert.Single(target.Opened); // instant: the first image is the capture
+        Assert.Single(target.Opened); // 첫 이미지가 캡처라 즉시 열림.
 
         await coordinator.HandleProtocolResponseAsync(
             Response(launched.Single(), code: 500, token: null));
 
-        Assert.Empty(target.Statuses); // the consumed request's stale callback may not speak
+        Assert.Empty(target.Statuses); // 소비된 요청의 묵은 콜백은 침묵.
         Assert.Single(target.Opened);
     }
 
@@ -682,21 +676,19 @@ public sealed class CaptureCoordinatorTests
     [Fact]
     public async Task OfficialInFlight_TheFirstClipboardImage_OpensInstantly()
     {
-        // Measured on this machine: no modern Snipping Tool → the redirect callback never
-        // arrives and the capture only lands on the clipboard. No grace wait: the first
-        // image to arrive is the requested capture.
+        // 신형 캡처 도구가 없으면 콜백 없이 클립보드만 도착. 첫 이미지가 요청 결과라 즉시 처리.
         var (coordinator, target, launched, redeemed) = OfficialSetup(Payload(30));
         using var _1 = coordinator;
 
         await coordinator.RequestCaptureAsync(target);
-        Assert.Equal(1, target.Prepared); // minimized out of the shot
+        Assert.Equal(1, target.Prepared); // 촬영에서 빠지도록 최소화.
         coordinator.HandlePayload(Payload(31), hasMarker: false);
 
-        Assert.Single(target.Opened); // instantly, on the origin window
+        Assert.Single(target.Opened); // 원래 창에서 즉시 열기.
         Assert.Equal(1, target.Activations);
         Assert.Empty(target.Notices);
 
-        // The late (or never) callback may not double-open or redeem.
+        // 늦거나 안 오는 콜백은 이중 열기·교환 금지.
         await coordinator.HandleProtocolResponseAsync(Response(launched.Single()));
         Assert.Empty(redeemed);
         Assert.Single(target.Opened);
@@ -708,13 +700,13 @@ public sealed class CaptureCoordinatorTests
         var (coordinator, target, delays, launched, redeemed) = OfficialSetupWithDelays(Payload(34));
         using var _1 = coordinator;
 
-        await coordinator.RequestCaptureAsync(target); // Esc on a legacy host: nothing arrives
+        await coordinator.RequestCaptureAsync(target); // 구형 호스트에서 Esc, 결과 없음.
         delays.Fire(CaptureCoordinator.RequestWatchdog);
         await Task.Yield();
 
-        Assert.Equal(1, target.Activations); // restored from the capture minimize
+        Assert.Equal(1, target.Activations); // 캡처 최소화에서 복원.
         await coordinator.HandleProtocolResponseAsync(Response(launched.Single()));
-        Assert.Empty(redeemed); // the expired request no longer accepts its callback
+        Assert.Empty(redeemed); // 만료 요청은 콜백 거절.
     }
 
     [Fact]
@@ -730,13 +722,13 @@ public sealed class CaptureCoordinatorTests
         }, listen: false);
 
         await coordinator.RequestCaptureAsync(target);
-        coordinator.HandlePayload(Payload(35), hasMarker: false); // capture consumed the arm
+        coordinator.HandlePayload(Payload(35), hasMarker: false); // 캡처가 대기 소비.
         Assert.Single(target.Opened);
         var activationsAfterOpen = target.Activations;
 
         delays.Fire(CaptureCoordinator.RequestWatchdog);
         await Task.Yield();
-        Assert.Equal(activationsAfterOpen, target.Activations); // no focus steal after consume
+        Assert.Equal(activationsAfterOpen, target.Activations); // 소비 뒤 포커스 탈취 없음.
     }
 
     [Fact]
@@ -760,7 +752,7 @@ public sealed class CaptureCoordinatorTests
         delays.Fire(CaptureCoordinator.RequestWatchdog);
         await Task.Yield();
 
-        Assert.Equal(1, target.Activations); // brought back after the abandoned overlay
+        Assert.Equal(1, target.Activations); // 버려진 오버레이 뒤 복원.
         Assert.Empty(target.Opened);
     }
 }

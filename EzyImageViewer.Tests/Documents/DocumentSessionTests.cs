@@ -28,7 +28,7 @@ public class DocumentSessionTests
         Assert.Equal(SessionState.Ready, session.State);
         Assert.Same(fastDocument, session.Current);
 
-        // The superseded load completes late (its decoder ignored cancellation).
+        // 교체된 로드가 뒤늦게 완료. 디코더가 취소를 무시한 상황.
         slowGate.SetResult(slowDocument);
         await slowTask;
 
@@ -126,7 +126,7 @@ public class DocumentSessionTests
         Assert.Equal(SessionState.Ready, session.State);
     }
 
-    // ---- subscriber isolation (M1 defects found while planning M2) ----
+    // ---- 구독자 격리(M2 계획 중 발견한 M1 결함) ----
 
     [Fact]
     public async Task ThrowingSubscriber_DoesNotTurnASuccessfulLoadIntoAFailure()

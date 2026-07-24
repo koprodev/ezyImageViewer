@@ -5,11 +5,7 @@ using Xunit;
 
 namespace EzyImageViewer.Tests.Rendering;
 
-/// <summary>
-/// FR-ANNO-007 seam invariant: body and tail render as one unioned outline, so the pixels where
-/// the tail base crosses the body edge are FILL, never stroke; representative interior/exterior
-/// pixels pin the shape without depending on bit-exact antialiasing.
-/// </summary>
+/// <summary>말풍선 몸통·꼬리 접합선이 선이 아닌 채우기로 남는 렌더 계약.</summary>
 public sealed class SpeechBubbleRenderingTests
 {
     private static readonly SKColor Fill = new(0x00, 0xFF, 0x00, 0xFF);
@@ -35,7 +31,7 @@ public sealed class SpeechBubbleRenderingTests
     [Fact]
     public void SeamBetweenBodyAndTail_IsFillNotStroke()
     {
-        // Bounds bottom edge y=25; tail base spans x 24..36 at y=23; tip (30,38).
+        // 몸통 아래 y=25, 꼬리 밑변 y=23의 x 24..36, 끝점 (30,38).
         var bubble = new SpeechBubbleAnnotation
         {
             Id = Guid.NewGuid(),
@@ -48,22 +44,22 @@ public sealed class SpeechBubbleRenderingTests
         };
         using var bitmap = Draw(bubble);
 
-        // The seam pixel on the body edge inside the tail span stays fill.
+        // 꼬리 범위 안 몸통 경계 접합 픽셀은 채우기 유지.
         Assert.Equal(Fill, bitmap.GetPixel(30, 25));
-        // Body interior and tail interior are fill.
+        // 몸통·꼬리 내부는 채우기.
         Assert.Equal(Fill, bitmap.GetPixel(30, 15));
         Assert.Equal(Fill, bitmap.GetPixel(30, 30));
-        // The bottom edge outside the tail span carries the stroke (red dominates).
+        // 꼬리 밖 아래 변은 선이 지배.
         var edge = bitmap.GetPixel(15, 25);
         Assert.True(edge.Red > edge.Green, $"expected stroke at (15,25): {edge}");
-        // Far outside stays untouched.
+        // 멀리 바깥은 그대로.
         Assert.Equal(default, bitmap.GetPixel(5, 40));
     }
 
     [Fact]
     public void CarriageReturnLineBreaks_RenderLikeLineFeeds()
     {
-        // WinUI TextBox emits bare '\r'; the renderer must break lines on it like '\n'.
+        // WinUI TextBox의 '\r'도 '\n'처럼 줄바꿈 처리.
         static SpeechBubbleAnnotation Bubble(string text) => new()
         {
             Id = Guid.NewGuid(),
@@ -81,7 +77,7 @@ public sealed class SpeechBubbleRenderingTests
         using var singleLine = Draw(Bubble("ABC"));
 
         Assert.True(carriageReturn.Bytes.SequenceEqual(lineFeed.Bytes));
-        // Guard that line splitting is visible at all, or the equality above proves nothing.
+        // 줄 분리가 실제 보이는지 확인해야 위 동등성도 의미가 있음.
         Assert.False(carriageReturn.Bytes.SequenceEqual(singleLine.Bytes));
     }
 
@@ -101,7 +97,7 @@ public sealed class SpeechBubbleRenderingTests
         using var bitmap = Draw(bubble);
 
         Assert.Equal(Fill, bitmap.GetPixel(30, 15));
-        // Below the body there is no tail to paint.
+        // 몸통 아래에 그릴 꼬리 없음.
         Assert.Equal(default, bitmap.GetPixel(30, 32));
     }
 }

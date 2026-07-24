@@ -5,17 +5,15 @@ using Windows.Storage.Streams;
 namespace EzyImageViewer.Capture.Clipboard;
 
 /// <summary>
-/// WinRT clipboard reader. Call from the UI thread (clipboard access is view-bound);
-/// the returned payload is a bounded, owned copy taken before this method completes.
-/// Format priority per FR-APP-004: PNG > DIBv5 > DIB > Bitmap.
+/// UI 스레드용 WinRT 클립보드 읽기. 반환 데이터는 상한 안의 소유 복사본.
+/// 형식 우선순위: PNG > DIBv5 > DIB > Bitmap.
 /// </summary>
-public sealed class WinRtClipboardBackend : IClipboardBackend, IClipboardImageWriter
+public sealed class WinRtClipboardBackend
 {
     private const string PngFormat = "PNG";
     private const string DibV5Format = "DeviceIndependentBitmapV5";
     private const string DibFormat = "DeviceIndependentBitmap";
-    /// <summary>FR-CAP-005: rides every internal copy so the capture watcher can tell our own
-    /// clipboard writes from a real capture.</summary>
+    /// <summary>내부 복사마다 실어 캡처 감시가 우리 쓰기와 실제 캡처를 구분.</summary>
     private const string InternalMarkerFormat = "EzyImageViewer.InternalCopy";
 
     public async Task<ClipboardImagePayload?> TryGetImageAsync(long maxBytes, CancellationToken cancellationToken)
@@ -43,7 +41,7 @@ public sealed class WinRtClipboardBackend : IClipboardBackend, IClipboardImageWr
             var reference = await view.GetBitmapAsync().AsTask(cancellationToken).ConfigureAwait(false);
             using var stream = await reference.OpenReadAsync().AsTask(cancellationToken).ConfigureAwait(false);
             var bytes = await CopyBoundedAsync(stream, maxBytes, cancellationToken).ConfigureAwait(false);
-            // OpenReadAsync yields an encoded image stream; sniffing decides the actual codec.
+            // 인코딩 이미지 스트림을 받아 실제 코덱은 시그니처로 판별.
             if (bytes is not null)
                 return new ClipboardImagePayload(bytes, ClipboardImagePayload.Png);
         }
@@ -57,7 +55,7 @@ public sealed class WinRtClipboardBackend : IClipboardBackend, IClipboardImageWr
         if (pngBytes.Length == 0)
             throw new ArgumentException("Empty PNG payload.", nameof(pngBytes));
 
-        // Two independent streams: DataPackage consumers read each format separately.
+        // 소비자가 형식별로 따로 읽으므로 독립 스트림 둘 사용.
         var package = new DataPackage { RequestedOperation = DataPackageOperation.Copy };
         var pngStream = await ToStreamAsync(pngBytes, cancellationToken).ConfigureAwait(true);
         var bitmapStream = await ToStreamAsync(pngBytes, cancellationToken).ConfigureAwait(true);
@@ -69,9 +67,7 @@ public sealed class WinRtClipboardBackend : IClipboardBackend, IClipboardImageWr
             package.SetData(InternalMarkerFormat, "1");
             Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(package);
             contentSet = true;
-            // Hands the data to the OS so the copy survives app exit (FR-OUT-001). A busy
-            // clipboard can refuse the flush; the content then stays delegated to our streams,
-            // which must outlive this call — they are only released after a successful flush.
+            // 앱 종료 뒤에도 복사가 남도록 OS에 전달. 사용 중이면 실패할 수 있어 성공 뒤에만 스트림 해제.
             Windows.ApplicationModel.DataTransfer.Clipboard.Flush();
         }
         catch (System.Runtime.InteropServices.COMException) when (contentSet)
@@ -97,7 +93,7 @@ public sealed class WinRtClipboardBackend : IClipboardBackend, IClipboardImageWr
         }
         catch (System.Runtime.InteropServices.COMException)
         {
-            return false; // a busy clipboard reads as "not ours"; the hash backup still applies
+            return false; // 사용 중이면 우리 데이터 아님으로 처리, 해시 보조 판정은 유지.
         }
     }
 

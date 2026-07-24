@@ -4,36 +4,26 @@ using EzyImageViewer.Core.Imaging;
 namespace EzyImageViewer.Core.Documents.Layers;
 
 /// <summary>
-/// Derived view of a transform pipeline over one source size. Everything here is a cache of the
-/// ops — never persisted, recomputed on load (ADR-0009). Matrices use the row-vector convention
-/// (<see cref="Vector2.Transform(Vector2, Matrix3x2)"/> is v·M, composition A*B applies A first).
+/// 원본 크기에 변환 파이프라인을 적용한 파생값. 저장하지 않고 로드 때 재계산.
+/// 행 벡터 규약 사용: v·M, A*B는 A부터 적용.
 /// </summary>
 public sealed class TransformEvaluation
 {
-    /// <summary>Maps native source pixels to output-canvas pixels.</summary>
+    /// <summary>원본 픽셀을 출력 캔버스 픽셀로 변환.</summary>
     public required Matrix3x2 NativeToOutput { get; init; }
 
-    /// <summary>Integer canvas the composited document occupies (status bar, Fit, export).</summary>
+    /// <summary>합성 문서가 차지하는 정수 캔버스.</summary>
     public required PixelSize OutputSize { get; init; }
 
-    /// <summary>
-    /// Convex polygon in native pixels bounding the source region that survives every crop — the
-    /// full source rect when nothing is cropped, empty when a crop kept only a transparent margin.
-    /// Background, annotations, selection and hit-testing all clip to this one region, so pixels a
-    /// crop removed can never reappear behind a later rotation.
-    /// </summary>
+    /// <summary>모든 자르기를 통과한 원본 영역. 후속 회전 뒤 잘린 픽셀이 부활하지 않게 공유.</summary>
     public required IReadOnlyList<Vector2> SourceClip { get; init; }
 
-    /// <summary>
-    /// Native-space quads punched transparent by <see cref="EraseOp"/>s. Tracked in native space
-    /// (stable under later ops) and clipped out of the background draw only — annotations above an
-    /// erased region are untouched.
-    /// </summary>
+    /// <summary>원본 좌표의 투명 구멍. 배경만 잘라내고 위 주석은 건드리지 않음.</summary>
     public IReadOnlyList<IReadOnlyList<Vector2>> ErasedNative { get; init; } = [];
 
     public bool TryGetOutputToNative(out Matrix3x2 inverse) => Matrix3x2.Invert(NativeToOutput, out inverse);
 
-    /// <summary>True when the native point survives every crop. Boundary points count as inside.</summary>
+    /// <summary>원본 점이 모든 자르기를 통과하면 true. 경계는 안쪽.</summary>
     public bool ContainsNativePoint(float x, float y)
     {
         if (SourceClip.Count < 3)
@@ -59,21 +49,14 @@ public sealed class TransformEvaluation
 public static class TransformEvaluator
 {
     /// <summary>
-    /// Per-side cap for the evaluated output — the decode-side sanity bound reused (protects stride
-    /// math everywhere downstream). Deliberately the ONLY output cap: a pixel-count cap would refuse
-    /// the identity pipeline on any accepted large source (decode admits up to 500MP, reduced) and
-    /// the rotation bounding box of an elongated panorama. Nothing in M3 materializes output-sized
-    /// buffers; the M6 export path imposes its own byte budget at the point of allocation.
+    /// 출력 한 변 상한. 여기서는 버퍼를 만들지 않아 픽셀 수는 제한하지 않고,
+    /// 실제 할당 경로가 별도 바이트 예산을 적용.
     /// </summary>
     public static int MaxOutputDimension { get; } = InputLimits.Default.MaxDimension;
 
     /// <summary>
-    /// Walks the pipeline once. Canvas contract: the size is INTEGER after every op — content-
-    /// containing rounding (floor the min corner, ceil the max) at each crop and free-angle rotate,
-    /// exact swaps for quarter turns — so <c>Evaluate(P).OutputSize</c> is exactly the canvas op
-    /// Q of <c>P+Q</c> is interpreted in (prefix stability), and every transformed source point
-    /// lands inside the declared output. Each op's result is validated (finite, invertible, side
-    /// limit) before the next op runs. Throws when a crop misses the canvas or a cap is exceeded.
+    /// 파이프라인을 한 번 순회. 매 단계 캔버스를 바깥쪽 정수로 맞춰 접두 변환 안정성 유지.
+    /// 다음 연산 전에 유한값·역행렬·한 변 상한을 검사.
     /// </summary>
     public static TransformEvaluation Evaluate(BackgroundTransform transform, PixelSize nativeSize)
     {
@@ -81,7 +64,7 @@ public static class TransformEvaluator
         if (nativeSize.IsEmpty)
             throw new ArgumentOutOfRangeException(nameof(nativeSize), "Source size must be positive.");
 
-        var matrix = Matrix3x2.Identity; // native -> current canvas
+        var matrix = Matrix3x2.Identity; // 원본 → 현재 캔버스.
         var size = new Vector2(nativeSize.Width, nativeSize.Height);
         var clip = new List<Vector2>(4)
         {
@@ -96,8 +79,7 @@ public static class TransformEvaluator
             {
                 case EraseOp erase:
                 {
-                    // Clamped to the current canvas like a crop; a punch that misses it entirely is
-                    // a caller bug, not a silent no-op.
+                    // 현재 캔버스에 맞춤. 완전히 빗나가면 조용히 넘기지 않고 호출 오류.
                     var x0 = MathF.Max(0f, erase.Bounds.X);
                     var y0 = MathF.Max(0f, erase.Bounds.Y);
                     var x1 = MathF.Min(size.X, erase.Bounds.Right);
@@ -117,8 +99,7 @@ public static class TransformEvaluator
                 }
                 case CropOp crop:
                 {
-                    // Snapped outward to the pixel grid: the kept region always contains the
-                    // requested one, and the canvas stays integer (prefix stability).
+                    // 픽셀 격자 바깥쪽으로 맞춰 요청 영역을 보존하고 캔버스는 정수 유지.
                     var x0 = MathF.Floor(MathF.Max(0f, crop.Bounds.X));
                     var y0 = MathF.Floor(MathF.Max(0f, crop.Bounds.Y));
                     var x1 = MathF.Ceiling(MathF.Min(size.X, crop.Bounds.Right));
@@ -146,7 +127,7 @@ public static class TransformEvaluator
                     Vector2 rotated;
                     if (rotate.IsQuarterTurn)
                     {
-                        // Exact integer-form matrices; clockwise in y-down screen coordinates.
+                        // y축 아래 방향 화면 좌표의 정확한 정수 행렬.
                         (step, rotated) = rotate.Degrees switch
                         {
                             90f => (new Matrix3x2(0f, 1f, -1f, 0f, size.Y, 0f), new Vector2(size.Y, size.X)),
@@ -166,8 +147,7 @@ public static class TransformEvaluator
                             min = Vector2.Min(min, mapped);
                             max = Vector2.Max(max, mapped);
                         }
-                        // Content-containing: floor the origin shift, ceil the far edge — every
-                        // rotated source point is inside the integer canvas (never clipped by it).
+                        // 원점은 내림, 먼 끝은 올림. 회전한 점을 정수 캔버스 안에 모두 담음.
                         var origin = new Vector2(MathF.Floor(min.X), MathF.Floor(min.Y));
                         step = spin * Matrix3x2.CreateTranslation(-origin.X, -origin.Y);
                         rotated = new Vector2(MathF.Ceiling(max.X), MathF.Ceiling(max.Y)) - origin;
@@ -193,8 +173,7 @@ public static class TransformEvaluator
                     throw new NotSupportedException($"Unknown transform op {op.GetType().Name}.");
             }
 
-            // Before the next op runs, not just at the end: a hostile pipeline must not carry a
-            // non-finite or oversized intermediate into arithmetic that would mask it later.
+            // 매 단계 검사. 수상한 중간값이 다음 계산에 숨어들 틈을 주지 않음.
             ValidateCanvas(size, matrix);
         }
 
@@ -224,11 +203,7 @@ public static class TransformEvaluator
             throw new InvalidOperationException("Transform chain produced a non-invertible matrix.");
     }
 
-    /// <summary>
-    /// Sutherland–Hodgman: intersects a convex subject with a convex clipper. Both windings are
-    /// accepted; the clipper's interior side is derived from its signed area. May return fewer than
-    /// three points when the intersection is empty.
-    /// </summary>
+    /// <summary>Sutherland–Hodgman 볼록 다각형 교차. 감김 방향 무관, 빈 교차면 빈 목록.</summary>
     private static List<Vector2> ClipConvex(List<Vector2> subject, ReadOnlySpan<Vector2> clipper)
     {
         var interiorSign = MathF.Sign(SignedArea(clipper));
@@ -270,15 +245,14 @@ public static class TransformEvaluator
     {
         var dp = Side(a, b, p);
         var dq = Side(a, b, q);
-        var t = dp / (dp - dq); // dp != dq: p and q are on opposite sides by construction
+        var t = dp / (dp - dq); // p와 q가 반대편이라 분모는 0이 아님.
         return p + ((q - p) * t);
     }
 
     private static float SignedArea(ReadOnlySpan<Vector2> polygon)
     {
-        // Shoelace on offsets from the first vertex: raw products at large native coordinates
-        // (~6.5e4) dwarf the area of a small crop quad and float rounding cancels the sum to zero,
-        // which would read as a degenerate clipper and blank the render.
+        // 첫 꼭짓점 기준 오프셋으로 신발끈 계산. 큰 좌표의 반올림이 작은 자르기 면적을
+        // 0으로 지워 화면까지 백지로 만드는 사고를 막음.
         var origin = polygon[0];
         var sum = 0f;
         for (var i = 0; i < polygon.Length; i++)

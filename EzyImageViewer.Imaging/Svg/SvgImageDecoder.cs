@@ -9,7 +9,7 @@ using Svg.Skia;
 
 namespace EzyImageViewer.Imaging.Svg;
 
-/// <summary>Static SVG renderer with scripts, DTDs, entities, and all external resources disabled.</summary>
+/// <summary>스크립트·DTD·엔터티·외부 리소스를 모두 막은 정적 SVG 렌더러.</summary>
 public sealed class SvgImageDecoder : IImageDecoder
 {
     internal const long MaxExpandedBytes = 64L * 1024 * 1024;

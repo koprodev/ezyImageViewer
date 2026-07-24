@@ -10,7 +10,7 @@ public sealed record ProjectDocumentState(
     IReadOnlyList<ProjectPageState> Pages,
     int ActivePageIndex);
 
-/// <summary>v3 page envelope with v1/v2 single-page migration.</summary>
+/// <summary>v1/v2 단일 페이지 마이그레이션을 지원하는 v3 페이지 봉투.</summary>
 public static class ProjectDocumentSerializer
 {
     public const int MaxPages = 10_000;

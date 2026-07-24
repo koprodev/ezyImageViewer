@@ -19,9 +19,7 @@
     { "extension": ".heic", "format": "Heif", "supportTier": "conditional", "samples": [] },
     { "extension": ".heif", "format": "Heif", "supportTier": "conditional", "samples": [] },
     { "extension": ".hif",  "format": "Heif", "supportTier": "conditional", "samples": [] },
-    { "extension": ".pdf",  "format": "Pdf", "supportTier": "conditional", "samples": [] },
     { "extension": ".svg",  "format": "Svg", "supportTier": "official", "samples": [] },
-    { "extension": ".svgz", "format": "Svg", "supportTier": "official", "samples": [] },
-    { "extension": ".psd",  "format": "Psd", "supportTier": "limited", "samples": [] }
+    { "extension": ".svgz", "format": "Svg", "supportTier": "official", "samples": [] }
   ]
 }

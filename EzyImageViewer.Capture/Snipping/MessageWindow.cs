@@ -2,17 +2,13 @@ using System.Runtime.InteropServices;
 
 namespace EzyImageViewer.Capture.Snipping;
 
-/// <summary>
-/// Message-only Win32 window (HWND_MESSAGE): the delivery target for clipboard-listener,
-/// hotkey and tray callback messages, which are posted directly (not broadcast). Create and
-/// dispose on a thread that pumps messages — in the app that is the UI thread.
-/// </summary>
+/// <summary>클립보드와 전역 단축키 메시지를 받는 전용 Win32 창. UI 스레드에서만 다룬다.</summary>
 internal sealed class MessageWindow : IDisposable
 {
-    /// <summary>Return a value to consume the message; null falls through to DefWindowProc.</summary>
+    /// <summary>반환값이 없으면 기본 창 프로시저로 넘긴다.</summary>
     public delegate nint? MessageHandler(uint message, nuint wParam, nint lParam);
 
-    private readonly WndProc _procKeepAlive; // the native class must never see a collected delegate
+    private readonly WndProc _procKeepAlive; // 네이티브 창이 쓰는 동안 델리게이트를 단단히 붙잡아 둔다.
     private readonly string _className;
     private readonly MessageHandler _handler;
     private readonly int _creationThreadId = Environment.CurrentManagedThreadId;
@@ -20,9 +16,7 @@ internal sealed class MessageWindow : IDisposable
 
     public nint Handle { get; }
 
-    /// <summary>messageOnly=false makes a hidden top-level window instead — required where the
-    /// window must be able to take foreground (tray popup menus dismiss through it).</summary>
-    public MessageWindow(MessageHandler handler, bool messageOnly = true)
+    public MessageWindow(MessageHandler handler)
     {
         ArgumentNullException.ThrowIfNull(handler);
         _handler = handler;
@@ -38,7 +32,7 @@ internal sealed class MessageWindow : IDisposable
         if (RegisterClassExW(in wndClass) == 0)
             throw new InvalidOperationException($"Message window class registration failed ({Marshal.GetLastPInvokeError()}).");
         Handle = CreateWindowExW(0, _className, string.Empty, 0, 0, 0, 0, 0,
-            messageOnly ? HwndMessage : 0, 0, wndClass.hInstance, 0);
+            HwndMessage, 0, wndClass.hInstance, 0);
         if (Handle == 0)
         {
             UnregisterClassW(_className, wndClass.hInstance);
@@ -53,8 +47,7 @@ internal sealed class MessageWindow : IDisposable
     {
         if (_disposed)
             return;
-        // DestroyWindow only works from the creating thread; a cross-thread dispose would leak
-        // the window and the class silently — fail loud instead.
+        // 다른 스레드에서 닫으면 창과 클래스가 샌다. 조용한 누수보다 시끄러운 실패가 낫다.
         if (Environment.CurrentManagedThreadId != _creationThreadId)
             throw new InvalidOperationException("MessageWindow must be disposed on its creation thread.");
         _disposed = true;

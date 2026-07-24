@@ -7,21 +7,21 @@ namespace EzyImageViewer.Tests.Capture;
 
 public class DibConverterTests
 {
-    /// <summary>Minimal 2x2 32bpp bottom-up DIB (BITMAPINFOHEADER, BI_RGB).</summary>
+    /// <summary>최소 2×2 32bpp 상향식 DIB(BITMAPINFOHEADER, BI_RGB).</summary>
     private static byte[] MakeDib32(ushort bitCount = 32, uint compression = 0, uint colorsUsed = 0, int paletteBytes = 0)
     {
         var pixels = 2 * 2 * 4;
         var dib = new byte[40 + paletteBytes + (compression == 3 ? 12 : 0) + pixels];
-        BinaryPrimitives.WriteInt32LittleEndian(dib, 40);                 // biSize
-        BinaryPrimitives.WriteInt32LittleEndian(dib.AsSpan(4), 2);        // biWidth
-        BinaryPrimitives.WriteInt32LittleEndian(dib.AsSpan(8), 2);        // biHeight
-        BinaryPrimitives.WriteUInt16LittleEndian(dib.AsSpan(12), 1);      // biPlanes
+        BinaryPrimitives.WriteInt32LittleEndian(dib, 40);                 // 헤더 크기(biSize).
+        BinaryPrimitives.WriteInt32LittleEndian(dib.AsSpan(4), 2);        // 너비(biWidth).
+        BinaryPrimitives.WriteInt32LittleEndian(dib.AsSpan(8), 2);        // 높이(biHeight).
+        BinaryPrimitives.WriteUInt16LittleEndian(dib.AsSpan(12), 1);      // 평면 수(biPlanes).
         BinaryPrimitives.WriteUInt16LittleEndian(dib.AsSpan(14), bitCount);
         BinaryPrimitives.WriteUInt32LittleEndian(dib.AsSpan(16), compression);
         BinaryPrimitives.WriteUInt32LittleEndian(dib.AsSpan(32), colorsUsed);
         for (var i = dib.Length - pixels; i < dib.Length; i += 4)
         {
-            dib[i] = 0x00; dib[i + 1] = 0x00; dib[i + 2] = 0xFF; dib[i + 3] = 0xFF; // red BGRA
+        dib[i] = 0x00; dib[i + 1] = 0x00; dib[i + 2] = 0xFF; dib[i + 3] = 0xFF; // 빨간 BGRA.
         }
         return dib;
     }
@@ -81,7 +81,7 @@ public class DibConverterTests
 
         Assert.Equal(2, document.Frame.Width);
         Assert.Equal(2, document.Frame.Height);
-        // Red pixel in BGRA
+        // BGRA의 빨간 픽셀.
         Assert.Equal(0xFF, document.Frame.Pixels[2]);
     }
 }

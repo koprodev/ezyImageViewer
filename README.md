@@ -18,10 +18,10 @@ ezy Image Viewer is an open-source image viewer and editor for Windows 10 build
 - Stores settings, recent-file history, local logs, and crash recovery data on
   the local PC.
 
-AVIF and HEIC/HEIF require a compatible Windows WIC codec. PDF and PSD support
-is deliberately disabled in the normal UI until the isolated codec path passes
-the remaining package, security, corpus, and fidelity gates. See the
-[user guide](docs/user-guide.md) for the exact supported formats and limits.
+AVIF and HEIC/HEIF require a compatible Windows WIC codec. PDF and PSD are
+intentionally unsupported; their signatures are recognized and rejected with a
+clear unsupported-format error. See the [user guide](docs/user-guide.md) for
+the exact supported formats and limits.
 
 ## Privacy
 
@@ -35,7 +35,7 @@ images.
 
 ## Downloads and updates
 
-The current [Installer + Portable preview](https://github.com/koprodev/ezy-image-viewer-releases/releases/tag/v1.0.12-preview.1)
+The current [Installer + Portable preview](https://github.com/koprodev/ezyImageViewer/releases/latest)
 provides an unsigned scope-selecting Setup EXE and an unsigned compressed
 single-file Portable EXE. Verify either file against `SHA256SUMS.txt` before
 running it. Setup registers supported image types as Windows Open With
@@ -43,7 +43,7 @@ candidates by default; it never forces a default handler. Portable installs no
 registry entries or shortcuts. Windows SmartScreen may warn for both files.
 
 The earlier folder-based
-[Basic Portable preview](https://github.com/koprodev/ezy-image-viewer-releases/releases/tag/v0.1.0-portable.1)
+[Basic Portable preview](https://github.com/koprodev/ezyImageViewer/releases/tag/v0.1.0-portable.1)
 remains available for comparison. Neither release is production signed. The
 included Windows App SDK WinUI component carries Engineering Preview terms that
 restrict live operating use, and clean-VM lifecycle qualification is not

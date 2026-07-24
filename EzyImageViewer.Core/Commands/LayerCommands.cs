@@ -2,7 +2,7 @@ using EzyImageViewer.Core.Documents.Layers;
 
 namespace EzyImageViewer.Core.Commands;
 
-/// <summary>Adds an empty (or prepared) layer; null index appends on top (UR-007).</summary>
+/// <summary>빈 레이어 또는 준비된 레이어 추가. 인덱스가 null이면 맨 위에 붙임(UR-007).</summary>
 public sealed class AddLayerCommand : IEditCommand
 {
     private readonly AnnotationLayer _layer;
@@ -22,8 +22,8 @@ public sealed class AddLayerCommand : IEditCommand
     public DocumentState Revert(DocumentState state) => state.RemoveLayer(_layer.Id);
 }
 
-/// <summary>Deletes a layer with its objects. Retains the layer and its position for exact undo.
-/// The last layer is not deletable — the state operation enforces it, the constructor reports it.</summary>
+/// <summary>레이어와 개체를 함께 삭제. 정확한 실행 취소를 위해 레이어와 위치 보관.
+/// 마지막 레이어는 삭제 불가. 상태 연산이 막고 생성자가 알려 줌.</summary>
 public sealed class DeleteLayerCommand : IEditCommand
 {
     private readonly AnnotationLayer _layer;
@@ -92,8 +92,8 @@ public enum LayerEditKind
     Lock,
 }
 
-/// <summary>Replaces exactly the one layer property named by its kind; the contained object
-/// sequence and every other property must be unchanged (rename, show/hide, lock).</summary>
+/// <summary>종류가 가리키는 레이어 속성 하나만 교체.
+/// 내부 개체 순서와 다른 속성은 그대로여야 함(이름·표시·잠금).</summary>
 public sealed class ReplaceLayerCommand : IEditCommand
 {
     public ReplaceLayerCommand(LayerEditKind kind, AnnotationLayer before, AnnotationLayer after)
@@ -140,8 +140,8 @@ public sealed class ReplaceLayerCommand : IEditCommand
     }
 }
 
-/// <summary>Moves one object to another layer's top; records both endpoints for exact undo.
-/// A same-layer target is a no-op in both directions, never an index-shifted reorder.</summary>
+/// <summary>개체를 다른 레이어 맨 위로 이동. 정확한 실행 취소를 위해 양 끝점 기록.
+/// 같은 레이어 대상은 양방향 모두 아무 일도 하지 않으며 순서 변경으로 둔갑하지 않음.</summary>
 public sealed class MoveAnnotationToLayerCommand : IEditCommand
 {
     public MoveAnnotationToLayerCommand(DocumentState state, Guid annotationId, Guid targetLayerId)

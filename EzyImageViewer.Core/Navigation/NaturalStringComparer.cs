@@ -1,9 +1,8 @@
 namespace EzyImageViewer.Core.Navigation;
 
 /// <summary>
-/// Explorer-style natural ordering: digit runs compare numerically ("image2" &lt; "image10"),
-/// other runs compare case-insensitively. Leading zeros break numeric ties ("01" &lt; "1" is false;
-/// equal values fall back to shorter-run-first for a stable total order).
+/// 탐색기식 자연 정렬. 숫자 덩어리는 값으로 비교("image2" &lt; "image10"), 나머지는 대소문자 무시.
+/// 숫자가 같으면 앞쪽 0이 적은 짧은 덩어리를 먼저 두어 전체 순서를 안정화.
 /// </summary>
 public sealed class NaturalStringComparer : IComparer<string?>
 {
@@ -33,7 +32,7 @@ public sealed class NaturalStringComparer : IComparer<string?>
                     if (x[a] != y[b])
                         return x[a].CompareTo(y[b]);
                 }
-                // Numeric tie (e.g. "007" vs "7"): fewer leading zeros first for stability.
+        // 숫자가 같으면(예: "007" 대 "7") 앞쪽 0이 적은 쪽을 먼저 둠.
                 var byZeros = (xValueEnd - xStart).CompareTo(yValueEnd - yStart);
                 if (byZeros != 0)
                     return byZeros;

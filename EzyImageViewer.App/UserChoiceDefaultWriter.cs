@@ -8,15 +8,15 @@ namespace EzyImageViewer.App;
 
 internal enum UserChoiceStatus
 {
-    /// <summary>This app is now the verified effective default for the extension.</summary>
+    /// <summary>이 앱이 확장자의 실제 기본 앱으로 검증됨.</summary>
     Set,
-    /// <summary>The write failed but the prior default was put back.</summary>
+    /// <summary>쓰기 실패, 이전 기본 앱 복원 성공.</summary>
     Restored,
-    /// <summary>The write failed and the prior default could not be restored (may be lost).</summary>
+    /// <summary>쓰기 실패, 이전 기본 앱 복원도 실패.</summary>
     RestoreFailed,
-    /// <summary>A global UserChoiceLatest (HashVersion=1) makes classic writes inert.</summary>
+    /// <summary>전역 UserChoiceLatest(HashVersion=1)가 고전 방식 쓰기를 차단.</summary>
     Unsupported,
-    /// <summary>Protection state could not be read; treated as blocked (fail-closed).</summary>
+    /// <summary>보호 상태를 못 읽어 차단으로 처리.</summary>
     DetectionFailed,
 }
 
@@ -41,11 +41,8 @@ internal enum HashProtectionState
 }
 
 /// <summary>
-/// EXPERIMENTAL, unpackaged-only: sets this app as the Windows default for image extensions by
-/// writing the per-user UserChoice ProgId + Hash (<see cref="UserChoiceHash"/>). Microsoft does
-/// not support this and reserves the right to block it (UCPD.sys, UserChoiceLatest); every write
-/// is verified with the official effective-default query and each extension reports its own
-/// outcome, restoring the prior default on failure.
+/// 실험적 비패키지 전용 기본 앱 설정기. 사용자 UserChoice ProgId와 Hash를 쓰고
+/// 공식 실제 기본값 조회로 매 확장자를 검증하며 실패 시 이전 값 복원.
 /// </summary>
 internal static class UserChoiceDefaultWriter
 {
@@ -55,8 +52,7 @@ internal static class UserChoiceDefaultWriter
 
     public static HashProtectionState DetectHashProtection()
     {
-        // A global HashVersion=1 (UserChoiceLatest) makes classic UserChoice writes inert. Any
-        // read failure or unexpected type is treated as blocked, never as "classic works".
+        // 전역 HashVersion=1이면 고전 쓰기는 무효. 읽기 실패·이상 형식도 안전하게 차단.
         try
         {
             var sid = CurrentUserSid();
@@ -79,8 +75,7 @@ internal static class UserChoiceDefaultWriter
         }
     }
 
-    /// <summary>Registers this app as the default for each extension; one key at a time, each with
-    /// its own outcome. A failed extension is restored to its prior default and never throws.</summary>
+    /// <summary>확장자별 기본 앱 등록. 하나씩 결과를 내고 실패하면 이전 기본값 복원.</summary>
     public static UserChoiceOutcome SetDefaults(IReadOnlyCollection<string> extensions)
     {
         ArgumentNullException.ThrowIfNull(extensions);
@@ -100,8 +95,7 @@ internal static class UserChoiceDefaultWriter
         var changed = false;
         foreach (var extension in extensions)
         {
-            // Every dialog save runs this, so extensions already pointing here are left untouched
-            // rather than delete-and-rewritten.
+            // 설정 저장마다 실행되므로 이미 이 앱인 확장자는 삭제·재작성 없이 유지.
             if (IsEffectiveDefault(extension, progId))
             {
                 results.Add(new UserChoiceExtensionResult(extension, UserChoiceStatus.Set));
@@ -120,7 +114,7 @@ internal static class UserChoiceDefaultWriter
         string extension, string sid, string progId, out bool wrote)
     {
         wrote = false;
-        // Snapshot the prior user choice so a failed write can be undone.
+        // 쓰기 실패를 되돌릴 수 있게 이전 사용자 선택 확보.
         string? priorProgId = null;
         using (var prior = Registry.CurrentUser.OpenSubKey($@"{FileExtsKeyPath}\{extension}\UserChoice"))
             priorProgId = prior?.GetValue("ProgId") as string;
@@ -154,9 +148,7 @@ internal static class UserChoiceDefaultWriter
         }
     }
 
-    /// <summary>Deletes the prior UserChoice (the only way Explorer accepts a fresh hash) and
-    /// writes ProgId + a hash bound to the key's own last-write minute, retrying across a minute
-    /// boundary so the stored hash always matches the final write minute.</summary>
+    /// <summary>이전 UserChoice 삭제 후 키의 최종 수정 분에 맞춘 ProgId·Hash 작성.</summary>
     private static void WriteUserChoice(
         RegistryKey extKey, string extension, string sid, string progId)
     {
@@ -175,8 +167,7 @@ internal static class UserChoiceDefaultWriter
             "The UserChoice hash could not be stabilized across a minute boundary.");
     }
 
-    /// <summary>Puts the extension back to its prior state: rewrite a valid hash for the prior
-    /// ProgId, or (if there was no prior user choice) remove ours so Windows falls back.</summary>
+    /// <summary>이전 ProgId·Hash를 복원하거나 기존 선택이 없었다면 우리 값을 제거.</summary>
     private static bool Restore(
         RegistryKey extKey, string extension, string sid, string? priorProgId)
     {
@@ -196,8 +187,7 @@ internal static class UserChoiceDefaultWriter
         }
     }
 
-    /// <summary>Official effective-default check (AL_EFFECTIVE); distinguishes ProgIds that share
-    /// one exe, which AssocQueryString(ASSOCSTR_EXECUTABLE) cannot.</summary>
+    /// <summary>공식 실제 기본값(AL_EFFECTIVE) 확인. 같은 EXE를 공유하는 ProgId도 구분.</summary>
     private static bool IsEffectiveDefault(string extension, string progId)
     {
         var comType = Type.GetTypeFromCLSID(
@@ -273,7 +263,7 @@ internal static class UserChoiceDefaultWriter
         public int dwHighDateTime;
     }
 
-    // Official ASSOCIATIONLEVEL: AL_MACHINE=0, AL_EFFECTIVE=1, AL_USER=2.
+    // 공식 ASSOCIATIONLEVEL: AL_MACHINE=0, AL_EFFECTIVE=1, AL_USER=2.
     private enum AssociationLevel
     {
         Machine = 0,

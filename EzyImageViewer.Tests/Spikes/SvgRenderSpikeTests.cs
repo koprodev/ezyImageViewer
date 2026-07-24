@@ -4,7 +4,7 @@ using Xunit;
 
 namespace EzyImageViewer.Tests.Spikes;
 
-/// <summary>M0-B spike 5: Svg.Skia renders static SVG headless; no script engine exists in the pipeline.</summary>
+/// <summary>M0-B 스파이크 5: Svg.Skia가 정적 SVG를 헤드리스 렌더. 파이프라인에 스크립트 엔진 없음.</summary>
 public class SvgRenderSpikeTests
 {
     [Fact]
@@ -28,7 +28,7 @@ public class SvgRenderSpikeTests
     [Fact]
     public void SvgSkia_ScriptContentIsInertAndStillRenders()
     {
-        // Script elements must not execute (no JS engine) and must not break shape rendering.
+        // 스크립트 요소는 실행되지 않고(JS 엔진 없음) 도형 렌더도 깨지면 안 됨.
         const string svgText =
             """<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><script>while(true){}</script><rect width="10" height="10" fill="#FF0000"/></svg>""";
 

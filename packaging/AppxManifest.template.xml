@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- MSIX identity manifest (Q7=b). pack-msix.ps1 writes the version and publisher attributes;
-     the publisher must exactly match the signing certificate subject. -->
+<!-- MSIX ID 매니페스트(Q7=b). pack-msix.ps1이 버전·게시자를 기록하며 게시자는 서명 인증서 주체와 정확히 일치해야 함. -->
 <Package
   xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
   xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
@@ -19,9 +18,6 @@
 
   <Dependencies>
     <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.19041.0" MaxVersionTested="10.0.26100.0" />
-    <PackageDependency Name="GRTech.ezyImageViewer.CodecHost"
-                       Publisher="{{PUBLISHER}}"
-                       MinVersion="{{CODEC_HOST_VERSION}}" />
   </Dependencies>
 
   <Resources>
@@ -36,8 +32,7 @@
                           Square150x150Logo="Assets\Square150x150Logo.png"
                           Square44x44Logo="Assets\Square44x44Logo.png" />
       <Extensions>
-        <!-- Snipping Tool redirect-uri callback (FR-CAP-001): the scheme must match
-             SnipProtocol.Scheme. -->
+        <!-- 캡처 도구 redirect-uri 콜백(FR-CAP-001). 스킴은 SnipProtocol.Scheme과 같아야 함. -->
         <uap:Extension Category="windows.protocol">
           <uap:Protocol Name="ezyimageviewer" DesiredView="default">
             <uap:DisplayName>ezy Image Viewer</uap:DisplayName>

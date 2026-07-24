@@ -25,7 +25,7 @@ public class DocumentEditorTests
     private static RectangleAnnotation Rect(float x = 1, float y = 2, float w = 10, float h = 20) =>
         new() { Id = Guid.NewGuid(), Bounds = new RectF(x, y, w, h) };
 
-    // ---- FR-HIST-001: invertibility ----
+    // ---- 실행 취소 가능성 -------------------------------------------------------------------
 
     [Fact]
     public void Apply_ThenUndo_RestoresTheExactPreviousState()
@@ -104,7 +104,7 @@ public class DocumentEditorTests
         var annotation = Rect();
         editor.Apply(new AddAnnotationCommand(annotation));
 
-        // Deleting an id that is not on the layer throws while building the command's inverse.
+        // 레이어에 없는 ID 삭제는 역명령 생성 중 실패.
         Assert.Throws<InvalidOperationException>(() =>
             editor.Apply(new DeleteAnnotationCommand(editor.State, Guid.NewGuid())));
 
@@ -113,7 +113,7 @@ public class DocumentEditorTests
         Assert.False(editor.CanRedo);
     }
 
-    // ---- FR-HIST-004: modified state ----
+    // ---- 수정 상태 --------------------------------------------------------------------------
 
     [Fact]
     public void Reset_StartsClean_AndAnEditMarksModified()
@@ -150,8 +150,7 @@ public class DocumentEditorTests
 
         editor.Redo();
 
-        // State ids are carried by the entries, not minted per traversal: redo lands back on the
-        // saved state itself.
+        // 상태 ID는 항목이 보유하므로 다시 실행하면 실제 저장 상태로 복귀.
         Assert.False(editor.IsModified);
     }
 
@@ -164,7 +163,7 @@ public class DocumentEditorTests
         editor.MarkSaved();
 
         editor.Undo();
-        editor.Apply(new AddAnnotationCommand(Rect(x: 999))); // same depth as the savepoint, other content
+        editor.Apply(new AddAnnotationCommand(Rect(x: 999))); // 저장점과 깊이는 같지만 내용은 다름.
 
         Assert.True(editor.IsModified);
     }
@@ -210,11 +209,11 @@ public class DocumentEditorTests
     {
         var editor = MakeEditor();
         editor.Apply(new AddAnnotationCommand(Rect(x: 1)));
-        var token = editor.CurrentStateId; // captured with the state a save serialized
+        var token = editor.CurrentStateId; // 저장이 직렬화한 상태와 함께 확보.
 
-        editor.Apply(new AddAnnotationCommand(Rect(x: 2))); // lands while the write is in flight
+        editor.Apply(new AddAnnotationCommand(Rect(x: 2))); // 쓰는 중 편집 도착.
 
-        // The file on disk holds the captured state, not the current one — stays modified.
+        // 디스크에는 확보 상태가 있어 현재 상태는 계속 수정됨.
         Assert.False(editor.MarkSaved(token));
         Assert.True(editor.IsModified);
     }
@@ -226,9 +225,9 @@ public class DocumentEditorTests
         editor.Apply(new AddAnnotationCommand(Rect()));
         var token = editor.CurrentStateId;
 
-        editor.Reset(MakeDocument()); // replacement finished while the write was in flight
+        editor.Reset(MakeDocument()); // 쓰는 중 문서 교체 완료.
 
-        // Ids are monotonic across resets: the stale token cannot alias the successor's state.
+        // ID는 교체 뒤에도 증가해 묵은 토큰이 후임 상태와 겹치지 않음.
         Assert.False(editor.MarkSaved(token));
         Assert.False(editor.IsModified);
     }
@@ -256,7 +255,7 @@ public class DocumentEditorTests
         Assert.Throws<InvalidOperationException>(() => editor.Apply(new AddAnnotationCommand(Rect())));
     }
 
-    // ---- FR-HIST-002: dual cap ----
+    // ---- 이중 상한 --------------------------------------------------------------------------
 
     [Fact]
     public void EntryCap_EvictsTheOldestUndoEntryFirst()
@@ -267,7 +266,7 @@ public class DocumentEditorTests
         editor.Apply(new AddAnnotationCommand(Rect(x: 2)));
         editor.Apply(new AddAnnotationCommand(Rect(x: 3)));
 
-        // Three edits, two entries retained: the oldest add is no longer undoable.
+        // 세 번 편집, 두 항목 보존. 가장 오래된 추가는 취소 불가.
         Assert.True(editor.Undo());
         Assert.True(editor.Undo());
         Assert.False(editor.Undo());
@@ -278,7 +277,7 @@ public class DocumentEditorTests
     [Fact]
     public void ByteCap_CountsUndoAndRedoTogether()
     {
-        // Three entries fit the count cap but not the byte cap (48B each).
+        // 세 항목은 개수 상한 안이지만 각 48B라 바이트 상한 초과.
         var editor = MakeEditor(new HistoryLimits { MaxEntries = 100, MaxRetainedBytes = 100 });
         editor.Apply(new AddAnnotationCommand(Rect(x: 1)));
         editor.Apply(new AddAnnotationCommand(Rect(x: 2)));
@@ -286,7 +285,7 @@ public class DocumentEditorTests
 
         Assert.True(editor.RetainedBytes <= 100);
 
-        // Undo migrates payload from the undo stack to the redo stack; the total must not grow.
+        // 실행 취소는 항목을 다른 스택으로 옮길 뿐 총량은 늘지 않음.
         editor.Undo();
         editor.Undo();
 
@@ -297,7 +296,7 @@ public class DocumentEditorTests
     public void EvictedSavepoint_LeavesTheDocumentPermanentlyModified()
     {
         var editor = MakeEditor(new HistoryLimits { MaxEntries = 1 });
-        // Saved at the initial state, then two edits: the entry that could return there is evicted.
+        // 초기 상태 저장 후 두 번 편집. 초기로 돌아갈 항목은 축출.
         editor.Apply(new AddAnnotationCommand(Rect(x: 1)));
         editor.Apply(new AddAnnotationCommand(Rect(x: 2)));
 
@@ -314,13 +313,13 @@ public class DocumentEditorTests
         var editor = MakeEditor(new HistoryLimits { MaxRetainedBytes = 8 });
         editor.Apply(new AddAnnotationCommand(Rect(x: 1)));
 
-        // Undo cannot skip an unrecorded edit, so the recorded past goes with it.
+        // 실행 취소는 미기록 편집을 건너뛸 수 없어 기존 과거도 함께 제거.
         Assert.Single(editor.State.Annotations);
         Assert.False(editor.CanUndo);
         Assert.True(editor.IsModified);
     }
 
-    // ---- §7.8: drag coalescing ----
+    // ---- 드래그 병합 ------------------------------------------------------------------------
 
     [Fact]
     public void CoalescedDrag_IsOneUndoEntryThatReturnsToTheDragStart()
@@ -338,7 +337,7 @@ public class DocumentEditorTests
 
         Assert.True(editor.Undo());
         Assert.Equal(origin, editor.State.Annotations[0].Bounds);
-        Assert.Single(editor.State.Annotations); // the add survives: only one entry was consumed
+        Assert.Single(editor.State.Annotations); // 한 항목만 소비돼 추가는 남음.
     }
 
     [Fact]
@@ -372,8 +371,7 @@ public class DocumentEditorTests
     [Fact]
     public void ApplyCoalesced_OverAnUnrelatedEntry_StacksInsteadOfFoldingItAway()
     {
-        // Regression for the M2 shape of ApplyCoalesced, which replaced the newest entry
-        // unconditionally: an unrelated command must never be rewritten by a merge.
+        // 최신 항목을 무조건 교체해 무관한 명령까지 삼키던 병합 회귀.
         var editor = MakeEditor();
         var annotation = Rect(x: 0, y: 0, w: 10, h: 10);
         editor.Apply(new AddAnnotationCommand(annotation));
@@ -381,13 +379,13 @@ public class DocumentEditorTests
         editor.ApplyCoalesced(new MoveAnnotationCommand(
             annotation.Id, annotation.Bounds, annotation.Bounds.Translated(5, 5), gestureId: 1));
 
-        // Two entries: undoing the move must not undo the add with it.
+        // 두 항목이라 이동 취소가 추가까지 취소하면 안 됨.
         editor.Undo();
         Assert.Single(editor.State.Annotations);
         Assert.Equal(annotation.Bounds, editor.State.Annotations[0].Bounds);
     }
 
-    // ---- WP2 hardening ----
+    // ---- 방어 보강 --------------------------------------------------------------------------
 
     [Fact]
     public void HistoryLimits_RejectNonPositiveValues()
@@ -417,7 +415,7 @@ public class DocumentEditorTests
         var mutable = new MutableBytesCommand { Bytes = 10 };
         editor.Apply(mutable);
 
-        // The command inflates its claim after admission; the recorded 10 bytes must still govern.
+        // 입장 뒤 명령이 비용을 부풀려도 기록한 10바이트가 기준.
         mutable.Bytes = long.MaxValue;
 
         Assert.Equal(10, editor.RetainedBytes);
@@ -507,7 +505,7 @@ public class DocumentEditorTests
         Assert.Equal(0, compacted.RetainedBytes);
     }
 
-    // ---- notification ----
+    // ---- 알림 --------------------------------------------------------------------------------
 
     [Fact]
     public void EveryMutation_RaisesChanged()

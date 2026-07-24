@@ -3,7 +3,6 @@
 param(
     [Parameter(Mandatory)][string]$PayloadDirectory,
     [Parameter(Mandatory)][ValidateSet('PerUser', 'PerMachine')][string]$Scope,
-    [Parameter(Mandatory)][string]$CodecHostPackage,
     [Parameter(Mandatory)][string]$ExternalIdentityPackage,
     [Parameter(Mandatory)][string]$OutputPath
 )
@@ -42,11 +41,9 @@ if (-not $payloadRoot.PSIsContainer -or
 }
 Assert-EzyMsiPayload $payloadRoot.FullName -InventoryPresent
 
-$codecPath = Get-Item -LiteralPath ([IO.Path]::GetFullPath($CodecHostPackage)) -Force `
-    -ErrorAction Stop
 $identityPath = Get-Item -LiteralPath ([IO.Path]::GetFullPath($ExternalIdentityPackage)) `
     -Force -ErrorAction Stop
-foreach ($package in @($codecPath, $identityPath)) {
+foreach ($package in @($identityPath)) {
     if ($package.PSIsContainer -or
         ($package.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0 -or
         [IO.Path]::GetExtension($package.Name) -cne '.msix') {
@@ -61,7 +58,6 @@ $additionalFiles = [ordered]@{
         (Join-Path $PSScriptRoot 'identity-registration-backend.ps1')
     'InstallerResources\invoke-identity-registration.ps1' =
         (Join-Path $PSScriptRoot 'invoke-identity-registration.ps1')
-    'InstallerResources\ezyImageViewer.CodecHost.msix' = $codecPath.FullName
     'InstallerResources\ezyImageViewer.ExternalIdentity.msix' = $identityPath.FullName
 }
 
@@ -129,9 +125,6 @@ foreach ($entry in $entries) {
     }
     elseif ($entry.RelativePath -ceq 'InstallerResources\invoke-identity-registration.ps1') {
         'IdentityRegistrationInvoker'
-    }
-    elseif ($entry.RelativePath -ceq 'InstallerResources\ezyImageViewer.CodecHost.msix') {
-        'CodecHostIdentityPackage'
     }
     elseif ($entry.RelativePath -ceq 'InstallerResources\ezyImageViewer.ExternalIdentity.msix') {
         'ExternalIdentityPackage'

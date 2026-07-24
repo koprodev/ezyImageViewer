@@ -35,8 +35,8 @@ public sealed class RasterAssetImageCache : IDisposable
         Replace(asset.Id, image);
     }
 
-    /// <summary>Synchronous warm for an image the caller already materialized (UR-009 region
-    /// lift); the cache takes ownership of <paramref name="image"/>.</summary>
+    /// <summary>호출자가 이미 만든 이미지를 동기 예열(UR-009 영역 들어 올리기).
+    /// 캐시가 <paramref name="image"/> 소유권을 넘겨받음.</summary>
     public void Warm(RasterAsset asset, SKImage image)
     {
         ArgumentNullException.ThrowIfNull(asset);

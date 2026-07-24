@@ -3,8 +3,7 @@ using Xunit;
 
 namespace EzyImageViewer.Tests.Capture;
 
-/// <summary>Capture ingestion policy (FR-CAP-003/005/006): armed auto-open, passive notify,
-/// internal-echo suppression and the watch toggle.</summary>
+/// <summary>캡처 유입 정책(FR-CAP-003/005): 대기 중 자동 열기·수동 알림·내부 메아리 억제·감시 토글.</summary>
 public sealed class CaptureFlowTests
 {
     private static readonly DateTimeOffset T0 = new(2026, 7, 18, 12, 0, 0, TimeSpan.Zero);
@@ -16,7 +15,7 @@ public sealed class CaptureFlowTests
         flow.Arm(T0);
 
         Assert.Equal(CaptureDecision.Ignore, flow.OnClipboardImage(isInternalEcho: true, T0));
-        // The echo must not consume the armed window — the real capture is still coming.
+        // 내부 메아리가 대기 창을 먹으면 안 됨. 진짜 캡처가 아직 오는 중.
         Assert.True(flow.IsArmed(T0));
     }
 

@@ -68,7 +68,6 @@ if ($LASTEXITCODE -ne 0 -or $head.Count -ne 1 -or
     -not [bool]$manifest.prerelease -or [bool]$manifest.signed -or
     [string]$manifest.supportedUse -cne 'personal-evaluation-and-testing-preview' -or
     [string]$manifest.applicationVersion -cne [string]$contract.applicationVersion -or
-    [string]$manifest.codecHostVersion -cne [string]$contract.codecHostVersion -or
     [string]$manifest.portableVersion -cne [string]$contract.portableVersion) {
     throw 'Preview release manifest contract mismatch.'
 }

@@ -1,66 +1,20 @@
-# M8-A/M8-B format corpus
+# 이미지 형식 코퍼스
 
-The repository tracks the corpus contract, not third-party binary samples. Set
-`EZYIMAGEVIEWER_FORMAT_CORPUS` to a local cache whose paths match
-`corpus-manifest.json`. Every sample must declare its source, SPDX license (or an
-explicit redistribution restriction), and SHA-256 before it can enter the gate.
+저장소에는 코퍼스 계약만 두고 제3자 바이너리 샘플은 넣지 않는다. 실제 샘플은 `EZYIMAGEVIEWER_FORMAT_CORPUS`가 가리키는 로컬 캐시에 보관하며 경로는 `corpus-manifest.json`과 맞춘다.
 
-`EZYIMAGEVIEWER_REQUIRE_COMPLETE_FORMAT_CORPUS=1` turns the normal validation test
-into the release gate: every M8-A extension must contain at least 30 normal samples,
-all referenced files must exist, and every digest must match. The test never downloads
-or rewrites corpus files.
+각 샘플에 다음 정보를 기록한다.
 
-Golden images are addressed by relative path and SHA-256 in the same manifest. Keep
-generated or third-party binaries outside git unless their license and repository size
-impact have been reviewed explicitly.
+- 출처와 SPDX 라이선스 또는 명시적 재배포 제한
+- SHA-256
+- `normal`, `large`, `boundary`, `corrupt`, `security` 중 하나인 종류
+- 선택적 골든 이미지 경로와 SHA-256
 
-## Isolated-codec contract (schema v2)
+경로는 코퍼스 루트 아래의 상대 경로만 허용한다. 형식 안에서 샘플 경로와 해시는 중복할 수 없다. 골든 경로와 해시는 둘 다 있거나 둘 다 없어야 한다.
 
-PDF and PSD entries use schema v2. Every codec sample has a stable `id`, one or
-more `scenarios`, producer name/version/platform, and exact expected Direct Host
-inspect/decode results plus the installed-product outcome. Successful metadata is
-exact: page count and native dimensions are not ranges. Password-protected samples
-must carry an explicit `password` field; filenames never determine the expectation.
-Within each format, input paths and SHA-256 digests are unique, and the normal set
-must span at least two distinct producer names. Generic-format samples cannot use
-codec-only fields.
+## 완전성 게이트
 
-Every successful Host baseline has a golden for the same page and target. A golden
-records that page's native width and height, its reference renderer and version,
-SHA-256 digest, sRGB premultiplied-BGRA8 contract, and explicit maximum channel
-delta, alpha delta, changed-pixel ratio, and mean absolute error. No tolerance may
-exceed the release fidelity policy: RGB channel delta 64, alpha delta 64,
-changed-pixel threshold 16, changed-pixel ratio 10%, and mean absolute error 4.0.
-Decode targets are limited to the Host boundary of 65,500 pixels. PDF and PSD each
-require at least 30 normal samples plus at least one large, boundary, corrupt, and
-security sample and the format-specific scenario matrix.
+`EZYIMAGEVIEWER_REQUIRE_COMPLETE_FORMAT_CORPUS=1`을 지정하면 모든 지원 확장자에 정상 샘플 30개 이상을 요구한다. 이때 `EZYIMAGEVIEWER_FORMAT_CORPUS`도 반드시 지정해야 한다.
 
-Requirement 14.2 also calls for small files, but it does not define a byte-size
-threshold. The release corpus must therefore curate and document small examples;
-the executable gate does not invent a numeric cutoff and the tracked empty corpus
-does not yet satisfy that curation requirement.
+테스트는 파일 존재 여부와 해시를 확인할 뿐 다운로드하거나 고치지 않는다. 공유 저장소에 샘플을 추가하려면 라이선스와 저장소 크기 영향을 먼저 검토한다.
 
-Scenario expectations are bidirectional. Rendering, layer, color, ICC, and alpha
-scenarios require exact Host/product success and a golden. Encrypted PDF requires
-password refusal, malformed structure requires corrupt-input refusal, compression
-bombs require resource-limit refusal, and slow-render cancellation requires Host
-success plus an explicit product cancellation delay. Combining scenarios with
-incompatible outcomes is invalid.
-
-`EZYIMAGEVIEWER_RUN_CODEC_CORPUS=1` runs the Direct Host gate. It proves exact
-CodecHost protocol results and pixel goldens only; it is not proof of product
-activation, AppContainer isolation, inherited-handle transport, or profile reset.
-
-The installed-product boundary is a separate opt-in gate selected by
-`EZYIMAGEVIEWER_RUN_INSTALLED_CODEC_CORPUS=1`. It uses the installed framework package
-through `DocumentLoader.LoadFileAsync`, verifies exact user-facing outcomes, inherited
-read handles, and per-request profile reset. For a `canceled` product outcome, the
-Direct Host gate treats the same baseline as an exact success and checks its golden;
-the installed-product gate instead cancels through `CancellationToken` after the
-manifest's explicit `cancellationAfterMilliseconds` delay and requires cancellation
-to cross the installed Host boundary.
-
-Both codec gates are real xUnit skips by default. Once either gate is opted in, an
-empty or incomplete PDF/PSD corpus fails closed before files or installed packages
-are exercised. No external corpus or golden binary is stored in this repository, so
-the tracked empty manifest is not evidence that either opt-in gate passes.
+PDF·PSD는 2026-07-24 사용자 결정으로 제품에서 영구 제외했다. 코퍼스 계약도 현재 제품이 여는 래스터·SVG 형식만 다루며, 폐지된 CodecHost·설치 경계·전용 환경 변수는 사용하지 않는다.

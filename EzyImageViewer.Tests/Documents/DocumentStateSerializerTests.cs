@@ -5,10 +5,7 @@ using Xunit;
 
 namespace EzyImageViewer.Tests.Documents;
 
-/// <summary>
-/// The storage-neutral v1 fragment (ADR-0003:13 / ADR-0009). Every read is hostile-input territory:
-/// nothing degrades silently — unknown, missing, duplicate or absurd input fails the read.
-/// </summary>
+/// <summary>저장소 중립 문서 조각의 적대 입력 검증. 알 수 없음·누락·중복·과다는 모두 실패.</summary>
 public class DocumentStateSerializerTests
 {
     private static DocumentState SampleState()
@@ -41,10 +38,10 @@ public class DocumentStateSerializerTests
 
         var restored = DocumentStateSerializer.Read(DocumentStateSerializer.Write(state));
 
-        Assert.Equal(state.Transform, restored.Transform); // sequence equality, order included
+        Assert.Equal(state.Transform, restored.Transform); // 순서 포함 시퀀스 동등.
         Assert.Equal(state.Annotations.Count, restored.Annotations.Count);
         for (var i = 0; i < state.Annotations.Count; i++)
-            Assert.Equal(state.Annotations[i], restored.Annotations[i]); // record value equality
+            Assert.Equal(state.Annotations[i], restored.Annotations[i]); // record 값 동등.
     }
 
     [Fact]
@@ -67,7 +64,7 @@ public class DocumentStateSerializerTests
         Assert.Contains("\"kind\":\"rectangle\"", json);
     }
 
-    // ---- rejection paths ----
+    // ---- 거절 경로 --------------------------------------------------------------------------
 
     [Fact]
     public void UnknownOpKind_FailsTheRead()
@@ -119,7 +116,7 @@ public class DocumentStateSerializerTests
     [Fact]
     public void OutOfRangeNumbers_FailTheRead()
     {
-        // 1e39 overflows float; a negative crop/erase extent fails the domain constructor.
+        // 1e39는 float 넘침, 음수 자르기·지우기 크기는 도메인 생성자에서 실패.
         const string overflow = """{"transform":[{"kind":"rotate","degrees":1e39}],"annotations":[]}""";
         const string negative = """{"transform":[{"kind":"crop","x":0,"y":0,"width":-5,"height":10}],"annotations":[]}""";
         const string negativeErase = """{"transform":[{"kind":"erase","x":0,"y":0,"width":10,"height":-1}],"annotations":[]}""";
@@ -145,7 +142,7 @@ public class DocumentStateSerializerTests
     [Fact]
     public void NullSections_FailTheRead_NotWithANullReference()
     {
-        // `required` accepts an explicit JSON null for a reference type — the guard is ours.
+        // required는 참조형의 명시적 JSON null을 받으므로 직접 방어.
         Assert.Throws<InvalidDataException>(() =>
             DocumentStateSerializer.Read("""{"transform":null,"annotations":[]}"""));
         Assert.Throws<InvalidDataException>(() =>
@@ -155,7 +152,7 @@ public class DocumentStateSerializerTests
     [Fact]
     public void NullElements_FailTheRead_NotWithANullReference()
     {
-        // A JSON `null` list element deserializes as a null entry, not a JsonException.
+        // JSON null 목록 요소는 예외가 아니라 null 항목으로 역직렬화.
         Assert.Throws<InvalidDataException>(() =>
             DocumentStateSerializer.Read("""{"transform":[null],"annotations":[]}"""));
         Assert.Throws<InvalidDataException>(() =>
@@ -165,7 +162,7 @@ public class DocumentStateSerializerTests
     [Fact]
     public void Write_RefusesWhatReadWouldRefuse()
     {
-        // Symmetry invariant: a state Write accepts must round-trip through Read.
+        // 대칭 불변 조건: 쓰기가 받은 상태는 읽기 왕복 성공.
         var transform = BackgroundTransform.Identity;
         for (var i = 0; i <= DocumentStateSerializer.MaxOps; i++)
             transform = transform.Append(new FlipOp(true));
@@ -184,7 +181,7 @@ public class DocumentStateSerializerTests
     [Fact]
     public void FiniteComponentsWithNonFiniteExtremes_FailTheRead()
     {
-        // 3e38 + 3e38 = Infinity: X and Width are individually finite, Right is not.
+        // 3e38 + 3e38 = Infinity. X와 너비는 각각 유한해도 오른쪽은 아님.
         var json = $$"""{"transform":[],"annotations":[{"kind":"rectangle","id":"{{Guid.NewGuid()}}","x":3e38,"y":0,"width":3e38,"height":1,"strokeArgb":1,"strokeWidth":1}]}""";
         Assert.Throws<InvalidDataException>(() => DocumentStateSerializer.Read(json));
     }

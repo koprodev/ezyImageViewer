@@ -5,8 +5,8 @@ using Windows.Graphics.Imaging;
 namespace EzyImageViewer.Imaging.Wic;
 
 /// <summary>
-/// WIC path via Windows.Graphics.Imaging. Output contract: BGRA8 premultiplied, sRGB-managed,
-/// EXIF orientation applied once by the decoder (dimensions reported post-orientation).
+/// Windows.Graphics.Imaging을 거치는 WIC 경로.
+/// 출력 계약: BGRA8 미리 곱한 알파·sRGB 관리·EXIF 방향 1회 적용. 크기는 방향 적용 후 기준.
 /// </summary>
 public sealed class WicImageDecoder : IImageDecoder
 {
@@ -45,8 +45,8 @@ public sealed class WicImageDecoder : IImageDecoder
         if (plan.Action == DecodeAction.Reject)
             throw new SecurityLimitExceededException(plan.RejectReason!);
 
-        // BitmapTransform scales in the unoriented frame; a uniform ratio keeps the oriented
-        // output at the planned budget regardless of the 90/270 axis swap.
+        // BitmapTransform은 방향 적용 전 프레임에서 배율 조정.
+        // 균일 비율로 90/270도 축 교환 뒤에도 출력 예산 유지.
         var transform = new BitmapTransform();
         if (plan.Action == DecodeAction.DecodeScaled)
         {

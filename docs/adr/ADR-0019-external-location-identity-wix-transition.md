@@ -1,13 +1,13 @@
 # ADR-0019: external-location identity와 WiX 설치 구조
 
-- 상태: Accepted — 구현·read-only artifact 검증 완료, production/clean VM lifecycle 전
+- 상태: 채택 — main identity 구현·read-only artifact 검증 완료, production/clean VM lifecycle 전
 - 결정일: 2026-07-19
 - 범위: M9-B Windows 설치·배포 전환
 
 ## 맥락
 
 ezy Image Viewer는 일반 WinUI 3 실행 파일을 사용자가 선택한 폴더에 설치하면서 Snipping Tool
-callback과 격리 CodecHost dependency에 필요한 package identity를 가져야 한다. Microsoft의
+callback에 필요한 package identity를 가져야 한다. Microsoft의
 external-location package는 기존 설치 프로그램과 실행 파일 위치를 유지한 채 identity를 부여할
 수 있지만, 설치 scope별 등록 권한과 제거 책임은 설치 프로그램이 직접 관리해야 한다.
 
@@ -34,17 +34,13 @@ WiX 승인은 개발·CI 도입에 대한 사용자 승인이다. OSMF의 조직
 
 1. 주 앱 sparse identity는 `GRTech.ezyImageViewer`, application `App`, x64 실행 파일과 같은
    Publisher를 사용한다.
-2. CodecHost는 `GRTech.ezyImageViewer.CodecHost` x64 framework MSIX이며 activation surface와
-   capability가 없다.
-3. 주 앱은 Host 이름·Publisher·최소 버전을 exact dependency로 선언한다.
-4. sparse package는 `AllowExternalContent=true`, `Architecture=neutral`, Windows build 19041
+2. sparse package는 `AllowExternalContent=true`, `Architecture=neutral`, Windows build 19041
    baseline을 유지한다.
-5. 실행 파일 side-by-side manifest와 sparse package identity는 생성 뒤 `mt.exe` 재추출로 다시
+3. 실행 파일 side-by-side manifest와 sparse package identity는 생성 뒤 `mt.exe` 재추출로 다시
    검증한다.
-6. MSI payload는 self-contained external publish inventory와 exact 일치해야 하며 PDB, Host
-   binary, PDFium, SDK tool, 미선언 stale 파일을 거부한다.
-7. 설치 순서는 Host→main, 제거는 main→Host다. 설치 전 package는 소유하지 않으며 rollback·제거
-   중 보존한다.
+4. MSI payload는 self-contained external publish inventory와 exact 일치해야 하며 PDB, 제거된
+   codec 파일, SDK tool, 미선언 stale 파일을 거부한다.
+5. 설치 전 main package는 소유하지 않으며 rollback·제거 중 보존한다.
 
 ### 2. MSI와 Burn scope
 
@@ -63,13 +59,13 @@ WiX 승인은 개발·CI 도입에 대한 사용자 승인이다. OSMF의 조직
 
 - `identity-registration-backend.ps1`은 bounded ZIP/XML parsing으로 MSIX manifest를 읽고 예상
   identity, Publisher, version, architecture, framework/dependency 계약을 재검증한다.
-- CurrentUser는 `Add-AppxPackage`로 Host를 등록한 뒤 main을 `ExternalLocation`과 등록한다.
-- AllUsers는 Host와 main을 stage한 뒤 라이선스 파일이 없는 LOB package 계약에 맞춰 둘 다
-  `SkipLicense`로 online provision한다. main의 external location은 Microsoft의 build 19041 호환
+- CurrentUser는 main을 `ExternalLocation`과 등록한다.
+- AllUsers는 main을 stage한 뒤 라이선스 파일이 없는 LOB package 계약에 맞춰 `SkipLicense`로
+  online provision한다. main의 external location은 Microsoft의 build 19041 호환
   절차대로 stage 단계에 전달하며, 최신 로컬 모듈에만 보이는 provisioning 인자를 요구하지 않는다.
 - 상태 파일은 설치 폴더의 `InstallerResources` 아래에 원자적으로 기록하며 pre-existing 여부와
   이번 transaction 소유 단계를 구분한다.
-- 실패 시 완료 단계만 역순 rollback한다. Host 제거 전 다른 dependent가 있으면 제거하지 않는다.
+- 실패 시 완료 단계만 역순 rollback한다.
 - 기존 full MSIX와 같은 main identity가 state 없이 존재하면 자동 migration·제거하지 않고 명확한
   ownership 오류로 중단한다. 정상 uninstall에서는 손상·불일치 state로 ownership을 확인할 수 없는
   경우 package를 보존한 채 MSI 파일 제거를 계속하지만 rollback과 실제 package 제거 실패는 엄격하다.
@@ -94,7 +90,7 @@ WiX 승인은 개발·CI 도입에 대한 사용자 승인이다. OSMF의 조직
 - 개발 gate는 `-DevelopmentUnsigned`를 명시하며 파일 이름과 metadata에 unsigned 상태를 남긴다.
   Windows가 unsigned MSIX identity 등록을 거부하므로 이 빌드는 `EZY_REGISTER_IDENTITY=0`으로
   identity custom action을 건너뛰고 일반 데스크톱 앱·App Paths·파일 연결만 설치한다.
-  identity와 CodecHost 등록은 production 서명 빌드에서만 활성화한다.
+  identity 등록은 production 서명 빌드에서만 활성화한다.
 - production parameter set은 승인된 current-user code-signing 인증서 thumbprint, HTTPS
   RFC 3161 timestamp URL, 고정 BuildTools 경로를 모두 요구한다. Subject=Publisher, private key,
   유효기간, code-signing EKU를 output 생성 전에 확인한다. 선택된 x64 SignTool 자체도 Windows trust
@@ -137,9 +133,8 @@ trust store, package registration을 변경하지 않는다.
 - production Publisher·인증서 체인·timestamp와 실제 Authenticode 서명
 - clean VM의 UAC, CurrentUser/AllUsers registration·provisioning, 설치/repair/upgrade/downgrade/
   rollback/remove와 다중 사용자 lifecycle
-- 실제 설치 identity에서 Snipping Tool callback과 CodecHost framework resolution
-- 더 높은 기존 Host의 protocol compatibility와 breaking-version identity 정책
-- PDFium/Chromium upstream 고지, OSMF 조직 조건, 최종 제품 EULA 법무 검토
+- 실제 설치 identity에서 Snipping Tool callback
+- OSMF 조직 조건과 최종 제품 EULA 법무 검토
 
 따라서 unsigned 개발 artifact를 `production`, `release complete`, `일반 사용자 배포 가능`으로
 표시하지 않는다.

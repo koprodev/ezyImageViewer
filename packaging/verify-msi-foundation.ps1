@@ -7,9 +7,6 @@ param(
     [string]$Version,
 
     [Parameter(Mandatory)]
-    [string]$CodecHostVersion,
-
-    [Parameter(Mandatory)]
     [string]$Publisher,
 
     [Parameter(Mandatory)]
@@ -28,7 +25,6 @@ $repositoryRoot = [IO.Path]::GetFullPath((Join-Path $scriptRoot '..'))
 . (Join-Path $scriptRoot 'msi-payload-helpers.ps1')
 
 Assert-EzyExternalFourPartVersion $Version 'Version'
-Assert-EzyExternalFourPartVersion $CodecHostVersion 'CodecHostVersion'
 Assert-EzyExternalPublisher $Publisher
 Assert-EzyExternalMinVersion $MinVersion
 
@@ -53,7 +49,6 @@ if ($metadataFile.PSIsContainer -or $metadataFile.Length -le 0 -or $metadataFile
 $metadata = [IO.File]::ReadAllText($metadataFile.FullName) | ConvertFrom-Json
 if ($metadata.schemaVersion -ne 1 -or
     $metadata.version -cne $Version -or
-    $metadata.codecHostVersion -cne $CodecHostVersion -or
     $metadata.publisher -cne $Publisher -or
     $metadata.minVersion -cne $MinVersion -or
     $metadata.architecture -cne 'x64' -or
@@ -84,8 +79,7 @@ $sourcePackageManifest = Join-Path $root.FullName 'contracts\package\AppxManifes
 $sourceApplicationManifest = Join-Path $root.FullName `
     'contracts\application\ezyImageViewer.exe.manifest'
 $packageDocument = Read-EzyExternalXml $sourcePackageManifest
-Assert-EzyExternalPackageManifest $packageDocument $Version $CodecHostVersion `
-    $Publisher $MinVersion
+Assert-EzyExternalPackageManifest $packageDocument $Version $Publisher $MinVersion
 $applicationDocument = Read-EzyExternalXml $sourceApplicationManifest
 Assert-EzyExternalApplicationManifest $applicationDocument $Publisher
 $applicationHash = (Get-FileHash $sourceApplicationManifest -Algorithm SHA256).Hash.ToUpperInvariant()
@@ -127,8 +121,7 @@ try {
         throw "makeappx could not unpack the external identity package ($LASTEXITCODE)."
     }
     $unpackedDocument = Read-EzyExternalXml (Join-Path $unpacked 'AppxManifest.xml')
-    Assert-EzyExternalPackageManifest $unpackedDocument $Version $CodecHostVersion `
-        $Publisher $MinVersion
+    Assert-EzyExternalPackageManifest $unpackedDocument $Version $Publisher $MinVersion
     $unpackedPrefix = $unpacked.TrimEnd('\') + '\'
     $unpackedPayload = @(Get-ChildItem -LiteralPath $unpacked -Recurse -File |
         Where-Object { $_.Name -notin @('AppxBlockMap.xml', '[Content_Types].xml') } |

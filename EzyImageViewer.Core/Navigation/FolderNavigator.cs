@@ -9,10 +9,9 @@ public sealed record FolderNavigatorOptions
 }
 
 /// <summary>
-/// Prev/next traversal over one folder's supported files in natural order (FR-NAV-001/002),
-/// with an opt-in recursive mode that orders relative paths and rejects reparse points (FR-NAV-004).
-/// Deleted/renamed files are handled by rescanning on a miss (FR-NAV-003 basic tier;
-/// live FileSystemWatcher tracking is deferred). Not thread-safe; owned by one window.
+/// 폴더의 지원 파일을 자연 정렬로 이전·다음 탐색.
+/// 선택적 재귀는 상대 경로 정렬과 재분석 지점 차단, 누락 파일은 한 번 재스캔.
+/// 창 하나가 소유하며 스레드 안전하지 않음.
 /// </summary>
 public sealed class FolderNavigator
 {
@@ -41,6 +40,10 @@ public sealed class FolderNavigator
 
     public int Count => _files.Count;
     public int CurrentIndex => _index;
+
+    /// <summary>임의 항목 이동용 스캔 순서. 재스캔은 새 목록을 게시해 기존 스냅샷 유지.</summary>
+    public IReadOnlyList<string> Files => _files;
+
     public bool IncludeSubfolders => _includeSubfolders;
     public bool CanMovePrevious => _index > 0;
     public bool CanMoveNext => _index >= 0 && _index < _files.Count - 1;
@@ -56,13 +59,13 @@ public sealed class FolderNavigator
         Rescan(preferredPath);
     }
 
-    /// <summary>Anchors navigation on an opened file; scans its folder.</summary>
+    /// <summary>열린 파일을 기준점으로 두고 해당 폴더 스캔.</summary>
     public void AnchorTo(string filePath)
     {
         var folder = Path.GetDirectoryName(Path.GetFullPath(filePath));
         if (!StringComparer.OrdinalIgnoreCase.Equals(_folder, folder))
         {
-            // Never retain entries from a different folder if the new scan becomes unreadable.
+            // 새 폴더를 못 읽어도 이전 폴더 항목은 절대 남기지 않음.
             _files = [];
             _index = -1;
         }
@@ -72,6 +75,28 @@ public sealed class FolderNavigator
 
     public string? MoveNext() => Move(+1);
     public string? MovePrevious() => Move(-1);
+
+    /// <summary>스캔 항목으로 즉시 이동. 사라졌으면 한 번 재스캔 후 경로로 다시 찾음.</summary>
+    public string? MoveTo(int index)
+    {
+        if (_folder is null || index < 0 || index >= _files.Count)
+            return null;
+
+        var target = _files[index];
+        if (File.Exists(target))
+        {
+            _index = index;
+            return target;
+        }
+
+        Rescan(preferredPath: CurrentPath);
+        var moved = _files.FindIndex(path => string.Equals(
+            path, target, StringComparison.OrdinalIgnoreCase));
+        if (moved < 0 || !File.Exists(_files[moved]))
+            return null;
+        _index = moved;
+        return _files[moved];
+    }
 
     private string? Move(int direction)
     {
@@ -86,7 +111,7 @@ public sealed class FolderNavigator
                 _index = next;
                 return _files[next];
             }
-            // A file vanished: rescan and retry once from the current anchor.
+            // 파일이 사라졌으면 현재 기준점에서 한 번 재스캔·재시도.
             var previousPath = CurrentPath;
             Rescan(preferredPath: previousPath);
             if (previousPath is null)
@@ -136,7 +161,7 @@ public sealed class FolderNavigator
                                    or UnauthorizedAccessException
                                    or System.Security.SecurityException)
         {
-            // A same-folder refresh keeps its last known list; AnchorTo cleared cross-folder state.
+            // 같은 폴더 새로 고침은 마지막 목록 유지. 다른 폴더 상태는 AnchorTo가 정리.
             return;
         }
 

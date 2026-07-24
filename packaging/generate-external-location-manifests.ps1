@@ -7,9 +7,6 @@ param(
     [string]$Version,
 
     [Parameter(Mandatory)]
-    [string]$CodecHostVersion,
-
-    [Parameter(Mandatory)]
     [string]$Publisher,
 
     [Parameter(Mandatory)]
@@ -28,7 +25,6 @@ $result = New-EzyExternalLocationManifests `
     -ApplicationTemplatePath (Join-Path $scriptRoot 'ExternalLocation.App.manifest.template.xml') `
     -OutputDirectory $OutputDirectory `
     -Version $Version `
-    -CodecHostVersion $CodecHostVersion `
     -Publisher $Publisher `
     -MinVersion $MinVersion
 

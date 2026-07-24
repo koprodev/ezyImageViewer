@@ -1,7 +1,9 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)][string]$Version,
-    [Parameter(Mandatory)][string]$OutputDirectory
+    [Parameter(Mandatory)][string]$OutputDirectory,
+    # 로컬 테스트만 현재 작업 트리 그대로 게시. 공개 릴리스는 이 옵션 없이 commit에 결박.
+    [switch]$AllowUncommittedSource
 )
 
 Set-StrictMode -Version Latest
@@ -14,7 +16,9 @@ $repositoryRoot = [IO.Path]::GetFullPath((Join-Path $scriptRoot '..'))
 
 Assert-EzyPortableVersion $Version
 $numericVersion = Get-EzyPortableNumericVersion $Version
-[void](Assert-EzyPortableSourceState $repositoryRoot)
+if (-not $AllowUncommittedSource) {
+    [void](Assert-EzyPortableSourceState $repositoryRoot)
+}
 
 $target = [IO.Path]::GetFullPath($OutputDirectory)
 if ([IO.Directory]::Exists($target) -or [IO.File]::Exists($target)) {
@@ -79,8 +83,7 @@ try {
         -ProjectAssetsJson $projectAssets
     $licenseRoot = Split-Path -Parent $licenseIndex
 
-    # The folder publish writes a non-redirecting RegFree WinRT manifest. Remove only
-    # those generated files so the single-file publish recreates them with loadFrom.
+    # 폴더 게시가 만든 비리디렉션 RegFree WinRT manifest만 지워 단일 파일 게시가 loadFrom으로 재생성.
     $manifestDirectory = Join-Path (Split-Path -Parent $publishOutputList) 'Manifests'
     foreach ($generatedName in @('WindowsAppSDK.manifest', 'app.manifest')) {
         $generatedManifest = Join-Path $manifestDirectory $generatedName

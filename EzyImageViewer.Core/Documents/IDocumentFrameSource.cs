@@ -15,7 +15,7 @@ public readonly record struct DocumentFrameInfo(TimeSpan Duration)
     public static DocumentFrameInfo Still { get; } = new(TimeSpan.Zero);
 }
 
-/// <summary>Lazy source for pages, animation frames, and scale-dependent vector renders.</summary>
+/// <summary>페이지·애니메이션 프레임·배율별 벡터 렌더를 늦게 공급하는 원본.</summary>
 public interface IDocumentFrameSource : IDisposable
 {
     int FrameCount { get; }

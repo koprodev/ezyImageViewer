@@ -82,7 +82,6 @@ try {
             -ApplicationTemplatePath $applicationTemplate `
             -OutputDirectory $output `
             -Version '1.2.3.4' `
-            -CodecHostVersion '1.2.0.0' `
             -Publisher $publisher `
             -MinVersion $minVersion
 
@@ -92,7 +91,7 @@ try {
             "Application manifest was not generated for $minVersion."
 
         $package = Read-EzyExternalXml $result.PackageManifestPath
-        Assert-EzyExternalPackageManifest $package '1.2.3.4' '1.2.0.0' $publisher $minVersion
+        Assert-EzyExternalPackageManifest $package '1.2.3.4' $publisher $minVersion
         $application = Read-EzyExternalXml $result.ApplicationManifestPath
         Assert-EzyExternalApplicationManifest $application $publisher
         $script:PassCount += 2
@@ -103,7 +102,6 @@ try {
         -ApplicationTemplatePath $applicationTemplate `
         -OutputDirectory (Join-Path $tempRoot 'deterministic-a') `
         -Version '2.0.0.0' `
-        -CodecHostVersion '2.0.0.0' `
         -Publisher $publisher `
         -MinVersion '10.0.19041.0'
     $second = New-EzyExternalLocationManifests `
@@ -111,7 +109,6 @@ try {
         -ApplicationTemplatePath $applicationTemplate `
         -OutputDirectory (Join-Path $tempRoot 'deterministic-b') `
         -Version '2.0.0.0' `
-        -CodecHostVersion '2.0.0.0' `
         -Publisher $publisher `
         -MinVersion '10.0.19041.0'
 
@@ -130,7 +127,6 @@ try {
         -ApplicationTemplatePath $applicationTemplate `
         -OutputDirectory $overwriteRoot `
         -Version '2.0.0.0' `
-        -CodecHostVersion '2.0.0.0' `
         -Publisher $publisher `
         -MinVersion '10.0.19041.0')
     $overwrite = New-EzyExternalLocationManifests `
@@ -138,11 +134,10 @@ try {
         -ApplicationTemplatePath $applicationTemplate `
         -OutputDirectory $overwriteRoot `
         -Version '2.0.0.1' `
-        -CodecHostVersion '2.0.0.0' `
         -Publisher $publisher `
         -MinVersion '10.0.19041.0'
     $overwrittenPackage = Read-EzyExternalXml $overwrite.PackageManifestPath
-    Assert-EzyExternalPackageManifest $overwrittenPackage '2.0.0.1' '2.0.0.0' `
+    Assert-EzyExternalPackageManifest $overwrittenPackage '2.0.0.1' `
         $publisher '10.0.19041.0'
     $script:PassCount++
     Assert-Contract `
@@ -171,7 +166,7 @@ try {
     $tamperedPackage.SelectSingleNode(
         '/f:Package/f:Properties/uap10:AllowExternalContent', $namespaces).InnerText = 'false'
     Assert-ContractThrows 'external content disabled' {
-        Assert-EzyExternalPackageManifest $tamperedPackage '2.0.0.0' '2.0.0.0' `
+        Assert-EzyExternalPackageManifest $tamperedPackage '2.0.0.0' `
             $publisher '10.0.19041.0'
     }
 
@@ -182,7 +177,7 @@ try {
         $namespaces)
     $tamperedProtocol.SetAttribute('Name', 'wrong-scheme')
     Assert-ContractThrows 'protocol mismatch' {
-        Assert-EzyExternalPackageManifest $tamperedPackage '2.0.0.0' '2.0.0.0' `
+        Assert-EzyExternalPackageManifest $tamperedPackage '2.0.0.0' `
             $publisher '10.0.19041.0'
     }
 
@@ -190,7 +185,7 @@ try {
     $tamperedPackage.DocumentElement.SetAttribute(
         'IgnorableNamespaces', 'uap uap10 rescap')
     Assert-ContractThrows 'restricted capability namespace made ignorable' {
-        Assert-EzyExternalPackageManifest $tamperedPackage '2.0.0.0' '2.0.0.0' `
+        Assert-EzyExternalPackageManifest $tamperedPackage '2.0.0.0' `
             $publisher '10.0.19041.0'
     }
 
@@ -200,7 +195,7 @@ try {
         '/f:Package/f:Applications/f:Application', $namespaces)
     $tamperedApp.SetAttribute('EntryPoint', 'Windows.FullTrustApplication')
     Assert-ContractThrows 'unexpected application attribute' {
-        Assert-EzyExternalPackageManifest $tamperedPackage '2.0.0.0' '2.0.0.0' `
+        Assert-EzyExternalPackageManifest $tamperedPackage '2.0.0.0' `
             $publisher '10.0.19041.0'
     }
 
@@ -214,14 +209,14 @@ try {
     $extraCapability.SetAttribute('Name', 'broadFileSystemAccess')
     [void]$capabilities.AppendChild($extraCapability)
     Assert-ContractThrows 'unexpected capability' {
-        Assert-EzyExternalPackageManifest $tamperedPackage '2.0.0.0' '2.0.0.0' `
+        Assert-EzyExternalPackageManifest $tamperedPackage '2.0.0.0' `
             $publisher '10.0.19041.0'
     }
 
     $tamperedPackage = Read-EzyExternalXml $first.PackageManifestPath
     $tamperedPackage.DocumentElement.SetAttribute('Unexpected', 'value')
     Assert-ContractThrows 'unexpected package root attribute' {
-        Assert-EzyExternalPackageManifest $tamperedPackage '2.0.0.0' '2.0.0.0' `
+        Assert-EzyExternalPackageManifest $tamperedPackage '2.0.0.0' `
             $publisher '10.0.19041.0'
     }
 
@@ -234,7 +229,7 @@ try {
         $namespaces)
     [void]$extensions.AppendChild($extension.CloneNode($true))
     Assert-ContractThrows 'duplicate protocol extension' {
-        Assert-EzyExternalPackageManifest $tamperedPackage '2.0.0.0' '2.0.0.0' `
+        Assert-EzyExternalPackageManifest $tamperedPackage '2.0.0.0' `
             $publisher '10.0.19041.0'
     }
 

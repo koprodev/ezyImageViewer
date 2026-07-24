@@ -64,7 +64,7 @@ public class DocumentLoaderHardeningTests
         var decoder = new OomOnceDecoder();
         var limits = new InputLimits { DisplayByteBudget = 48_000_000L * InputLimits.DisplayBytesPerPixel };
         var loader = new DocumentLoader(limits, wic: decoder, skia: decoder);
-        // Valid PNG header so the sniffer dispatches to the fake "WIC" decoder.
+        // 판별기가 가짜 "WIC" 디코더로 보내도록 정상 PNG 헤더 사용.
         using var magick = new MagickImage(MagickColors.Red, 4, 4);
         var png = magick.ToByteArray(MagickFormat.Png);
 

@@ -123,7 +123,7 @@ internal sealed class WicDocumentFrameSource : IDocumentFrameSource
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            // Missing or malformed optional timing metadata falls back to a stable visible delay.
+        // 선택 타이밍 메타데이터가 없거나 깨지면 눈에 보이는 안정된 지연값 사용.
         }
         return TimeSpan.FromMilliseconds(100);
     }

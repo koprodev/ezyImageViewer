@@ -14,40 +14,29 @@ public readonly record struct DecodePlan(DecodeAction Action, int TargetMaxDimen
     public static DecodePlan Rejected(string reason) => new(DecodeAction.Reject, 0, reason);
 }
 
-/// <summary>
-/// Input hardening policy (requirements §6.4/§11). Classification is decided before any pixel
-/// allocation: absurd inputs are rejected, oversized-but-plausible inputs get a scaled decode.
-/// The budget is expressed in bytes; the pixel ceiling is derived from it, not chosen.
-/// </summary>
+/// <summary>픽셀 할당 전 입력 분류. 터무니없으면 거절, 크지만 타당하면 축소 디코드.</summary>
 public sealed record InputLimits
 {
-    /// <summary>
-    /// Bytes one displayed pixel retains: the BGRA8 frame (4) plus the render snapshot copy it is
-    /// uploaded through (4, ADR-0007). A document swap transiently doubles this while the
-    /// predecessor is released; the annotation history holds command payloads, not pixels (ADR-0008).
-    /// </summary>
+    /// <summary>표시 픽셀당 보유 바이트. BGRA8 프레임 4 + 렌더 스냅샷 4.</summary>
     public const int DisplayBytesPerPixel = 8;
 
     public static InputLimits Default { get; } = new();
 
     public long MaxFileBytes { get; init; } = 512L * 1024 * 1024;
 
-    /// <summary>Container structure cap checked before page/frame traversal.</summary>
+    /// <summary>페이지·프레임 순회 전 검사하는 컨테이너 구조 상한.</summary>
     public int MaxFrameCount { get; init; } = 10_000;
 
-    /// <summary>Per-side sanity bound (also protects stride math).</summary>
+    /// <summary>한 변 상식선 상한. stride 계산도 함께 보호.</summary>
     public int MaxDimension { get; init; } = 65_500;
 
-    /// <summary>Above this the file is refused outright.</summary>
+    /// <summary>넘으면 파일 즉시 거절.</summary>
     public long HardMaxPixels { get; init; } = 500_000_000;
 
-    /// <summary>
-    /// Steady-state ceiling for one document's display memory (frame + snapshot). 384MB is the
-    /// per-window budget; N windows cost N times this (process-wide arbitration is M9).
-    /// </summary>
+    /// <summary>문서 하나의 표시 메모리 상한(프레임 + 스냅샷). 창마다 적용.</summary>
     public long DisplayByteBudget { get; init; } = 384L * 1024 * 1024;
 
-    /// <summary>Largest pixel count whose frame + snapshot fit <see cref="DisplayByteBudget"/>.</summary>
+    /// <summary>프레임·스냅샷이 표시 예산 안에 드는 최대 픽셀 수.</summary>
     public long FullDecodePixelBudget => DisplayByteBudget / DisplayBytesPerPixel;
 
     public DecodePlan PlanFileSize(long fileBytes) =>
@@ -78,7 +67,7 @@ public sealed record InputLimits
         if (displayBytes <= DisplayByteBudget)
             return DecodePlan.Full();
 
-        // Largest side length whose frame + snapshot stay inside the budget, preserving aspect ratio.
+        // 비율을 지키며 프레임·스냅샷이 예산에 드는 최대 한 변 계산.
         var scale = Math.Sqrt((double)DisplayByteBudget / displayBytes);
         var target = (int)Math.Max(1, Math.Floor(Math.Max(width, height) * scale));
         return DecodePlan.Scaled(target);

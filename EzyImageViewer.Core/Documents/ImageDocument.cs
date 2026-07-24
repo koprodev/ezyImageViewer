@@ -7,9 +7,9 @@ public enum DocumentSourceKind
     File,
     Clipboard,
     Capture,
-    /// <summary>An .ezyimg project; Path is the project file, not the embedded background.</summary>
+    /// <summary>.ezyimg 프로젝트. Path는 내장 배경이 아닌 프로젝트 파일.</summary>
     Project,
-    /// <summary>An in-app generated document (e.g. a whiteboard); saving always prompts for a path.</summary>
+    /// <summary>화이트보드 같은 앱 생성 문서. 저장 때 항상 경로 질문.</summary>
     Generated,
 }
 
@@ -21,11 +21,7 @@ public sealed record DocumentSource(DocumentSourceKind Kind, string? Path)
     public static DocumentSource FromGenerated() => new(DocumentSourceKind.Generated, null);
 }
 
-/// <summary>
-/// Owns its <see cref="DecodedFrame"/>; disposing the document disposes the pixels.
-/// Deliberately a class, not a record: a <c>with</c> copy would share the frame reference, and the
-/// session disposes the document it replaces — so the copy's pixels would die under it (ADR-0008).
-/// </summary>
+/// <summary>DecodedFrame 소유. record 복사는 프레임을 공유해 교체 해제 때 픽셀이 함께 죽으므로 class.</summary>
 public sealed class ImageDocument : IDisposable
 {
     private readonly object _frameSync = new();
@@ -47,10 +43,7 @@ public sealed class ImageDocument : IDisposable
     }
     public required DocumentSource Source { get; init; }
 
-    /// <summary>
-    /// The source's own post-EXIF size. Equals the frame size unless <see cref="IsReducedPreview"/>;
-    /// annotation geometry is expressed in this space so it survives a re-decode at full resolution.
-    /// </summary>
+    /// <summary>EXIF 적용 뒤 원본 크기. 주석 좌표 기준이라 전체 해상도 재디코드에도 유지.</summary>
     public required PixelSize NativeSize
     {
         get
@@ -63,10 +56,9 @@ public sealed class ImageDocument : IDisposable
 
     public ImageFormat Format { get; init; }
     public long SourceFileBytes { get; init; }
-    /// <summary>Load-time identity of a file source (with <see cref="SourceFileBytes"/>): a re-read
-    /// for export or project embedding must verify the file is still the one on screen (§10).</summary>
+    /// <summary>로드 시 파일 식별값. 재읽기 전에 화면의 파일과 여전히 같은지 확인.</summary>
     public DateTime SourceLastWriteUtc { get; init; }
-    /// <summary>True when the frame was decoded at reduced size under the pixel budget (NFR-PERF-004/008).</summary>
+    /// <summary>픽셀 예산 때문에 축소 디코드했으면 true.</summary>
     public bool IsReducedPreview
     {
         get
@@ -76,11 +68,11 @@ public sealed class ImageDocument : IDisposable
         }
         init => _isReducedPreview = value;
     }
-    /// <summary>The renderer selected after signature-first dispatch (§8.5).</summary>
+    /// <summary>시그니처 우선 분기 뒤 선택된 렌더러.</summary>
     public DocumentRendererInfo Renderer { get; init; } = DocumentRendererInfo.Unknown;
-    /// <summary>Non-fatal findings, e.g. extension/signature mismatch (§8.5).</summary>
+    /// <summary>확장자·시그니처 불일치 같은 비치명 진단.</summary>
     public IReadOnlyList<DocumentDiagnostic> DiagnosticEntries { get; init; } = [];
-    /// <summary>Compatibility projection used by the current status bar and smoke output.</summary>
+    /// <summary>현재 상태바·스모크 출력용 호환 투영값.</summary>
     public IReadOnlyList<string> Diagnostics => DiagnosticEntries.Select(entry => entry.Message).ToArray();
 
     public IDocumentFrameSource? FrameSource { get; init; }
@@ -150,7 +142,7 @@ public sealed class ImageDocument : IDisposable
         }
     }
 
-    /// <summary>Stops an animation at its current pixels and releases the encoded sequence source.</summary>
+    /// <summary>현재 픽셀에서 애니메이션을 멈추고 인코딩 시퀀스 원본 해제.</summary>
     public async Task<bool> FlattenAnimationToCurrentFrameAsync(CancellationToken cancellationToken)
     {
         await _frameSwitch.WaitAsync(cancellationToken).ConfigureAwait(false);

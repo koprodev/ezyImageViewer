@@ -5,7 +5,6 @@ $script:EzyIdentityExitCodes = [ordered]@{
     Success = 0
     InvalidInput = 2
     PrerequisiteFailure = 10
-    CodecHostFailure = 20
     MainIdentityFailure = 21
     RollbackFailure = 30
     RemovalFailure = 40
@@ -73,8 +72,6 @@ function New-EzyIdentityRegistrationPlan {
         [Parameter(Mandatory)]
         [string]$InstallDirectory,
 
-        [string]$CodecHostPackagePath,
-
         [string]$ExternalPackagePath
     )
 
@@ -88,43 +85,20 @@ function New-EzyIdentityRegistrationPlan {
         [void](Get-EzyRegistrationPhysicalPath $applicationPath 'Leaf' 'Application')
     }
 
-    $codecHostPath = $null
     $externalPath = $null
     if ($Action -ceq 'Register') {
-        $codecHostPath = Get-EzyRegistrationPhysicalPath $CodecHostPackagePath 'Leaf' `
-            'CodecHostPackage'
         $externalPath = Get-EzyRegistrationPhysicalPath $ExternalPackagePath 'Leaf' `
             'ExternalPackage'
-        if ([IO.Path]::GetExtension($codecHostPath) -cne '.msix' -or
-            [IO.Path]::GetExtension($externalPath) -cne '.msix') {
+        if ([IO.Path]::GetExtension($externalPath) -cne '.msix') {
             throw 'Registration package inputs must use the exact .msix extension.'
         }
-        if ([string]::Equals($codecHostPath, $externalPath,
-                [StringComparison]::OrdinalIgnoreCase)) {
-            throw 'CodecHost and external identity package paths must be distinct.'
-        }
     }
-    elseif (-not [string]::IsNullOrWhiteSpace($CodecHostPackagePath) -or
-        -not [string]::IsNullOrWhiteSpace($ExternalPackagePath)) {
+    elseif (-not [string]::IsNullOrWhiteSpace($ExternalPackagePath)) {
         throw 'Unregister plans identify installed packages by identity, not input package paths.'
     }
 
     $steps = if ($Action -ceq 'Register') {
         @(
-            [PSCustomObject][ordered]@{
-                StepId = 'codec-host'
-                Operation = if ($Scope -ceq 'CurrentUser') {
-                    'AddCurrentUserPackage'
-                }
-                else {
-                    'StageAndProvisionPackage'
-                }
-                Arguments = [PSCustomObject][ordered]@{
-                    PackagePath = $codecHostPath
-                }
-                Rollback = 'RemoveOnlyIfIntroducedByTransaction'
-                FailureExitCode = $script:EzyIdentityExitCodes.CodecHostFailure
-            },
             [PSCustomObject][ordered]@{
                 StepId = 'main-identity'
                 Operation = if ($Scope -ceq 'CurrentUser') {
@@ -157,20 +131,6 @@ function New-EzyIdentityRegistrationPlan {
                 }
                 Rollback = 'None'
                 FailureExitCode = $script:EzyIdentityExitCodes.RemovalFailure
-            },
-            [PSCustomObject][ordered]@{
-                StepId = 'codec-host'
-                Operation = if ($Scope -ceq 'CurrentUser') {
-                    'RemoveCurrentUserPackageIfUnreferenced'
-                }
-                else {
-                    'DeprovisionAndRemovePackageIfUnreferenced'
-                }
-                Arguments = [PSCustomObject][ordered]@{
-                    PackageName = 'GRTech.ezyImageViewer.CodecHost'
-                }
-                Rollback = 'None'
-                FailureExitCode = $script:EzyIdentityExitCodes.RemovalFailure
             }
         )
     }
@@ -182,7 +142,6 @@ function New-EzyIdentityRegistrationPlan {
         Identity = [PSCustomObject][ordered]@{
             MainPackageName = 'GRTech.ezyImageViewer'
             ApplicationId = 'App'
-            CodecHostPackageName = 'GRTech.ezyImageViewer.CodecHost'
         }
         InstallDirectory = $installRoot
         Steps = $steps
@@ -210,24 +169,14 @@ function Assert-EzyIdentityRegistrationPlan {
         throw 'Identity registration plan header is invalid.'
     }
     if ($Plan.Identity.MainPackageName -cne 'GRTech.ezyImageViewer' -or
-        $Plan.Identity.ApplicationId -cne 'App' -or
-        $Plan.Identity.CodecHostPackageName -cne 'GRTech.ezyImageViewer.CodecHost') {
+        $Plan.Identity.ApplicationId -cne 'App') {
         throw 'Identity registration plan contains an unexpected package identity.'
     }
-    if (@($Plan.Steps).Count -ne 2) {
-        throw 'Identity registration plan must contain exactly two ordered steps.'
+    if (@($Plan.Steps).Count -ne 1) {
+        throw 'Identity registration plan must contain exactly one step.'
     }
-
-    $expectedOrder = if ($Plan.Action -ceq 'Register') {
-        @('codec-host', 'main-identity')
-    }
-    else {
-        @('main-identity', 'codec-host')
-    }
-    for ($index = 0; $index -lt $expectedOrder.Count; $index++) {
-        if ($Plan.Steps[$index].StepId -cne $expectedOrder[$index]) {
-            throw "Identity registration step order mismatch at index $index."
-        }
+    if ($Plan.Steps[0].StepId -cne 'main-identity') {
+        throw 'Identity registration plan must operate on the main identity.'
     }
 
     if (-not $Plan.Transaction.StopOnFirstFailure -or
@@ -243,7 +192,7 @@ function Assert-EzyIdentityRegistrationPlan {
                 }).Count -ne 0) {
             throw 'Register plan rollback policy is invalid.'
         }
-        if ($Plan.Steps[1].Arguments.ExternalLocation -cne $Plan.InstallDirectory) {
+        if ($Plan.Steps[0].Arguments.ExternalLocation -cne $Plan.InstallDirectory) {
             throw 'External location must exactly match the normalized install directory.'
         }
     }

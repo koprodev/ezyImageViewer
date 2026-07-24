@@ -25,7 +25,7 @@ internal static class AnnotationTextRenderer
         canvas.ClipRect(SKRect.Create(
             annotation.Bounds.X, annotation.Bounds.Y,
             annotation.Bounds.Width, annotation.Bounds.Height));
-        // WinUI TextBox emits bare '\r' line breaks, so lone CR must break lines too.
+        // WinUI TextBox는 '\r'만 내보내기도 하므로 단독 CR도 줄바꿈 처리.
         foreach (var line in annotation.Text
             .Replace("\r\n", "\n", StringComparison.Ordinal)
             .Replace('\r', '\n')

@@ -6,28 +6,17 @@ param(
     [string]$Version,
 
     [Parameter(Mandatory = $true)]
-    [string]$CodecHostVersion,
-
-    [Parameter(Mandatory = $true)]
     [string]$OutputDirectory,
 
     [Parameter(Mandatory = $true)]
     [string]$MainMsix,
-
-    [Parameter(Mandatory = $true)]
-    [string]$CodecHostMsix,
 
     [string]$AppInstallerFile,
 
     [Parameter(Mandatory = $true)]
     [string]$MainDepsJson,
 
-    [Parameter(Mandatory = $true)]
-    [string]$CodecHostDepsJson,
-
     [string]$MainProjectAssetsJson,
-
-    [string]$CodecHostProjectAssetsJson,
 
     [string]$NuGetPackageRoot
 )
@@ -313,8 +302,7 @@ function Get-NuGetPackageRoots {
     }
 
     $assetsInputs = @(
-        [ordered]@{ Name = 'MainProjectAssetsJson'; Path = $MainProjectAssetsJson },
-        [ordered]@{ Name = 'CodecHostProjectAssetsJson'; Path = $CodecHostProjectAssetsJson }
+        [ordered]@{ Name = 'MainProjectAssetsJson'; Path = $MainProjectAssetsJson }
     )
     foreach ($assetsInput in $assetsInputs) {
         if ([string]::IsNullOrWhiteSpace([string]$assetsInput.Path)) {
@@ -563,7 +551,7 @@ function Get-NuGetMetadata {
 
     $shaProperty = $Library.PSObject.Properties['sha512']
     if ($null -ne $shaProperty -and -not [string]::IsNullOrWhiteSpace([string]$shaProperty.Value)) {
-        # deps.json stores NuGet's normalized content hash, not the raw nupkg file hash.
+# deps.json은 원본 nupkg 파일 해시가 아니라 NuGet 정규화 콘텐츠 해시 저장.
         [void](Convert-Base64Sha512ToHex -Value ([string]$shaProperty.Value))
     }
     $sha512 = $actualSha512
@@ -913,17 +901,14 @@ function New-CycloneDxComponent {
 }
 
 Assert-FourPartVersion -Value $Version -ParameterName 'Version'
-Assert-FourPartVersion -Value $CodecHostVersion -ParameterName 'CodecHostVersion'
 
 $outputDirectoryItem = Get-ExistingDirectory -Path $OutputDirectory -ParameterName 'OutputDirectory'
 if (($outputDirectoryItem.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) {
     throw "OutputDirectory must not be a reparse point: '$($outputDirectoryItem.FullName)'."
 }
 $mainArtifact = Get-ExistingFile -Path $MainMsix -ParameterName 'MainMsix'
-$codecHostArtifact = Get-ExistingFile -Path $CodecHostMsix -ParameterName 'CodecHostMsix'
 $releaseArtifacts = New-Object 'Collections.Generic.List[IO.FileInfo]'
 [void]$releaseArtifacts.Add($mainArtifact)
-[void]$releaseArtifacts.Add($codecHostArtifact)
 $appInstallerArtifact = $null
 if (-not [string]::IsNullOrWhiteSpace($AppInstallerFile)) {
     $appInstallerArtifact = Get-ExistingFile `
@@ -967,24 +952,14 @@ foreach ($artifact in $releaseArtifacts) {
 
 $repo = Split-Path $PSScriptRoot -Parent
 $mainDepsItem = Get-ExistingFile -Path $MainDepsJson -ParameterName 'MainDepsJson'
-$codecHostDepsItem = Get-ExistingFile -Path $CodecHostDepsJson -ParameterName 'CodecHostDepsJson'
 if (-not [string]::Equals(
         $mainDepsItem.Name,
         'ezyImageViewer.deps.json',
         [StringComparison]::Ordinal)) {
     throw "MainDepsJson must be named 'ezyImageViewer.deps.json'."
 }
-if (-not [string]::Equals(
-        $codecHostDepsItem.Name,
-        'EzyImageViewer.CodecHost.deps.json',
-        [StringComparison]::Ordinal)) {
-    throw "CodecHostDepsJson must be named 'EzyImageViewer.CodecHost.deps.json'."
-}
 $mainDepsSha256 = Assert-MsixEntryMatchesFile -PackagePath $mainArtifact.FullName `
     -EntryName $mainDepsItem.Name -FilePath $mainDepsItem.FullName -PackageLabel 'Main MSIX'
-$codecHostDepsSha256 = Assert-MsixEntryMatchesFile -PackagePath $codecHostArtifact.FullName `
-    -EntryName $codecHostDepsItem.Name -FilePath $codecHostDepsItem.FullName `
-    -PackageLabel 'CodecHost MSIX'
 
 $fontSourcePath = Join-Path $repo 'EzyImageViewer.App\Assets\Fonts\MaterialSymbolsOutlined.ttf'
 $fontLicenseSourcePath = Join-Path $repo 'EzyImageViewer.App\Assets\Fonts\LICENSE-MaterialSymbols.txt'
@@ -1003,17 +978,10 @@ $packageRoots = @(Get-NuGetPackageRoots)
 $components = @{}
 $edges = @{}
 $mainBomRef = 'pkg:generic/GRTech/ezyImageViewer@' + [Uri]::EscapeDataString($Version)
-$codecHostBomRef = 'pkg:generic/GRTech/ezyImageViewer.CodecHost@' +
-    [Uri]::EscapeDataString($CodecHostVersion)
 $mainRuntime = Add-RuntimeGraph -Scope 'main' -RootBomRef $mainBomRef `
     -DepsJsonPath $mainDepsItem.FullName -DepsSha256 $mainDepsSha256 `
     -PackageRoots $packageRoots `
     -Components $components -Edges $edges
-$codecHostRuntime = Add-RuntimeGraph -Scope 'codec-host' -RootBomRef $codecHostBomRef `
-    -DepsJsonPath $codecHostDepsItem.FullName -DepsSha256 $codecHostDepsSha256 `
-    -PackageRoots $packageRoots `
-    -Components $components -Edges $edges
-Add-Edge -Edges $edges -From $mainBomRef -To $codecHostBomRef
 
 $fontCommit = 'abd7f5c0e179c83f068c770650bd14ebac5d5a09'
 $fontBomRef = 'pkg:generic/google/MaterialSymbolsOutlined@' + $fontCommit
@@ -1045,11 +1013,6 @@ $artifactsByName[$mainArtifact.Name] = [pscustomobject]@{
     Role = 'main'
     Version = $Version
     File = $mainArtifact
-}
-$artifactsByName[$codecHostArtifact.Name] = [pscustomobject]@{
-    Role = 'codec-host'
-    Version = $CodecHostVersion
-    File = $codecHostArtifact
 }
 if ($null -ne $appInstallerArtifact) {
     $artifactsByName[$appInstallerArtifact.Name] = [pscustomobject]@{
@@ -1123,14 +1086,6 @@ $runtimeRecords = @(
         depsSha256 = $mainRuntime.DepsSha256
         rootBomRef = $mainRuntime.RootBomRef
         components = $mainRuntimeComponentRefs
-    },
-    [ordered]@{
-        name = $codecHostRuntime.Name
-        runtimeTarget = $codecHostRuntime.RuntimeTarget
-        depsFileName = $codecHostRuntime.DepsFileName
-        depsSha256 = $codecHostRuntime.DepsSha256
-        rootBomRef = $codecHostRuntime.RootBomRef
-        components = @($codecHostRuntime.ComponentRefs)
     }
 )
 
@@ -1139,9 +1094,7 @@ $releaseManifest = [ordered]@{
     product = [ordered]@{
         name = 'ezyImageViewer'
         version = $Version
-        codecHostVersion = $CodecHostVersion
         mainBomRef = $mainBomRef
-        codecHostBomRef = $codecHostBomRef
     }
     artifacts = $artifactRecords.ToArray()
     runtimes = $runtimeRecords
@@ -1150,7 +1103,6 @@ $releaseManifest = [ordered]@{
 }
 
 $mainArtifactRecord = $artifactRecords | Where-Object { $_.role -eq 'main' }
-$codecHostArtifactRecord = $artifactRecords | Where-Object { $_.role -eq 'codec-host' }
 $mainCycloneComponent = [ordered]@{
     type = 'application'
     'bom-ref' = $mainBomRef
@@ -1166,24 +1118,7 @@ $mainCycloneComponent = [ordered]@{
         value = $mainArtifactRecord.fileName
     })
 }
-$codecHostCycloneComponent = [ordered]@{
-    type = 'application'
-    'bom-ref' = $codecHostBomRef
-    group = 'GRTech'
-    name = 'ezyImageViewer.CodecHost'
-    version = $CodecHostVersion
-    hashes = @([ordered]@{
-        alg = 'SHA-256'
-        content = $codecHostArtifactRecord.sha256
-    })
-    properties = @([ordered]@{
-        name = 'ezyImageViewer:artifact'
-        value = $codecHostArtifactRecord.fileName
-    })
-}
-
 $allCycloneComponents = New-Object 'Collections.Generic.List[object]'
-[void]$allCycloneComponents.Add($codecHostCycloneComponent)
 foreach ($component in $cycloneComponents) {
     [void]$allCycloneComponents.Add($component)
 }

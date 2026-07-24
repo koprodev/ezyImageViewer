@@ -47,8 +47,6 @@ public sealed class SettingsUiContractTests
         [
             "EzyImageViewer.App",
             "EzyImageViewer.Capture",
-            "EzyImageViewer.CodecHost",
-            "EzyImageViewer.CodecProtocol",
             "EzyImageViewer.Core",
             "EzyImageViewer.Imaging",
             "EzyImageViewer.Infrastructure",
@@ -98,16 +96,14 @@ public sealed class SettingsUiContractTests
         var viewer = File.ReadAllText(RepoFile(
             "EzyImageViewer.App", "Views", "ViewerWindow.xaml.cs"));
 
-        // FR-APP-001: the registrar itself stays per-user Open With candidates only and never
-        // authors a UserChoice; the default switch lives solely in UserChoiceDefaultWriter.
+        // 등록기는 사용자별 연결 프로그램 후보만 담당. 기본 앱 전환은 전용 작성기 단독 소유.
         Assert.Contains("Registry.CurrentUser", registrar, StringComparison.Ordinal);
         Assert.DoesNotContain("Registry.LocalMachine", registrar, StringComparison.Ordinal);
-        // The registrar may READ UserChoice (read-only ProgId lifetime guard) but must never write
-        // it: no CreateSubKey/DeleteSubKey on UserChoice and no Hash value are authored here.
+        // 등록기는 ProgId 수명 보호를 위해 UserChoice 읽기만 허용. 쓰기·삭제·Hash 작성 금지.
         Assert.DoesNotContain("CreateSubKey(\"UserChoice\")", registrar, StringComparison.Ordinal);
         Assert.DoesNotContain("DeleteSubKey(\"UserChoice\"", registrar, StringComparison.Ordinal);
         Assert.DoesNotContain("\"Hash\"", registrar, StringComparison.Ordinal);
-        // The only UserChoice touch is the read-only guard opening the key.
+        // UserChoice 접점은 읽기 전용 키 열기 하나뿐.
         var guard = MethodBody(registrar, "private static bool AnyExtensionUsesProgIdAsDefault()");
         Assert.Contains("OpenSubKey", guard, StringComparison.Ordinal);
         Assert.Contains("UserChoice", guard, StringComparison.Ordinal);
@@ -120,28 +116,25 @@ public sealed class SettingsUiContractTests
             "FileAssociationPolicy.GetDefaultAppsSettingsUri()", settingsUi, StringComparison.Ordinal);
         Assert.Contains("Launcher.LaunchUriAsync(target)", viewer, StringComparison.Ordinal);
 
-        // 2026-07-23 user-approved policy revision: Save and the page Apply button both funnel
-        // through ApplyAssociations, which registers candidates AND switches the default.
+        // 저장과 페이지 적용 버튼은 후보 등록·기본 앱 전환을 함께 하는 단일 경로 사용.
         var applyBody = MethodBody(settingsUi, "private void ApplyAssociations()");
         Assert.Contains("FileAssociationRegistrar.Apply", applyBody, StringComparison.Ordinal);
         Assert.Contains("UserChoiceDefaultWriter.SetDefaults", applyBody, StringComparison.Ordinal);
-        // Exactly one writer call in the whole file: the single apply path, no second entry point.
+        // 파일 전체 작성기 호출은 단일 적용 경로 하나. 뒷문 없음.
         Assert.Equal(1, CountOccurrences(settingsUi, "UserChoiceDefaultWriter.SetDefaults"));
-        // Save applies only after the user opened the file association page — the installer
-        // pre-registers candidates, so a theme-only save must never hand over the default app.
+        // 파일 연결 페이지를 연 뒤에만 저장 적용. 테마 저장이 기본 앱을 가져가면 안 됨.
         var saveBody = MethodBody(settingsUi, "public void ApplyPendingAssociations()");
         Assert.Contains("ApplyAssociations();", saveBody, StringComparison.Ordinal);
         Assert.Contains("!_associationPageVisited", saveBody, StringComparison.Ordinal);
         Assert.Contains(
             "_associationPageVisited |= index == FileAssociationPageIndex",
             settingsUi, StringComparison.Ordinal);
-        // Having opened the page, an unchanged selection must still re-assert the default.
+        // 페이지를 열었다면 선택이 같아도 기본값 재확인.
         Assert.DoesNotContain("SetEquals", saveBody, StringComparison.Ordinal);
-        // The default switch stays out of packaged/Portable builds.
+        // 기본 앱 전환은 패키지·Portable 빌드에서 제외.
         Assert.Contains("#if EZY_UNPACKAGED", applyBody, StringComparison.Ordinal);
 
-        // The shared ProgId/command survives clearing all candidates while it is still a default,
-        // so UserChoice-based double-clicks never dangle.
+        // 후보를 모두 지워도 아직 기본값인 공유 ProgId·명령은 남겨 더블클릭 보호.
         Assert.Contains("AnyExtensionUsesProgIdAsDefault", registrar, StringComparison.Ordinal);
         Assert.Contains(
             "desired.Count == 0 && !AnyExtensionUsesProgIdAsDefault()",
@@ -158,24 +151,23 @@ public sealed class SettingsUiContractTests
         var appProject = File.ReadAllText(RepoFile(
             "EzyImageViewer.App", "EzyImageViewer.App.csproj"));
 
-        // Experimental writer compiles only into the installer flavor: not Store/packaged, and not
-        // the registry-free Portable build.
+        // 실험 작성기는 설치 빌드에만 컴파일. Store·패키지·레지스트리 없는 Portable 제외.
         Assert.StartsWith("#if EZY_UNPACKAGED", writer.TrimStart(), StringComparison.Ordinal);
         Assert.Contains(
             "<DefineConstants Condition=\"'$(Packaged)' != 'true' and '$(Portable)' != 'true'\">$(DefineConstants);EZY_UNPACKAGED",
             appProject, StringComparison.Ordinal);
         Assert.Contains("#if EZY_UNPACKAGED", settingsUi, StringComparison.Ordinal);
 
-        // Effective (not machine) default check: AL_EFFECTIVE must be 1.
+        // 시스템 기본이 아닌 실제 기본값 검사라 AL_EFFECTIVE는 1.
         Assert.Contains("Effective = 1", writer, StringComparison.Ordinal);
         Assert.Contains("AssociationLevel.Effective", writer, StringComparison.Ordinal);
         Assert.Contains("QueryCurrentDefault", writer, StringComparison.Ordinal);
-        // Honest fail-closed detection and per-extension restore, not silent success.
+        // 조용한 성공 대신 정직한 차단 감지와 확장자별 복원.
         Assert.Contains("HashProtectionState.DetectionFailed", writer, StringComparison.Ordinal);
         Assert.Contains("UserChoiceStatus.Restored", writer, StringComparison.Ordinal);
         Assert.Contains("UserChoiceStatus.RestoreFailed", writer, StringComparison.Ordinal);
         Assert.Contains("private static bool Restore(", writer, StringComparison.Ordinal);
-        // Timestamp binds to the key's own last-write minute, retried across the boundary.
+        // 시각은 키 자체 최종 수정 분에 결박하고 분 경계를 넘으면 재시도.
         Assert.Contains("RegQueryInfoKeyW", writer, StringComparison.Ordinal);
         Assert.Contains("SameMinute", writer, StringComparison.Ordinal);
         Assert.DoesNotContain("DateTime.Now", writer, StringComparison.Ordinal);

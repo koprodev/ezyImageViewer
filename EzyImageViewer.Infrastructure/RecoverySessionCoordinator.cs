@@ -1,6 +1,6 @@
 namespace EzyImageViewer.Infrastructure;
 
-/// <summary>Coordinates debounced per-window recovery snapshots for one application session.</summary>
+/// <summary>한 앱 세션의 창별 복구 스냅숏을 디바운스하며 조율.</summary>
 public sealed class RecoverySessionCoordinator : IAsyncDisposable
 {
     public static readonly TimeSpan DefaultDebounceDelay = TimeSpan.FromSeconds(2);
@@ -39,7 +39,7 @@ public sealed class RecoverySessionCoordinator : IAsyncDisposable
         _reportAvailable = reportAvailable ?? (() => { });
     }
 
-    /// <summary>Begins a new session after the caller has enumerated previous recovery candidates.</summary>
+    /// <summary>호출자가 이전 복구 후보를 열거한 뒤 새 세션 시작.</summary>
     public void Start(Guid sessionId)
     {
         ValidateId(sessionId, nameof(sessionId));
@@ -55,7 +55,7 @@ public sealed class RecoverySessionCoordinator : IAsyncDisposable
         }
     }
 
-    /// <summary>Schedules the latest recovery snapshot for a window.</summary>
+    /// <summary>창의 최신 복구 스냅숏 저장 예약.</summary>
     public Task Schedule(
         Guid windowId,
         Func<CancellationToken, Task<RecoveryRecord>> snapshotFactory)
@@ -95,7 +95,7 @@ public sealed class RecoverySessionCoordinator : IAsyncDisposable
         return work.Execution;
     }
 
-    /// <summary>Stops one window, drains its work, and prevents a late save from recreating it.</summary>
+    /// <summary>창 하나를 멈추고 작업을 비운 뒤 늦은 저장이 되살리지 못하게 차단.</summary>
     public Task StopWindowAsync(Guid windowId)
     {
         ValidateId(windowId, nameof(windowId));
@@ -122,7 +122,7 @@ public sealed class RecoverySessionCoordinator : IAsyncDisposable
         return stopTask;
     }
 
-    /// <summary>Drains and clears one checkpoint while keeping its window available for later edits.</summary>
+    /// <summary>창은 후속 편집에 열어 둔 채 체크포인트 하나를 비우고 삭제.</summary>
     public Task ClearWindowAsync(Guid windowId)
     {
         ValidateId(windowId, nameof(windowId));
@@ -160,7 +160,7 @@ public sealed class RecoverySessionCoordinator : IAsyncDisposable
         return clearTask;
     }
 
-    /// <summary>Normally completes the session after all window work has drained.</summary>
+    /// <summary>모든 창 작업을 비운 뒤 세션을 정상 완료.</summary>
     public Task CompleteAsync()
     {
         List<StopRequest> requests;
@@ -196,7 +196,7 @@ public sealed class RecoverySessionCoordinator : IAsyncDisposable
         return completionTask;
     }
 
-    /// <summary>Abnormally stops background work while preserving the crash marker and saved snapshots.</summary>
+    /// <summary>충돌 표식과 저장 스냅숏은 남긴 채 백그라운드 작업을 비정상 중지.</summary>
     public ValueTask DisposeAsync()
     {
         WorkItem[] workToCancel;

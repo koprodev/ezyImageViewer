@@ -1,4 +1,4 @@
-# Shared fail-closed helpers for release packaging and verification.
+# 릴리스 패키징·검증용 공용 닫힘 우선 도우미.
 
 function Get-EzyPinnedBuildToolsRoot {
     param(

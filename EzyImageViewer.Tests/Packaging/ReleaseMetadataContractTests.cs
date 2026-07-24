@@ -2,7 +2,7 @@ using EzyImageViewer.Core.Imaging;
 using System.Text.RegularExpressions;
 using Xunit;
 
-namespace EzyImageViewer.Tests.Codec;
+namespace EzyImageViewer.Tests.Packaging;
 
 public sealed class ReleaseMetadataContractTests
 {
@@ -31,7 +31,6 @@ public sealed class ReleaseMetadataContractTests
             StringComparison.Ordinal);
         Assert.Contains("Assert-MsixEntryMatchesFile", script, StringComparison.Ordinal);
         Assert.Contains("ezyImageViewer.deps.json", script, StringComparison.Ordinal);
-        Assert.Contains("EzyImageViewer.CodecHost.deps.json", script, StringComparison.Ordinal);
         Assert.Contains("does not match the supplied source file", script, StringComparison.Ordinal);
         Assert.Contains(".NETCoreApp,Version=v10.0/win-x64", script, StringComparison.Ordinal);
         Assert.Contains("depsSha256", script, StringComparison.Ordinal);
@@ -55,16 +54,16 @@ public sealed class ReleaseMetadataContractTests
     public void UserGuide_CoversEveryProductFormatTier()
     {
         var guide = File.ReadAllText(RepoFile("docs", "user-guide.md"));
-        var expected = ImageFormatCatalog.RasterExtensions
-            .Concat(ImageFormatCatalog.ConditionalExtensions)
-            .Concat(ImageFormatCatalog.VectorExtensions)
-            .Concat([".ezyimg", ".pdf", ".psd"])
+        var expected = ImageFormatCatalog.ViewableExtensions
+            .Concat([".ezyimg"])
             .Distinct(StringComparer.OrdinalIgnoreCase);
 
         Assert.All(expected, extension =>
             Assert.Contains($"`{extension}`", guide, StringComparison.OrdinalIgnoreCase));
-        Assert.Contains("현재 미지원", guide, StringComparison.Ordinal);
-        Assert.Contains("CodecHost", guide, StringComparison.Ordinal);
+        // PDF/PSD는 제품에서 빠졌으므로 안내서가 광고하면 안 됨.
+        Assert.DoesNotContain("`.pdf`", guide, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("`.psd`", guide, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Portable", guide, StringComparison.Ordinal);
         Assert.Contains("자동 버전 확인", guide, StringComparison.Ordinal);
         Assert.Contains("기본 브라우저", guide, StringComparison.Ordinal);
     }
@@ -76,11 +75,11 @@ public sealed class ReleaseMetadataContractTests
 
         Assert.Contains("Svg.Custom", notice, StringComparison.Ordinal);
         Assert.Contains("MS-PL", notice, StringComparison.Ordinal);
-        Assert.Contains("bblanchon.PDFium.Win32", notice, StringComparison.Ordinal);
-        Assert.Contains("Apache-2.0", notice, StringComparison.Ordinal);
-        Assert.Contains("PDFium·Chromium", notice, StringComparison.Ordinal);
         Assert.Contains("법무 검토가 끝났음을 의미하지 않습니다", notice,
             StringComparison.Ordinal);
+        // PDF/PSD는 제거됨(ADR-0005). 관련 런타임이 목록에 부활하면 안 됨.
+        Assert.DoesNotContain("PDFium", notice, StringComparison.Ordinal);
+        Assert.DoesNotContain("PDFtoImage", notice, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -112,32 +111,23 @@ public sealed class ReleaseMetadataContractTests
             StringComparison.Ordinal);
         Assert.Contains("-AppInstallerFile packaging/out/ezyImageViewer.appinstaller", workflow,
             StringComparison.Ordinal);
-        Assert.Contains("-Version 1.0.0.1 -CodecHostVersion 1.0.0.1", workflow,
-            StringComparison.Ordinal);
+        Assert.Contains("-Version 1.0.0.1", workflow, StringComparison.Ordinal);
         Assert.DoesNotContain("-Version 0.0.0.1", workflow, StringComparison.Ordinal);
         Assert.Contains("-RequireBuildOutputMatch", workflow, StringComparison.Ordinal);
-        Assert.Contains(
-            "EZYIMAGEVIEWER_RUN_CODEC_MUTATION_FUZZ: " + (char)34 + "1" + (char)34,
-            workflow,
-            StringComparison.Ordinal);
-        Assert.Contains(
-            "EZYIMAGEVIEWER_RUN_CODEC_PERFORMANCE: " + (char)34 + "1" + (char)34,
-            workflow,
-            StringComparison.Ordinal);
-        Assert.Contains("--filter " + (char)34 + "FullyQualifiedName~CodecMutationFuzzGateTests",
-            workflow,
-            StringComparison.Ordinal);
-        Assert.Contains("--filter " + (char)34 + "FullyQualifiedName~CodecPerformanceGateTests",
-            workflow,
-            StringComparison.Ordinal);
-        Assert.Contains("codec-security.trx", workflow, StringComparison.Ordinal);
-        Assert.Contains("codec-performance-qualification.trx", workflow,
-            StringComparison.Ordinal);
-        Assert.Contains("continue-on-error: true", workflow, StringComparison.Ordinal);
+        Assert.DoesNotContain("CodecHost", workflow, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("-p:NuGetAuditMode=all", workflow, StringComparison.Ordinal);
         Assert.Contains("NU1903%3BNU1904", workflow, StringComparison.Ordinal);
         Assert.Contains("if-no-files-found: error", workflow, StringComparison.Ordinal);
         Assert.Contains("retention-days:", workflow, StringComparison.Ordinal);
+
+        var contractInvocations = Regex.Matches(
+            workflow,
+            @"(?m)^\s+powershell .*?-File packaging/test-[^\r\n]+\.ps1\s*$");
+        var unguardedInvocations = Regex.Matches(
+            workflow,
+            @"(?m)^\s+powershell .*?-File packaging/test-[^\r\n]+\.ps1\s*\r?\n(?!\s*if \(\$LASTEXITCODE -ne 0\) \{ exit \$LASTEXITCODE \})");
+        Assert.Equal(7, contractInvocations.Count);
+        Assert.Empty(unguardedInvocations.Cast<Match>());
     }
 
     [Fact]
@@ -173,8 +163,7 @@ public sealed class ReleaseMetadataContractTests
         Assert.Contains("must be an absolute HTTPS URI", helper, StringComparison.Ordinal);
         Assert.Contains("must not contain userinfo, a query, or a fragment", helper,
             StringComparison.Ordinal);
-        Assert.Contains("must be a framework package", helper, StringComparison.Ordinal);
-        Assert.Contains("PackageDependency must exactly identify", helper,
+        Assert.Contains("must not declare a PackageDependency", helper,
             StringComparison.Ordinal);
         Assert.Contains("[string]$UpdateMode = 'None'", generator, StringComparison.Ordinal);
         Assert.Contains("WriteStartElement('UpdateSettings'", generator, StringComparison.Ordinal);

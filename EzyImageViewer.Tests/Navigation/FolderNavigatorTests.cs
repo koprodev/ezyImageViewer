@@ -29,7 +29,7 @@ public sealed class FolderNavigatorTests : IDisposable
         navigator.AnchorTo(anchor);
 
         Assert.Equal(3, navigator.Count);
-        Assert.Equal(1, navigator.CurrentIndex); // a.jpg, b2.png, b10.png
+        Assert.Equal(1, navigator.CurrentIndex); // 정렬 순서: a.jpg, b2.png, b10.png.
         Assert.True(navigator.CanMovePrevious);
         Assert.True(navigator.CanMoveNext);
         Assert.Equal("b10.png", Path.GetFileName(navigator.MoveNext()));
@@ -38,6 +38,60 @@ public sealed class FolderNavigatorTests : IDisposable
         Assert.Equal("b2.png", Path.GetFileName(navigator.MovePrevious()));
         Assert.Equal("a.jpg", Path.GetFileName(navigator.MovePrevious()));
         Assert.Null(navigator.MovePrevious());
+    }
+
+    [Fact]
+    public void Files_ExposeScanOrderAndMoveToJumpsToAnyEntry()
+    {
+        Touch("b10.png");
+        Touch("b2.png");
+        var anchor = Touch("a.jpg");
+
+        var navigator = new FolderNavigator(ImageFormatCatalog.RasterExtensions);
+        navigator.AnchorTo(anchor);
+
+        Assert.Equal(
+            ["a.jpg", "b2.png", "b10.png"],
+            navigator.Files.Select(Path.GetFileName));
+        Assert.Equal(0, navigator.CurrentIndex);
+
+        Assert.Equal("b10.png", Path.GetFileName(navigator.MoveTo(2)));
+        Assert.Equal(2, navigator.CurrentIndex);
+        Assert.Equal("a.jpg", Path.GetFileName(navigator.MoveTo(0)));
+        Assert.Equal(0, navigator.CurrentIndex);
+    }
+
+    [Fact]
+    public void MoveTo_RejectsOutOfRangeWithoutMovingTheAnchor()
+    {
+        var anchor = Touch("a.png");
+        Touch("b.png");
+
+        var navigator = new FolderNavigator(ImageFormatCatalog.RasterExtensions);
+        navigator.AnchorTo(anchor);
+
+        Assert.Null(navigator.MoveTo(-1));
+        Assert.Null(navigator.MoveTo(2));
+        Assert.Equal(0, navigator.CurrentIndex);
+        Assert.Equal(anchor, navigator.CurrentPath);
+    }
+
+    [Fact]
+    public void MoveTo_ResolvesByPathAfterAnEarlierFileVanished()
+    {
+        var a = Touch("a.png");
+        var b = Touch("b.png");
+        var c = Touch("c.png");
+
+        var navigator = new FolderNavigator(ImageFormatCatalog.RasterExtensions);
+        navigator.AnchorTo(a);
+        // 필름 스트립은 삭제 전 스캔으로 만들어져 인덱스 2가 더는 c.png를 가리키지 않음.
+        File.Delete(b);
+        File.Delete(c);
+
+        Assert.Null(navigator.MoveTo(2));
+        Assert.Equal(1, navigator.Count);
+        Assert.Equal(a, navigator.CurrentPath);
     }
 
     [Fact]

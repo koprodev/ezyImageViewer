@@ -11,8 +11,6 @@ param(
 
     [string]$InstallDirectory,
 
-    [string]$CodecHostPackagePath,
-
     [string]$ExternalPackagePath,
 
     [string]$StatePath
@@ -25,9 +23,6 @@ $ErrorActionPreference = 'Stop'
 
 if ([string]::IsNullOrWhiteSpace($InstallDirectory)) {
     $InstallDirectory = [IO.Directory]::GetParent($PSScriptRoot).FullName
-}
-if ([string]::IsNullOrWhiteSpace($CodecHostPackagePath)) {
-    $CodecHostPackagePath = Join-Path $PSScriptRoot 'ezyImageViewer.CodecHost.msix'
 }
 if ([string]::IsNullOrWhiteSpace($ExternalPackagePath)) {
     $ExternalPackagePath = Join-Path $PSScriptRoot 'ezyImageViewer.ExternalIdentity.msix'
@@ -42,12 +37,11 @@ try {
         exit (Get-EzyIdentityExitCodes).PrerequisiteFailure
     }
     if ($Action -ceq 'Register') {
-        if ([string]::IsNullOrWhiteSpace($CodecHostPackagePath) -or
-            [string]::IsNullOrWhiteSpace($ExternalPackagePath)) {
+        if ([string]::IsNullOrWhiteSpace($ExternalPackagePath)) {
             exit (Get-EzyIdentityExitCodes).InvalidInput
         }
         [void](Invoke-EzyIdentityRegister $Scope $InstallDirectory `
-                $CodecHostPackagePath $ExternalPackagePath $StatePath)
+                $ExternalPackagePath $StatePath)
     }
     else {
         Invoke-EzyIdentityUnregister $Scope $InstallDirectory $StatePath `

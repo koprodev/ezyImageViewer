@@ -4,8 +4,8 @@ using Xunit;
 
 namespace EzyImageViewer.Tests.Capture;
 
-/// <summary>The capture read budget is inclusive at the limit and rejects one byte over or an
-/// empty file — the boundary the 64MiB product budget rides on ([25차] 보완 3).</summary>
+/// <summary>캡처 읽기 예산은 상한을 포함하고 한 바이트 초과·빈 파일은 거부.
+/// 제품의 64MiB 경계를 그대로 검증.</summary>
 public sealed class CaptureTokenReaderTests
 {
     private static MemoryStream Stream(int length) => new(new byte[length]);

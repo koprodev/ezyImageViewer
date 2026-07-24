@@ -2,13 +2,13 @@ using EzyImageViewer.Core.Imaging;
 
 namespace EzyImageViewer.Infrastructure;
 
-/// <summary>A user-facing extension group shown in the file-association settings page.</summary>
+/// <summary>파일 연결 설정 화면에 보이는 사용자용 확장자 그룹.</summary>
 public sealed record FileAssociationGroup(string Key, IReadOnlyList<string> Extensions);
 
 /// <summary>
-/// Registry shape and extension policy for per-user "Open With" registration. Values must stay
-/// in parity with installer/common/Product.wxs so the app and Setup manage the same keys
-/// (FR-APP-001: candidates only, the user's existing default app is never overridden).
+/// 사용자별 "연결 프로그램" 등록의 레지스트리 구조와 확장자 정책.
+/// 앱과 설치 프로그램이 같은 키를 다루도록 installer/common/Product.wxs와 맞춰야 함.
+/// 후보만 등록하며 기존 기본 앱은 덮어쓰지 않음(FR-APP-001).
 /// </summary>
 public static class FileAssociationPolicy
 {
@@ -22,15 +22,15 @@ public static class FileAssociationPolicy
     public const string ApplicationDescription = "이미지 보기 및 편집";
     public const string DefaultAppsSettingsUri = "ms-settings:defaultapps";
 
-    /// <summary>Windows 11 (build 22000+) deep-links straight to this app's default-app page;
-    /// Windows 10 does not support the parameter, so it gets the plain default-apps page.</summary>
+    /// <summary>Windows 11(빌드 22000+)은 이 앱의 기본 앱 페이지로 바로 이동.
+    /// 매개변수를 지원하지 않는 Windows 10은 일반 기본 앱 페이지 사용.</summary>
     public static Uri GetDefaultAppsSettingsUri() =>
         Environment.OSVersion.Version.Build >= 22000
             ? new Uri(DefaultAppsSettingsUri + "?registeredAppUser="
                 + Uri.EscapeDataString(RegisteredApplicationName))
             : new Uri(DefaultAppsSettingsUri);
 
-    /// <summary>The Setup default set (FR-APP-001) surfaced as "필수 파일" in the settings page.</summary>
+    /// <summary>설치 프로그램 기본 묶음(FR-APP-001). 설정 화면에는 "필수 파일"로 표시.</summary>
     public static readonly IReadOnlyList<string> EssentialExtensions =
     [
         ".png", ".jpg", ".jpeg", ".bmp", ".gif", ".webp", ".tif", ".tiff",
@@ -53,7 +53,7 @@ public static class FileAssociationPolicy
     private static readonly IReadOnlySet<string> SelectableSet = new HashSet<string>(
         SelectableExtensions, StringComparer.OrdinalIgnoreCase);
 
-    /// <summary>Groups must track the product's viewable formats; verified here and by tests.</summary>
+    /// <summary>그룹은 제품이 여는 형식과 맞아야 함. 여기와 테스트에서 이중 확인.</summary>
     static FileAssociationPolicy()
     {
         if (!SelectableSet.SetEquals(ImageFormatCatalog.ViewableExtensions))

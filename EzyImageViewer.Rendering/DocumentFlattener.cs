@@ -4,23 +4,13 @@ using SkiaSharp;
 
 namespace EzyImageViewer.Rendering;
 
-/// <summary>
-/// Renders the edited document to a raster at its transform output size through the one composition
-/// path (<see cref="DocumentComposite"/>), so an export bakes exactly the effect contract the
-/// preview showed (FR-EDIT-004, ADR-0015 §5). Feed the full-resolution frame for a final export;
-/// a reduced-preview frame flattens at the same document coordinates but from fewer source pixels.
-/// </summary>
+/// <summary>공유 합성 경로로 편집 문서를 변환 출력 크기 래스터에 평면화.</summary>
 public static class DocumentFlattener
 {
-    /// <summary>
-    /// Output-surface byte ceiling (BGRA, 4B/px). This is the byte budget the export path promises
-    /// at its allocation point (TransformEvaluator caps sides, not area): the flatten surface plus
-    /// the encoder's transient copy peak near twice this, beside the source frame.
-    /// </summary>
+    /// <summary>출력 표면 바이트 상한(BGRA, 픽셀당 4바이트). 실제 할당 지점의 예산.</summary>
     public const long MaxOutputBytes = 2L * 1024 * 1024 * 1024;
 
-    /// <summary>Checked preflight: the transform's output size, refused before any allocation when
-    /// the surface would exceed <see cref="MaxOutputBytes"/>.</summary>
+    /// <summary>변환 출력 크기 사전 검사. 상한 초과면 할당 전에 거절.</summary>
     public static PixelSize PreflightOutputSize(DocumentState state, PixelSize nativeSize)
     {
         ArgumentNullException.ThrowIfNull(state);
@@ -46,12 +36,7 @@ public static class DocumentFlattener
                 $"Export output {output.Width}x{output.Height} ({bytes:N0} bytes) exceeds the {MaxOutputBytes:N0} byte budget.");
     }
 
-    /// <summary>
-    /// FR-EDIT-007: flattens only <paramref name="region"/> (output-space, e.g. a crop review
-    /// draft) by appending a transient <see cref="CropOp"/>, so rounding, clamping, the 1px
-    /// minimum and the byte budget stay the single <see cref="TransformEvaluator"/> contract.
-    /// The caller's state is immutable and never entered into history.
-    /// </summary>
+    /// <summary>임시 자르기 작업을 붙여 지정 출력 영역만 평면화. 호출자 상태·기록은 불변.</summary>
     public static SKImage FlattenRegion(
         SKImage frame,
         PixelSize nativeSize,

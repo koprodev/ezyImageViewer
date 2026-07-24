@@ -16,7 +16,7 @@ public readonly record struct CropReview(RectF Bounds, Guid DocumentId, long Rev
         x >= Bounds.X && x <= Bounds.Right && y >= Bounds.Y && y <= Bounds.Bottom;
 }
 
-/// <summary>Keeps a review draft outside document history until explicit confirmation.</summary>
+    /// <summary>명시적 확정 전까지 검토 초안을 문서 기록 밖에 보관.</summary>
 public sealed class CropInteraction
 {
     private Vector2 _anchor;
@@ -96,8 +96,8 @@ public sealed class CropInteraction
         return true;
     }
 
-    /// <summary>A review is only actionable against the exact document revision it was drawn on
-    /// (FR-EDIT-007 region copy shares the commit-path gate at ViewerWindow.TryCommitCropReview).</summary>
+    /// <summary>검토는 그려진 바로 그 문서 리비전에만 적용 가능.
+    /// FR-EDIT-007 영역 복사도 ViewerWindow.TryCommitCropReview의 확정 게이트 공유.</summary>
     public bool TryGetValidReview(Guid documentId, long revision, out CropReview review)
     {
         if (Phase == CropInteractionPhase.Reviewing

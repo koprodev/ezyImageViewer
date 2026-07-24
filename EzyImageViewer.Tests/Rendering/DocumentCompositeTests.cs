@@ -6,20 +6,15 @@ using Xunit;
 
 namespace EzyImageViewer.Tests.Rendering;
 
-/// <summary>
-/// CPU goldens over the shared composition path (FR-EDIT-004: the preview IS the export math).
-/// Quarter turns, flips, crops and integer scales assert exact pixels on an asymmetric fixture;
-/// free-angle raster equality is asserted structurally (opaque interior, transparent corners) —
-/// per-channel epsilons for full free-angle goldens are set from Release measurements, not guessed.
-/// </summary>
+/// <summary>공유 합성 경로의 CPU 골든. 정수 변환은 정확한 픽셀, 자유 각도는 구조로 검증.</summary>
 public class DocumentCompositeTests
 {
-    private static readonly SKColor TL = new(0xFF, 0x00, 0x00, 0xFF); // red
-    private static readonly SKColor TR = new(0x00, 0xFF, 0x00, 0xFF); // green
-    private static readonly SKColor BL = new(0x00, 0x00, 0xFF, 0xFF); // blue
-    private static readonly SKColor BR = new(0xFF, 0xFF, 0x00, 0xFF); // yellow
+    private static readonly SKColor TL = new(0xFF, 0x00, 0x00, 0xFF); // 빨강.
+    private static readonly SKColor TR = new(0x00, 0xFF, 0x00, 0xFF); // 초록.
+    private static readonly SKColor BL = new(0x00, 0x00, 0xFF, 0xFF); // 파랑.
+    private static readonly SKColor BR = new(0xFF, 0xFF, 0x00, 0xFF); // 노랑.
 
-    /// <summary>Four solid quadrants — asymmetric under every rotation/flip.</summary>
+    /// <summary>회전·뒤집기에서 방향을 구분하는 네 색 사분면.</summary>
     private static SKImage QuadrantImage(int width, int height)
     {
         var info = new SKImageInfo(width, height, SKColorType.Bgra8888, SKAlphaType.Premul);
@@ -80,7 +75,7 @@ public class DocumentCompositeTests
         using var bitmap = Render(
             frame, new PixelSize(8, 8), State(new EraseOp(new RectF(0f, 0f, 4f, 4f))));
 
-        Assert.Equal(SKColors.Empty, bitmap.GetPixel(2, 2)); // erased TL quadrant
+        Assert.Equal(SKColors.Empty, bitmap.GetPixel(2, 2)); // 왼쪽 위 사분면 지움.
         Assert.Equal(TR, bitmap.GetPixel(6, 2));
         Assert.Equal(BL, bitmap.GetPixel(2, 6));
         Assert.Equal(BR, bitmap.GetPixel(6, 6));
@@ -94,7 +89,7 @@ public class DocumentCompositeTests
 
         Assert.Equal(8, bitmap.Width);
         Assert.Equal(8, bitmap.Height);
-        Assert.Equal(BL, bitmap.GetPixel(2, 2)); // clockwise: bottom-left arrives top-left
+        Assert.Equal(BL, bitmap.GetPixel(2, 2)); // 시계 방향으로 왼쪽 아래가 왼쪽 위 도착.
         Assert.Equal(TL, bitmap.GetPixel(6, 2));
         Assert.Equal(BR, bitmap.GetPixel(2, 6));
         Assert.Equal(TR, bitmap.GetPixel(6, 6));
@@ -162,7 +157,7 @@ public class DocumentCompositeTests
     [Fact]
     public void CropThenRotate_ComposesInOrder()
     {
-        // Keep the right half (green over yellow), then rotate 90° CW: yellow left, green right.
+        // 오른쪽 절반(초록·노랑)만 남겨 90° 시계 회전: 노랑 왼쪽, 초록 오른쪽.
         using var frame = QuadrantImage(8, 8);
         using var bitmap = Render(frame, new PixelSize(8, 8),
             State(new CropOp(new RectF(4f, 0f, 4f, 8f)), new RotateOp(90f)));
@@ -176,8 +171,7 @@ public class DocumentCompositeTests
     [Fact]
     public void ReducedPreviewFrame_FillsTheNativeSizedOutput()
     {
-        // Frame decoded at half resolution: the composite undoes the reduction, so output geometry
-        // (and annotation coordinates) stay in native terms.
+        // 절반 해상도 프레임도 합성이 축소를 되돌려 출력·주석 좌표는 원본 기준 유지.
         using var frame = QuadrantImage(4, 4);
         using var bitmap = Render(frame, new PixelSize(8, 8), State());
 
@@ -192,18 +186,17 @@ public class DocumentCompositeTests
         using var frame = QuadrantImage(100, 100);
         using var bitmap = Render(frame, new PixelSize(100, 100), State(new RotateOp(45f)));
 
-        Assert.Equal(142, bitmap.Width); // content-containing rounding: floor(min)/ceil(max)
+        Assert.Equal(142, bitmap.Width); // 내용을 담는 바깥쪽 반올림.
         Assert.Equal(142, bitmap.Height);
-        Assert.Equal(0, bitmap.GetPixel(2, 2).Alpha); // bounding-box corner: no source there
+        Assert.Equal(0, bitmap.GetPixel(2, 2).Alpha); // 경계 상자 모서리에는 원본 없음.
         Assert.Equal(0, bitmap.GetPixel(139, 139).Alpha);
-        Assert.Equal(255, bitmap.GetPixel(71, 71).Alpha); // source center
+        Assert.Equal(255, bitmap.GetPixel(71, 71).Alpha); // 원본 중심.
     }
 
     [Fact]
     public void OversizedDestination_PaintsNothingOutsideTheOutputCanvas()
     {
-        // FR-EDIT-004: a preview surface larger than the logical canvas must show exactly what an
-        // output-sized export surface shows — the composite clips to OutputSize explicitly.
+        // 큰 미리보기와 출력 크기 내보내기가 같도록 합성은 출력 크기에 명시적으로 자름.
         var state = State(new RotateOp(45f));
         var evaluation = TransformEvaluator.Evaluate(state.Transform, new PixelSize(100, 100));
         var info = new SKImageInfo(
@@ -230,13 +223,13 @@ public class DocumentCompositeTests
     [Fact]
     public void Annotations_ShareTheBackgroundTransform()
     {
-        // A stroke on the native left edge must follow a horizontal flip to the right edge.
+        // 원본 왼쪽 선은 가로 뒤집기 뒤 오른쪽으로 이동.
         var annotationId = Guid.NewGuid();
         var state = State(new FlipOp(Horizontal: true)).AddAnnotation(new RectangleAnnotation
         {
             Id = annotationId,
             Bounds = new RectF(0f, 24f, 16f, 16f),
-            StrokeArgb = 0xFFFF00FF, // magenta, absent from the fixture
+            StrokeArgb = 0xFFFF00FF, // 표본에 없는 자홍.
             StrokeWidth = 2f,
         });
         using var frame = QuadrantImage(64, 64);
@@ -249,18 +242,18 @@ public class DocumentCompositeTests
     [Fact]
     public void AnnotationOutsideEveryCrop_DoesNotRender()
     {
-        // Data survives (non-destructive), pixels do not: the shared clip removes it (ADR-0009).
+        // 비파괴라 데이터는 남고 공유 클립 때문에 픽셀만 안 보임.
         var state = State(new CropOp(new RectF(0f, 0f, 32f, 64f))).AddAnnotation(new RectangleAnnotation
         {
             Id = Guid.NewGuid(),
-            Bounds = new RectF(40f, 8f, 16f, 16f), // fully inside the cropped-away right half
+            Bounds = new RectF(40f, 8f, 16f, 16f), // 잘린 오른쪽 절반 안.
             StrokeArgb = 0xFFFF00FF,
             StrokeWidth = 2f,
         });
         using var frame = QuadrantImage(64, 64);
         using var bitmap = Render(frame, new PixelSize(64, 64), state);
 
-        Assert.Single(state.Annotations); // preserved in the document
+        Assert.Single(state.Annotations); // 문서에는 보존.
         Assert.Equal(0, CountColor(bitmap, new SKColor(0xFF, 0x00, 0xFF, 0xFF), 0, bitmap.Width));
     }
 
@@ -290,7 +283,7 @@ public class DocumentCompositeTests
     [Fact]
     public void AnnotationStrokeWidth_ScalesWithTheImage()
     {
-        // Native-px stroke contract (ADR-0009): a 2px stroke under a 4× resize covers ~4× the rows.
+        // 원본 2px 선은 4배 크기 조정 뒤 약 4배 행을 덮음.
         var state = State(new ResizeOp(new PixelSize(256, 256))).AddAnnotation(new RectangleAnnotation
         {
             Id = Guid.NewGuid(),
@@ -301,8 +294,8 @@ public class DocumentCompositeTests
         using var frame = QuadrantImage(64, 64);
         using var bitmap = Render(frame, new PixelSize(64, 64), state);
 
-        // Count magenta pixels along the vertical line crossing the top edge midpoint.
-        var column = 128; // native x=32 → output 128
+        // 위쪽 변 중간을 지나는 세로선의 자홍 픽셀 수 계산.
+        var column = 128; // 원본 x=32 → 출력 128.
         var hits = 0;
         for (var y = 0; y < bitmap.Height; y++)
         {
@@ -310,15 +303,14 @@ public class DocumentCompositeTests
             if (pixel.Red > 200 && pixel.Blue > 200 && pixel.Green < 60)
                 hits++;
         }
-        // Two edges (top and bottom) × ~8 device px each; antialiasing blurs the boundary rows.
+        // 위·아래 두 변 × 장치 약 8px. 안티앨리어싱이 경계 행을 흐림.
         Assert.InRange(hits, 10, 24);
     }
 
     [Fact]
     public void AnnotationStroke_DeformsWithANonUniformResize()
     {
-        // Native-px stroke contract under x4/y1 resize: vertical edges become ~8px wide while
-        // horizontal edges stay ~2px tall — a scalar width would be wrong on one axis.
+        // x4/y1 조정에서 세로 변은 약 8px, 가로 변은 약 2px. 단일 너비면 한 축이 틀림.
         var state = State(new ResizeOp(new PixelSize(256, 64))).AddAnnotation(new RectangleAnnotation
         {
             Id = Guid.NewGuid(),
@@ -331,7 +323,7 @@ public class DocumentCompositeTests
 
         static bool IsMagenta(SKColor pixel) => pixel.Red > 200 && pixel.Blue > 200 && pixel.Green < 60;
 
-        // Horizontal scanline at native y=32 crosses both vertical edges: 2 × ~8px.
+        // 원본 y=32 가로선은 세로 변 둘과 교차: 2 × 약 8px.
         var horizontalHits = 0;
         for (var x = 0; x < bitmap.Width; x++)
         {
@@ -340,7 +332,7 @@ public class DocumentCompositeTests
         }
         Assert.InRange(horizontalHits, 12, 24);
 
-        // Vertical scan at native x=32 (output 128) crosses both horizontal edges: 2 × ~2px.
+        // 원본 x=32 세로선은 가로 변 둘과 교차: 2 × 약 2px.
         var verticalHits = 0;
         for (var y = 0; y < bitmap.Height; y++)
         {

@@ -1,6 +1,6 @@
 namespace EzyImageViewer.Core.Imaging;
 
-/// <summary>Pixel dimensions of a raster surface. Always post-EXIF (§6.3 content space).</summary>
+/// <summary>래스터 표면의 픽셀 크기. 항상 EXIF 방향 적용 후 기준(§6.3 콘텐츠 공간).</summary>
 public readonly record struct PixelSize(int Width, int Height)
 {
     public long PixelCount => (long)Width * Height;

@@ -23,6 +23,8 @@ public enum SniffStatus
 {
     Supported,
     Conditional,
+    /// <summary>시그니처는 알지만 뷰어가 해석하지 않는 형식(PDF/PSD, ADR-0005).
+    /// 손상 파일로 몰지 않고 실제 형식을 알려 주려고 일부러 감지.</summary>
     KnownButUnsupported,
     Unknown,
     CorruptOrTruncated,
@@ -31,9 +33,8 @@ public enum SniffStatus
 public readonly record struct SniffResult(SniffStatus Status, ImageFormat Format);
 
 /// <summary>
-/// Signature-first format detection (requirements §8.5: real bytes win over extension).
-/// Decoder dispatch must key off this result — a failed decode is a failure of that format,
-/// never a cue to reinterpret the file with another decoder.
+/// 시그니처 우선 형식 판별(요건 §8.5: 확장자보다 실제 바이트 우선).
+/// 디코더 선택은 이 결과만 따름. 해석 실패를 다른 형식으로 우겨 보라는 신호로 쓰지 않음.
 /// </summary>
 public static class FormatSniffer
 {
@@ -102,7 +103,7 @@ public static class FormatSniffer
         if (h.Length < 12 || !h[4..8].SequenceEqual("ftyp"u8))
             return ImageFormat.Unknown;
 
-        // The major brand is followed by a minor version and zero or more compatible brands.
+        // 주 브랜드 뒤에 부 버전과 0개 이상의 호환 브랜드가 이어짐.
         for (var offset = 8; offset + 4 <= h.Length; offset += 4)
         {
             var brand = h.Slice(offset, 4);
@@ -117,7 +118,7 @@ public static class FormatSniffer
         return ImageFormat.Unknown;
     }
 
-    /// <summary>Heuristic: SVG is text, so accept leading whitespace/BOM then "&lt;svg" or "&lt;?xml".</summary>
+    /// <summary>SVG는 텍스트이므로 앞쪽 공백·BOM 뒤의 "&lt;svg" 또는 "&lt;?xml"을 허용.</summary>
     private static bool LooksLikeSvg(ReadOnlySpan<byte> h)
     {
         var probe = h[..Math.Min(h.Length, 256)];
@@ -127,7 +128,7 @@ public static class FormatSniffer
                 && text.Contains("<svg", StringComparison.OrdinalIgnoreCase));
     }
 
-    /// <summary>Extension consistency check for the document diagnostics log (mismatch = warning, not error).</summary>
+    /// <summary>문서 진단 로그용 확장자 일치 검사. 불일치는 오류가 아니라 경고.</summary>
     public static bool ExtensionMatches(ImageFormat format, string? extension)
     {
         if (string.IsNullOrEmpty(extension))

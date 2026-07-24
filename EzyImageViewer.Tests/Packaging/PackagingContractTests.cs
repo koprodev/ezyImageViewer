@@ -1,53 +1,34 @@
 using System.Xml.Linq;
 using Xunit;
 
-namespace EzyImageViewer.Tests.Codec;
+namespace EzyImageViewer.Tests.Packaging;
 
-public sealed class CodecPackagingContractTests
+public sealed class PackagingContractTests
 {
     private static readonly XNamespace Foundation =
         "http://schemas.microsoft.com/appx/manifest/foundation/windows10";
 
+    /// <summary>PDF/PSD와 외부 프로세스 호스트는 제거됨(ADR-0005/0006).
+    /// 앱 패키지는 홀로 서야 함.</summary>
     [Fact]
-    public void CodecHostManifest_IsFrameworkOnlyWithoutActivationSurface()
-    {
-        var root = LoadManifest("CodecHost.AppxManifest.template.xml").Root!;
-
-        Assert.Equal(
-            "GRTech.ezyImageViewer.CodecHost",
-            root.Element(Foundation + "Identity")!.Attribute("Name")!.Value);
-        Assert.Equal(
-            "true",
-            root.Element(Foundation + "Properties")!
-                .Element(Foundation + "Framework")!.Value,
-            ignoreCase: true);
-        Assert.Null(root.Element(Foundation + "Applications"));
-        Assert.Null(root.Element(Foundation + "Capabilities"));
-    }
-
-    [Fact]
-    public void MainManifest_RequiresDedicatedCodecHostFramework()
+    public void MainManifest_DeclaresNoPackageDependency()
     {
         var root = LoadManifest("AppxManifest.template.xml").Root!;
-        var dependency = root.Element(Foundation + "Dependencies")!
-            .Elements(Foundation + "PackageDependency")
-            .Single();
 
-        Assert.Equal("GRTech.ezyImageViewer.CodecHost", dependency.Attribute("Name")!.Value);
-        Assert.Equal("{{PUBLISHER}}", dependency.Attribute("Publisher")!.Value);
-        Assert.Equal("{{CODEC_HOST_VERSION}}", dependency.Attribute("MinVersion")!.Value);
+        Assert.Empty(root.Element(Foundation + "Dependencies")!
+            .Elements(Foundation + "PackageDependency"));
     }
 
     [Fact]
-    public void MainAppProject_DoesNotEmbedCodecHostBundle()
+    public void MainAppProject_DoesNotReferenceTheRemovedCodecHost()
     {
         var project = File.ReadAllText(Path.Combine(
             FindRepositoryRoot(),
             "EzyImageViewer.App",
             "EzyImageViewer.App.csproj"));
 
-        Assert.DoesNotContain("EzyImageViewer.CodecHost", project, StringComparison.OrdinalIgnoreCase);
-        Assert.DoesNotContain("CopyCodecHostBundle", project, StringComparison.Ordinal);
+        Assert.DoesNotContain("CodecHost", project, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("CodecProtocol", project, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -93,39 +74,11 @@ public sealed class CodecPackagingContractTests
     }
 
     [Fact]
-    public void CodecHostPackaging_ForcesDiagnosticsOffAndRejectsDiagnosticType()
-    {
-        var root = FindRepositoryRoot();
-        var script = File.ReadAllText(Path.Combine(
-            root,
-            "packaging",
-            "pack-codec-host-msix.ps1"));
-        var targets = File.ReadAllText(Path.Combine(
-            root,
-            "EzyImageViewer.CodecHost",
-            "Directory.Build.targets"));
-
-        Assert.Contains(
-            "dotnet build $hostProj -c Release -p:EnableCodecHostDiagnostics=false",
-            script,
-            StringComparison.Ordinal);
-        Assert.Contains(
-            "Release CodecHost still contains DiagnosticOperationProcessor.",
-            script,
-            StringComparison.Ordinal);
-        Assert.Contains(
-            """<Compile Remove="DiagnosticOperationProcessor.cs" />""",
-            targets,
-            StringComparison.Ordinal);
-    }
-
-    [Fact]
     public void PackagingScripts_ValidateReleaseInputsAndUseDeterministicTools()
     {
         var root = FindRepositoryRoot();
-        foreach (var name in new[] { "pack-msix.ps1", "pack-codec-host-msix.ps1" })
         {
-            var script = File.ReadAllText(Path.Combine(root, "packaging", name));
+            var script = File.ReadAllText(Path.Combine(root, "packaging", "pack-msix.ps1"));
 
             Assert.Contains("Assert-MsixVersion", script, StringComparison.Ordinal);
             Assert.Contains("canonical four-part numeric version", script, StringComparison.Ordinal);
@@ -147,6 +100,16 @@ public sealed class CodecPackagingContractTests
                 StringComparison.OrdinalIgnoreCase);
             Assert.DoesNotContain("Select-Object -First 1", script, StringComparison.Ordinal);
         }
+
+        var installerScript = File.ReadAllText(Path.Combine(
+            root,
+            "packaging",
+            "build-wix-installer.ps1"));
+        Assert.Contains("Get-GeneratedPayloadFileCount", installerScript, StringComparison.Ordinal);
+        Assert.Contains("Generated WiX payload counts differ by scope.", installerScript,
+            StringComparison.Ordinal);
+        Assert.DoesNotContain("payload.fileCount - 1 +", installerScript,
+            StringComparison.Ordinal);
 
         var mainScript = File.ReadAllText(Path.Combine(root, "packaging", "pack-msix.ps1"));
         Assert.DoesNotContain(@"Assets\*.png", mainScript, StringComparison.Ordinal);
@@ -176,7 +139,7 @@ public sealed class CodecPackagingContractTests
     }
 
     [Fact]
-    public void MainPackaging_PublishesOnlyAnAlreadyVerifiedStagedPair()
+    public void MainPackaging_PublishesOnlyAnAlreadyVerifiedStagedPackage()
     {
         var script = File.ReadAllText(Path.Combine(
             FindRepositoryRoot(),
@@ -186,7 +149,6 @@ public sealed class CodecPackagingContractTests
         var publishIndex = script.IndexOf("Publish-ArtifactSet", verifyIndex, StringComparison.Ordinal);
 
         Assert.Contains("'.staging-'", script, StringComparison.Ordinal);
-        Assert.Contains("OutputDirectory = $staging", script, StringComparison.Ordinal);
         Assert.True(verifyIndex >= 0, "The staged package verifier call is missing.");
         Assert.True(publishIndex > verifyIndex, "Artifacts must be verified before publication.");
         Assert.Contains("Move-Item -LiteralPath $backup.Backup", script, StringComparison.Ordinal);
@@ -199,7 +161,7 @@ public sealed class CodecPackagingContractTests
     }
 
     [Fact]
-    public void ReleaseVerifier_InspectsActualPairWithoutInstallingOrTrustingIt()
+    public void ReleaseVerifier_InspectsTheActualPackageWithoutInstallingOrTrustingIt()
     {
         var script = File.ReadAllText(Path.Combine(
             FindRepositoryRoot(),
@@ -207,20 +169,18 @@ public sealed class CodecPackagingContractTests
             "verify-msix-release.ps1"));
 
         Assert.Contains("makeappx unpack", script, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("GRTech.ezyImageViewer.CodecHost", script, StringComparison.Ordinal);
         Assert.Contains("SHA256SUMS", script, StringComparison.Ordinal);
         Assert.Contains("$RequireSignature", script, StringComparison.Ordinal);
         Assert.Contains("signtool.exe", script, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("THIRD-PARTY-NOTICES.md", script, StringComparison.Ordinal);
-        Assert.Contains("DiagnosticOperationProcessor", script, StringComparison.Ordinal);
         Assert.Contains("Assert-EzyPackageContentsManifest", script, StringComparison.Ordinal);
         Assert.Contains("Assert-EzyPackageMatchesBuildOutput", script, StringComparison.Ordinal);
         Assert.Contains("Verification requires either -RequireSignature or -RequireBuildOutputMatch",
             script,
             StringComparison.Ordinal);
         Assert.Contains("PACKAGE-CONTENTS.sha256", script, StringComparison.Ordinal);
-        Assert.Contains("EzyImageViewer.CodecHost.exe", script, StringComparison.Ordinal);
-        Assert.Contains("Magick.Native-Q8-x64.dll", script, StringComparison.Ordinal);
+        // Magick.NET은 테스트 픽스처 생성 전용. 패키지에 슬쩍 타면 검증기가 막아야 함.
+        Assert.Contains("PDFtoImage|Magick|PDFium", script, StringComparison.Ordinal);
         Assert.Contains("Assets/Fonts/MaterialSymbolsOutlined.ttf", script,
             StringComparison.Ordinal);
         Assert.Contains(
@@ -228,7 +188,6 @@ public sealed class CodecPackagingContractTests
             script,
             StringComparison.Ordinal);
         Assert.Contains("ArtifactsByName[$name]", script, StringComparison.Ordinal);
-        Assert.Contains("EzyImageViewer\\.CodecHost", script, StringComparison.Ordinal);
         Assert.Contains("exactly one extension", script, StringComparison.Ordinal);
         Assert.Contains("runFullTrust", script, StringComparison.Ordinal);
         Assert.DoesNotContain("Add-AppxPackage", script, StringComparison.OrdinalIgnoreCase);
@@ -236,37 +195,15 @@ public sealed class CodecPackagingContractTests
     }
 
     [Fact]
-    public void CodecHostPackaging_UsesPrivateStagingAndCannotReplaceTheFixedPair()
+    public void ReleasePackage_IncludesProjectLicenseAndThirdPartyNotices()
     {
-        var script = File.ReadAllText(Path.Combine(
-            FindRepositoryRoot(),
-            "packaging",
-            "pack-codec-host-msix.ps1"));
+        var project = File.ReadAllText(Path.Combine(
+            FindRepositoryRoot(), "EzyImageViewer.App", "EzyImageViewer.App.csproj"));
 
-        Assert.Contains("[Parameter(Mandatory = $true)]", script, StringComparison.Ordinal);
-        Assert.Contains("OutputDirectory must be a main-package staging directory", script,
-            StringComparison.Ordinal);
-        Assert.Contains(".codec-host-staging-", script, StringComparison.Ordinal);
-        Assert.Contains("[IO.File]::Replace", script, StringComparison.Ordinal);
-        Assert.Contains("[IO.FileShare]::None", script, StringComparison.Ordinal);
-    }
-
-    [Fact]
-    public void BothReleasePackages_IncludeProjectLicenseAndThirdPartyNotices()
-    {
-        var root = FindRepositoryRoot();
-        foreach (var projectPath in new[]
-        {
-            Path.Combine(root, "EzyImageViewer.App", "EzyImageViewer.App.csproj"),
-            Path.Combine(root, "EzyImageViewer.CodecHost", "EzyImageViewer.CodecHost.csproj"),
-        })
-        {
-            var project = File.ReadAllText(projectPath);
-            Assert.Contains("..\\LICENSE", project, StringComparison.Ordinal);
-            Assert.Contains("Link=", project, StringComparison.Ordinal);
-            Assert.Contains("LICENSE.txt", project, StringComparison.Ordinal);
-            Assert.Contains("..\\THIRD-PARTY-NOTICES.md", project, StringComparison.Ordinal);
-        }
+        Assert.Contains("..\\LICENSE", project, StringComparison.Ordinal);
+        Assert.Contains("Link=", project, StringComparison.Ordinal);
+        Assert.Contains("LICENSE.txt", project, StringComparison.Ordinal);
+        Assert.Contains("..\\THIRD-PARTY-NOTICES.md", project, StringComparison.Ordinal);
     }
 
     private static XDocument LoadManifest(string name) => XDocument.Load(Path.Combine(

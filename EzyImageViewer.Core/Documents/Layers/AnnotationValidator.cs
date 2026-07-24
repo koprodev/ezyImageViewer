@@ -11,16 +11,14 @@ public static class AnnotationValidator
     public const int MaxLayers = 1_000;
     public const float MaxStrokeWidth = 1_000f;
     public const float MaxFontSize = 10_000f;
-    /// <summary>Protection dials. Lower bounds keep the dials from degenerating to a no-op blur or
-    /// per-pixel mosaic; the sigma ceiling keeps the renderer's full 3-sigma padding affordable.</summary>
+    /// <summary>보호 강도 범위. 하한은 무늬만 흐림·픽셀 모자이크를 막고 시그마 상한은 3시그마 여백 비용을 제어.</summary>
     public const float MinMosaicBlockSize = 2f;
     public const float MaxMosaicBlockSize = 1_024f;
     public const float MinBlurSigma = 0.5f;
     public const float MaxBlurSigma = 80f;
     public const long MaxRasterAssetBytes = 64L * 1024 * 1024;
 
-    /// <summary>Validates layer-level fields only; contained annotations are validated where they
-    /// enter the document (add/insert/replace paths), not re-walked on every layer touch.</summary>
+    /// <summary>레이어 필드만 검증. 내부 주석은 문서 진입 경로에서 검사하므로 매번 다시 순회하지 않음.</summary>
     public static AnnotationLayer Validate(AnnotationLayer layer)
     {
         ArgumentNullException.ThrowIfNull(layer);
@@ -86,7 +84,7 @@ public static class AnnotationValidator
                 ValidateStroke(bubble.StrokeWidth, bubble.Opacity);
                 if (!float.IsFinite(bubble.CornerRadius) || bubble.CornerRadius < 0f)
                     throw new ArgumentException("Corner radius must be finite and non-negative.", nameof(annotation));
-                // A degenerate body would collapse the proportional tail remap to the center.
+                // 몸통이 퇴화하면 꼬리 비례 재배치가 중심으로 쭈그러듦.
                 if (bubble.Bounds.Width < 1f || bubble.Bounds.Height < 1f)
                     throw new ArgumentException("Speech bubble body must be at least 1x1.", nameof(annotation));
                 break;
@@ -103,8 +101,8 @@ public static class AnnotationValidator
                 break;
             case ProtectionAnnotation protection:
                 ValidateEnum(protection.Kind, nameof(protection.Kind));
-                // A rotated region would sample axis-aligned pixels but cover a rotated area —
-                // a mismatch a privacy tool must not allow, so protection never rotates (ADR-0015).
+                // 회전 영역은 축 정렬 픽셀을 뽑고 비스듬한 곳을 덮는 괴상한 조합.
+                // 개인정보 도구에선 곤란하므로 보호 영역은 회전 금지(ADR-0015).
                 if (protection.RotationDegrees != 0f)
                     throw new ArgumentException(
                         "Protection regions cannot rotate.", nameof(annotation));

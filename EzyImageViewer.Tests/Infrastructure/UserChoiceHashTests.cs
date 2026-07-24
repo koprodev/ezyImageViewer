@@ -5,11 +5,10 @@ namespace EzyImageViewer.Tests.Infrastructure;
 
 public sealed class UserChoiceHashTests
 {
-    // The last two vectors were generated 2026-07-23 with DanysysTeam/PS-SFTA Get-Hash (MIT), an
-    // implementation independent from the Mozilla formulation used by UserChoiceHash; agreement
-    // across both implementations pins the undocumented algorithm. The first two are regression
-    // locks from this implementation, kept after it reproduced, byte for byte, the Hash values
-    // Windows itself had written for five real UserChoice keys. Every SID here is synthetic.
+    // 마지막 두 벡터는 2026-07-23 DanysysTeam/PS-SFTA Get-Hash(MIT)로 생성.
+    // UserChoiceHash의 Mozilla 방식과 독립 구현이라 둘의 일치로 비공개 알고리즘을 고정.
+    // 앞의 둘은 이 구현의 회귀 잠금. Windows가 실제 UserChoice 키 5개에 쓴 해시를 바이트 단위로 재현.
+    // 여기의 SID는 모두 합성값.
     [Theory]
     [InlineData(".png", "s-1-5-21-2088888888-3155555555-4011111111-1001",
         "ezyImageViewer.Image", "2026-07-23T06:00:00Z", "a6PQEyAtUs8=")]

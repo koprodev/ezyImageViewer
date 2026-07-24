@@ -5,8 +5,7 @@
     xmlns:skia="using:SkiaSharp.Views.Windows"
     xmlns:views="using:EzyImageViewer.App.Views"
     Title="ezy Image Viewer">
-    <!-- Hidden: window-wide accelerators must not auto-surface as a pointer tooltip
-         (default Auto shows the first accelerator, the Left arrow key, at the cursor). -->
+    <!-- 창 단축키를 포인터 도움말에 숨김. Auto면 왼쪽 화살표가 불쑥 튀어나옴. -->
     <Grid x:Name="Root" KeyboardAcceleratorPlacementMode="Hidden">
         <Grid.Resources>
             <ResourceDictionary>
@@ -26,7 +25,7 @@
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
-            <!-- Left rail per UI디자인.png (ADR-0002). -->
+            <!-- UI디자인.png 기준 왼쪽 도구 막대(ADR-0002). -->
             <Border
                 x:Name="ToolRail"
                 Grid.ColumnSpan="2"
@@ -63,7 +62,7 @@
                                     <MenuFlyoutItem x:Name="ClipboardMenuItem" Click="OnClipboardClicked" />
                                     <MenuFlyoutItem x:Name="CaptureMenuItem" Click="OnCaptureClicked" />
                                     <MenuFlyoutSubItem x:Name="WhiteboardSubMenu">
-                                        <!-- Data mirrors Icon.File.Whiteboard: PathIconSource cannot feed MenuFlyout icons and FontIcon is banned in this file. -->
+                                        <!-- Icon.File.Whiteboard 경로 복제. 메뉴 아이콘은 PathIconSource를 못 먹고 FontIcon도 금지됨. -->
                                         <MenuFlyoutSubItem.Icon><PathIcon Data="F0 M4,4 L16,4 Q18,4 18,6 L18,14 Q18,16 16,16 L4,16 Q2,16 2,14 L2,6 Q2,4 4,4 Z M4.4,5.4 L15.6,5.4 Q16.6,5.4 16.6,6.4 L16.6,13.6 Q16.6,14.6 15.6,14.6 L4.4,14.6 Q3.4,14.6 3.4,13.6 L3.4,6.4 Q3.4,5.4 4.4,5.4 Z M9.2,7 L10.8,7 L10.8,9.2 L13,9.2 L13,10.8 L10.8,10.8 L10.8,13 L9.2,13 L9.2,10.8 L7,10.8 L7,9.2 L9.2,9.2 Z" /></MenuFlyoutSubItem.Icon>
                                         <MenuFlyoutItem x:Name="WhiteboardWhiteMenuItem" Click="OnWhiteboardWhiteClicked" />
                                         <MenuFlyoutItem x:Name="WhiteboardBlackMenuItem" Click="OnWhiteboardBlackClicked" />
@@ -99,7 +98,7 @@
                                 <MenuFlyout>
                                     <MenuFlyoutItem x:Name="FitMenuItem" Click="OnFitClicked" />
                                     <MenuFlyoutItem x:Name="ActualSizeMenuItem" Click="OnActualSizeClicked">
-                                        <!-- Data mirrors Icon.View.ActualSize (custom path; FontIcon is banned in this file). -->
+                                        <!-- Icon.View.ActualSize 경로 복제. 사용자 경로라 FontIcon은 출입 금지. -->
                                         <MenuFlyoutItem.Icon><PathIcon Data="F1 M4,4 L7,2 L8,2 L8,17 L6,17 L6,5 L4,6 Z M10,7 L12,7 L12,9 L10,9 Z M10,12 L12,12 L12,14 L10,14 Z M14,4 L17,2 L18,2 L18,17 L16,17 L16,5 L14,6 Z" /></MenuFlyoutItem.Icon>
                                     </MenuFlyoutItem>
                                 </MenuFlyout>
@@ -130,7 +129,7 @@
                                 <MenuFlyout>
                                     <MenuFlyoutItem x:Name="SelectModeObjectItem" Click="OnSelectModeObjectClicked" />
                                     <MenuFlyoutItem x:Name="SelectModeRegionItem" Click="OnSelectModeRegionClicked">
-                                        <!-- Data mirrors Icon.Image.RegionSelect (same constraint as the whiteboard submenu icon). -->
+                                        <!-- Icon.Image.RegionSelect 경로 복제. 화이트보드 하위 메뉴와 같은 제약. -->
                                         <MenuFlyoutItem.Icon><PathIcon Data="F1 M3,3 L6,3 L6,4.5 L3,4.5 Z M8.5,3 L11.5,3 L11.5,4.5 L8.5,4.5 Z M14,3 L17,3 L17,4.5 L14,4.5 Z M3,15.5 L6,15.5 L6,17 L3,17 Z M8.5,15.5 L11.5,15.5 L11.5,17 L8.5,17 Z M14,15.5 L17,15.5 L17,17 L14,17 Z M3,6.5 L4.5,6.5 L4.5,9 L3,9 Z M3,11 L4.5,11 L4.5,13.5 L3,13.5 Z M15.5,6.5 L17,6.5 L17,9 L15.5,9 Z M15.5,11 L17,11 L17,13.5 L15.5,13.5 Z" /></MenuFlyoutItem.Icon>
                                     </MenuFlyoutItem>
                                 </MenuFlyout>
@@ -264,7 +263,7 @@
                 </Grid>
             </Border>
 
-            <!-- Bottom-right like Photoshop; the top strip belongs to the context bar. -->
+            <!-- 포토샵처럼 오른쪽 아래 배치. 위쪽 띠는 컨텍스트 막대 몫. -->
             <Border
                 x:Name="LayerPanel"
                 Grid.ColumnSpan="2"
@@ -311,8 +310,8 @@
                 </Grid>
             </Border>
 
-            <!-- GL swap chain per ADR-0007 (WP4 gate); background/checkerboard is drawn inside the canvas.
-                 UI-thread paint is the project contract: snapshot swap/dispose relies on it (no render lease). -->
+            <!-- ADR-0007(WP4 게이트)의 GL 스왑 체인. 배경과 체크무늬도 캔버스에서 그림.
+                 스냅숏 교체·해제가 기대므로 UI 스레드에서만 그림(렌더 임대 없음). -->
             <skia:SKSwapChainPanel
                 x:Name="Canvas"
                 Grid.Column="1"
@@ -333,7 +332,7 @@
                 SizeChanged="OnCanvasSizeChanged"
                 Canvas.ZIndex="0" />
 
-            <!-- FR-CAP-003: unsolicited capture offer — an overlay, never a session hijack. -->
+            <!-- FR-CAP-003: 갑자기 온 캡처는 오버레이로 제안. 세션 납치는 금지. -->
             <InfoBar
                 x:Name="CaptureBar"
                 Grid.Column="1"
@@ -384,14 +383,14 @@
                 CornerRadius="6"
                 Canvas.ZIndex="10">
                 <Border.Resources>
-                    <!-- Small caption above each option: raw units (px, %, T) read as jargon. -->
+                    <!-- 원시 단위(px, %, T)가 암호문처럼 보이지 않게 짧은 제목을 붙임. -->
                     <Style x:Key="ContextCaptionStyle" TargetType="TextBlock">
                         <Setter Property="FontSize" Value="10" />
                         <Setter Property="Opacity" Value="0.7" />
                         <Setter Property="Margin" Value="2,0,0,0" />
                     </Style>
                 </Border.Resources>
-                <!-- Bottom padding reserves room for the overlay scrollbar so it never covers values. -->
+                <!-- 오버레이 스크롤바가 값을 덮지 않도록 아래 자리를 비워 둠. -->
                 <ScrollViewer
                     x:Name="ContextBarScroll"
                     HorizontalScrollBarVisibility="Auto"
@@ -536,13 +535,49 @@
                 TextWrapping="Wrap"
                 IsHitTestVisible="False"
                 Visibility="Collapsed" />
+
+            <!-- 다음 파일을 한 번에 고르도록 선택 뒤에도 유지. 별도 행이면 토글마다 이미지가 춤추므로 캔버스 위에 겹침. -->
+            <Border
+                x:Name="FilmstripPanel"
+                Grid.Column="0"
+                Grid.ColumnSpan="2"
+                VerticalAlignment="Bottom"
+                Visibility="Collapsed"
+                Background="{ThemeResource LayerFillColorDefaultBrush}"
+                BorderThickness="0,1,0,0"
+                BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Button
+                        x:Name="FilmstripCloseButton"
+                        Grid.Row="0"
+                        Height="18"
+                        MinHeight="18"
+                        Padding="0"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Center"
+                        VerticalContentAlignment="Center"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        CornerRadius="0"
+                        Click="OnFilmstripCloseClicked">
+                        <IconSourceElement IconSource="{StaticResource Icon.Chevron.Small.Filmstrip}" Width="12" Height="12" />
+                    </Button>
+                    <Grid x:Name="FilmstripHost" Grid.Row="1" Height="128" Margin="8,0,8,8" />
+                </Grid>
+            </Border>
         </Grid>
 
         <Grid Grid.Row="1" MinHeight="44" Padding="8,4" ColumnSpacing="8" Background="{ThemeResource LayerFillColorDefaultBrush}">
             <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
             <StackPanel x:Name="StatusNavigationGroup" Grid.Column="0" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
                 <Button x:Name="PreviousButton" Style="{StaticResource CompactIconButtonStyle}" Click="OnPreviousClicked"><IconSourceElement IconSource="{StaticResource Icon.View.Previous}" Style="{StaticResource ToolIconStyle}" /></Button>
-                <TextBlock x:Name="StatusPosition" MinWidth="64" FontSize="12" VerticalAlignment="Center" TextAlignment="Center" />
+                <Button x:Name="StatusPositionButton" MinWidth="64" Height="32" Padding="6,0" Background="Transparent" BorderThickness="0" CornerRadius="4" Click="OnStatusPositionClicked">
+                    <TextBlock x:Name="StatusPosition" FontSize="12" VerticalAlignment="Center" TextAlignment="Center" />
+                </Button>
                 <Button x:Name="NextButton" Style="{StaticResource CompactIconButtonStyle}" Click="OnNextClicked"><IconSourceElement IconSource="{StaticResource Icon.View.Next}" Style="{StaticResource ToolIconStyle}" /></Button>
             </StackPanel>
             <Grid Grid.Column="1" ColumnSpacing="8">
@@ -550,9 +585,11 @@
                 <ScrollViewer x:Name="StatusDetailsScroll" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
                     <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
                         <StackPanel Orientation="Horizontal" Spacing="2">
-                            <Button x:Name="PreviousPageButton" Style="{StaticResource CompactIconButtonStyle}" Click="OnPreviousPageClicked" />
-                            <TextBlock x:Name="StatusPage" MinWidth="72" FontSize="12" VerticalAlignment="Center" TextAlignment="Center" />
-                            <Button x:Name="NextPageButton" Style="{StaticResource CompactIconButtonStyle}" Click="OnNextPageClicked" />
+                            <StackPanel x:Name="StatusPageGroup" Orientation="Horizontal" Spacing="2" Visibility="Collapsed">
+                                <Button x:Name="PreviousPageButton" Style="{StaticResource CompactIconButtonStyle}" Click="OnPreviousPageClicked" />
+                                <TextBlock x:Name="StatusPage" MinWidth="72" FontSize="12" VerticalAlignment="Center" TextAlignment="Center" />
+                                <Button x:Name="NextPageButton" Style="{StaticResource CompactIconButtonStyle}" Click="OnNextPageClicked" />
+                            </StackPanel>
                             <Button x:Name="AnimationPlaybackButton" Style="{StaticResource CompactIconButtonStyle}" Click="OnAnimationPlaybackClicked" Visibility="Collapsed">
                                 <IconSourceElement x:Name="AnimationPlaybackIcon" Style="{StaticResource ToolIconStyle}" />
                             </Button>

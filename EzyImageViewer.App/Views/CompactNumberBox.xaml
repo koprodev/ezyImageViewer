@@ -15,8 +15,7 @@
             LostFocus="OnTextLostFocus"
             KeyDown="OnTextKeyDown">
             <TextBox.Template>
-                <!-- Minimal template: the stock clear (X) button steals the width a compact
-                     toolbar field cannot spare and hides the value while editing. -->
+                <!-- 최소 템플릿. 기본 지우기(X) 버튼이 좁은 도구 칸을 훔치고 편집 값까지 가리므로 제외. -->
                 <ControlTemplate TargetType="TextBox">
                     <Border
                         Background="{ThemeResource TextControlBackground}"

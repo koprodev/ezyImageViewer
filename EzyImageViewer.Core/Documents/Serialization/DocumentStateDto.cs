@@ -3,28 +3,24 @@ using System.Text.Json.Serialization;
 namespace EzyImageViewer.Core.Documents.Serialization;
 
 /// <summary>
-/// Storage-neutral fragment of document.json (ADR-0003:13, ADR-0009): the editable state only —
-/// ordered transform ops and layered annotations. Background reference, pages and screen state join
-/// at M6 (SSOT §7.10); versioning rides the container manifest so there is exactly one migration
-/// contract (ProjectContainer schema checks), not a second version field here.
-/// Shape per version: v1 uses the flat <see cref="Annotations"/> list, v2 uses <see cref="Layers"/>
-/// (UR-007). Exactly one of the two must be present; the writer emits v2 only.
-/// Ops are stored as ordered parameters; matrices are derived on load, never persisted.
+/// document.json의 저장소 중립 편집 상태 조각. 순서 있는 변환과 레이어 주석만 포함.
+/// 버전은 컨테이너 manifest가 단독 소유하며 v1은 평면 주석, v2는 레이어.
+/// 행렬은 저장하지 않고 로드 때 계산.
 /// </summary>
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed class DocumentStateDto
 {
     public required List<TransformOpDto> Transform { get; init; }
 
-    /// <summary>v1 only: flat paint order. Migrated to a single default layer on read.</summary>
+    /// <summary>v1 전용 평면 그리기 순서. 읽을 때 기본 레이어 하나로 승격.</summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public List<AnnotationDto>? Annotations { get; init; }
 
-    /// <summary>v2 only: layered paint order, index 0 farthest back.</summary>
+    /// <summary>v2 전용 레이어 그리기 순서. 0번이 맨 뒤.</summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public List<AnnotationLayerDto>? Layers { get; init; }
 
-    /// <summary>v2 optional authoring hint; when present it must reference an existing layer.</summary>
+    /// <summary>v2 선택 작성 힌트. 있으면 기존 레이어를 가리켜야 함.</summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public Guid? ActiveLayerId { get; init; }
 
@@ -51,7 +47,7 @@ public sealed class RasterAssetDto
     public required string Format { get; init; }
 }
 
-/// <summary>Closed discriminator set: an unknown kind fails the read (never silently dropped).</summary>
+/// <summary>닫힌 변환 종류 집합. 모르는 종류는 조용히 버리지 않고 읽기 실패.</summary>
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "kind",
     UnknownDerivedTypeHandling = JsonUnknownDerivedTypeHandling.FailSerialization)]
 [JsonDerivedType(typeof(CropOpDto), "crop")]
@@ -102,7 +98,7 @@ public sealed class EraseOpDto : TransformOpDto
     public required float Height { get; init; }
 }
 
-/// <summary>Closed annotation discriminator set. New optional fields preserve v1 rectangle input.</summary>
+/// <summary>닫힌 주석 종류 집합. 새 선택 필드는 v1 사각형 입력 호환 유지.</summary>
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "kind",
     UnknownDerivedTypeHandling = JsonUnknownDerivedTypeHandling.FailSerialization)]
 [JsonDerivedType(typeof(RectangleAnnotationDto), "rectangle")]

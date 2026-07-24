@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://ezyimageviewer.local/schemas/format-corpus-v2.json",
-  "title": "ezyImageViewer format and isolated-codec corpus",
+  "title": "ezyImageViewer format corpus",
   "type": "object",
   "additionalProperties": false,
   "required": ["schemaVersion", "minimumNormalPerExtension", "formats"],
@@ -11,16 +11,11 @@
     "minimumNormalPerExtension": { "type": "integer", "minimum": 30 },
     "formats": {
       "type": "array",
-      "items": {
-        "oneOf": [
-          { "$ref": "#/$defs/genericFormat" },
-          { "$ref": "#/$defs/codecFormat" }
-        ]
-      }
+      "items": { "$ref": "#/$defs/format" }
     }
   },
   "$defs": {
-    "genericFormat": {
+    "format": {
       "type": "object",
       "additionalProperties": false,
       "required": ["extension", "format", "supportTier", "samples"],
@@ -29,44 +24,14 @@
         "format": {
           "enum": ["Jpeg", "Png", "Bmp", "Gif", "Tiff", "Ico", "WebP", "Avif", "Heif", "Svg"]
         },
-        "supportTier": { "enum": ["official", "limited", "conditional"] },
+        "supportTier": { "enum": ["official", "conditional"] },
         "samples": {
           "type": "array",
-          "items": { "$ref": "#/$defs/genericSample" }
+          "items": { "$ref": "#/$defs/sample" }
         }
       }
     },
-    "codecFormat": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["extension", "format", "supportTier", "samples"],
-      "oneOf": [
-        {
-          "properties": {
-            "extension": { "const": ".pdf" },
-            "format": { "const": "Pdf" },
-            "supportTier": { "const": "conditional" }
-          }
-        },
-        {
-          "properties": {
-            "extension": { "const": ".psd" },
-            "format": { "const": "Psd" },
-            "supportTier": { "const": "limited" }
-          }
-        }
-      ],
-      "properties": {
-        "extension": { "enum": [".pdf", ".psd"] },
-        "format": { "enum": ["Pdf", "Psd"] },
-        "supportTier": { "enum": ["limited", "conditional"] },
-        "samples": {
-          "type": "array",
-          "items": { "$ref": "#/$defs/codecSample" }
-        }
-      }
-    },
-    "genericSample": {
+    "sample": {
       "type": "object",
       "additionalProperties": false,
       "required": ["path", "kind", "source", "license", "sha256"],
@@ -90,205 +55,8 @@
         }
       }
     },
-    "codecSample": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "id",
-        "path",
-        "kind",
-        "scenarios",
-        "producer",
-        "source",
-        "license",
-        "sha256",
-        "expected",
-        "goldens"
-      ],
-      "properties": {
-        "id": { "type": "string", "minLength": 1 },
-        "path": { "$ref": "#/$defs/relativePath" },
-        "kind": { "$ref": "#/$defs/sampleKind" },
-        "scenarios": {
-          "type": "array",
-          "minItems": 1,
-          "uniqueItems": true,
-          "items": { "$ref": "#/$defs/scenario" }
-        },
-        "producer": { "$ref": "#/$defs/producer" },
-        "source": { "type": "string", "minLength": 1 },
-        "license": { "type": "string", "minLength": 1 },
-        "sha256": { "$ref": "#/$defs/sha256" },
-        "password": { "type": "string", "minLength": 1 },
-        "expected": { "$ref": "#/$defs/expected" },
-        "qualificationPerformanceBudget": {
-          "$ref": "#/$defs/qualificationPerformanceBudget"
-        },
-        "goldens": {
-          "type": "array",
-          "items": { "$ref": "#/$defs/golden" }
-        }
-      }
-    },
     "sampleKind": {
       "enum": ["normal", "large", "boundary", "corrupt", "security"]
-    },
-    "scenario": {
-      "enum": [
-        "pdfSinglePage",
-        "pdfMultiPage",
-        "pdfEncrypted",
-        "pdfTransparency",
-        "pdfFontsEmbedded",
-        "pdfFontsMissing",
-        "pdfCorruptStructure",
-        "pdfCompressionBomb",
-        "pdfSlowRenderCancellation",
-        "psdSingleLayer",
-        "psdMultiLayer",
-        "psdCompatibilityOn",
-        "psdCompatibilityOff",
-        "psdCmyk",
-        "psdLab",
-        "psdSpotColor",
-        "psdSmartObject",
-        "psdAbnormalLength",
-        "psdCompressionBomb",
-        "icc",
-        "alpha"
-      ]
-    },
-    "producer": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["name", "version", "platform"],
-      "properties": {
-        "name": { "type": "string", "minLength": 1 },
-        "version": { "type": "string", "minLength": 1 },
-        "platform": { "type": "string", "minLength": 1 }
-      }
-    },
-    "expected": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["inspectResult", "productOutcome"],
-      "properties": {
-        "inspectResult": { "$ref": "#/$defs/hostResult" },
-        "decodeResult": { "$ref": "#/$defs/hostResult" },
-        "productOutcome": {
-          "enum": [
-            "success",
-            "canceled",
-            "corruptFile",
-            "credentialsOrPermissionRequired",
-            "resourceOrSecurityLimitExceeded"
-          ]
-        },
-        "pageCount": { "type": "integer", "minimum": 1 },
-        "nativeWidth": { "type": "integer", "minimum": 1 },
-        "nativeHeight": { "type": "integer", "minimum": 1 },
-        "decodePageIndex": { "type": "integer", "minimum": 0 },
-        "decodeTargetMaxDimension": { "type": "integer", "minimum": 0, "maximum": 65500 },
-        "cancellationAfterMilliseconds": { "type": "integer", "minimum": 1, "maximum": 5000 }
-      }
-    },
-    "hostResult": {
-      "enum": [
-        "success",
-        "invalidRequest",
-        "corruptInput",
-        "passwordRequired",
-        "resourceLimitExceeded",
-        "accessDenied"
-      ]
-    },
-    "qualificationPerformanceBudget": {
-      "type": "object",
-      "description": "Direct-Host qualification budget for the sample's expected baseline decode; it is not an installed-product behavior contract.",
-      "additionalProperties": false,
-      "required": [
-        "repetitions",
-        "maxMedianDecodeElapsedMilliseconds",
-        "maxPeakWorkingSetBytes",
-        "maxPeakCommitBytes"
-      ],
-      "properties": {
-        "repetitions": {
-          "type": "integer",
-          "minimum": 3,
-          "maximum": 10
-        },
-        "maxMedianDecodeElapsedMilliseconds": {
-          "type": "integer",
-          "minimum": 1,
-          "maximum": 120000
-        },
-        "maxPeakWorkingSetBytes": {
-          "type": "integer",
-          "minimum": 1,
-          "maximum": 1073741824
-        },
-        "maxPeakCommitBytes": {
-          "type": "integer",
-          "minimum": 1,
-          "maximum": 1073741824
-        }
-      }
-    },
-    "golden": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "pageIndex",
-        "targetMaxDimension",
-        "nativeWidth",
-        "nativeHeight",
-        "path",
-        "sha256",
-        "referenceRenderer",
-        "colorSpace",
-        "alphaMode",
-        "tolerance"
-      ],
-      "properties": {
-        "pageIndex": { "type": "integer", "minimum": 0 },
-        "targetMaxDimension": { "type": "integer", "minimum": 0, "maximum": 65500 },
-        "nativeWidth": { "type": "integer", "minimum": 1, "maximum": 65500 },
-        "nativeHeight": { "type": "integer", "minimum": 1, "maximum": 65500 },
-        "path": { "$ref": "#/$defs/relativePath" },
-        "sha256": { "$ref": "#/$defs/sha256" },
-        "referenceRenderer": { "$ref": "#/$defs/referenceRenderer" },
-        "colorSpace": { "const": "srgb" },
-        "alphaMode": { "const": "premultipliedBgra8" },
-        "tolerance": { "$ref": "#/$defs/tolerance" }
-      }
-    },
-    "referenceRenderer": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["name", "version"],
-      "properties": {
-        "name": { "type": "string", "minLength": 1 },
-        "version": { "type": "string", "minLength": 1 }
-      }
-    },
-    "tolerance": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "maxChannelDelta",
-        "maxAlphaDelta",
-        "changedPixelDelta",
-        "maxChangedPixelRatio",
-        "maxMeanAbsoluteError"
-      ],
-      "properties": {
-        "maxChannelDelta": { "type": "integer", "minimum": 0, "maximum": 64 },
-        "maxAlphaDelta": { "type": "integer", "minimum": 0, "maximum": 64 },
-        "changedPixelDelta": { "type": "integer", "minimum": 0, "maximum": 16 },
-        "maxChangedPixelRatio": { "type": "number", "minimum": 0, "maximum": 0.1 },
-        "maxMeanAbsoluteError": { "type": "number", "minimum": 0, "maximum": 4.0 }
-      }
     },
     "relativePath": {
       "type": "string",

@@ -1,4 +1,4 @@
-# Shared fail-closed helpers for deterministic App Installer generation and verification.
+# 결정적 App Installer 생성·검증용 공용 닫힘 우선 도우미.
 
 Set-StrictMode -Version 2.0
 Add-Type -AssemblyName System.IO.Compression.FileSystem
@@ -289,89 +289,31 @@ function Get-EzyPackageContract {
     }
 }
 
-function Get-EzyReleasePairContract {
+function Get-EzyReleasePackageContract {
     param(
         [Parameter(Mandatory = $true)]
-        [string]$MainPackage,
-
-        [Parameter(Mandatory = $true)]
-        [string]$CodecHostPackage
+        [string]$MainPackage
     )
 
     $mainFile = Get-EzyAppInstallerPhysicalFile -Path $MainPackage -Label 'MainPackage'
-    $hostFile = Get-EzyAppInstallerPhysicalFile -Path $CodecHostPackage -Label 'CodecHostPackage'
-    if ([string]::Equals(
-            $mainFile.FullName,
-            $hostFile.FullName,
-            [StringComparison]::OrdinalIgnoreCase)) {
-        throw 'MainPackage and CodecHostPackage must be different files.'
-    }
-    if ([string]::Equals($mainFile.Name, $hostFile.Name, [StringComparison]::OrdinalIgnoreCase)) {
-        throw 'MainPackage and CodecHostPackage must have unique basenames.'
-    }
-
     $main = Get-EzyPackageContract -Package $mainFile -Label 'MainPackage'
-    $codecHost = Get-EzyPackageContract -Package $hostFile -Label 'CodecHostPackage'
     if (-not [string]::Equals(
             $main.Name,
             'GRTech.ezyImageViewer',
             [StringComparison]::Ordinal)) {
         throw "Unexpected main package identity '$($main.Name)'."
     }
-    if (-not [string]::Equals(
-            $codecHost.Name,
-            'GRTech.ezyImageViewer.CodecHost',
-            [StringComparison]::Ordinal)) {
-        throw "Unexpected CodecHost package identity '$($codecHost.Name)'."
-    }
-    if (-not [string]::Equals(
-            $main.Publisher,
-            $codecHost.Publisher,
-            [StringComparison]::Ordinal)) {
-        throw 'MainPackage and CodecHostPackage publishers must match exactly.'
-    }
 
     $mainDependencies = @($main.Manifest.SelectNodes(
         "/*[local-name()='Package' and namespace-uri()='$script:EzyPackageManifestNamespace']" +
         "/*[local-name()='Dependencies' and namespace-uri()='$script:EzyPackageManifestNamespace']" +
         "/*[local-name()='PackageDependency' and namespace-uri()='$script:EzyPackageManifestNamespace']"))
-    if ($mainDependencies.Count -ne 1) {
-        throw "MainPackage must contain exactly one PackageDependency; found $($mainDependencies.Count)."
-    }
-    $dependency = [Xml.XmlElement]$mainDependencies[0]
-    $dependencyName = Get-EzyRequiredAttribute -Element $dependency -Name 'Name' `
-        -Label 'MainPackage PackageDependency'
-    $dependencyPublisher = Get-EzyRequiredAttribute -Element $dependency -Name 'Publisher' `
-        -Label 'MainPackage PackageDependency'
-    $dependencyVersion = Get-EzyRequiredAttribute -Element $dependency -Name 'MinVersion' `
-        -Label 'MainPackage PackageDependency'
-    if (-not [string]::Equals($dependencyName, $codecHost.Name, [StringComparison]::Ordinal) -or
-        -not [string]::Equals(
-            $dependencyPublisher,
-            $codecHost.Publisher,
-            [StringComparison]::Ordinal) -or
-        -not [string]::Equals(
-            $dependencyVersion,
-            $codecHost.Version,
-            [StringComparison]::Ordinal)) {
-        throw 'MainPackage PackageDependency must exactly identify the supplied CodecHost candidate.'
-    }
-
-    $frameworkNodes = @($codecHost.Manifest.SelectNodes(
-        "/*[local-name()='Package' and namespace-uri()='$script:EzyPackageManifestNamespace']" +
-        "/*[local-name()='Properties' and namespace-uri()='$script:EzyPackageManifestNamespace']" +
-        "/*[local-name()='Framework' and namespace-uri()='$script:EzyPackageManifestNamespace']"))
-    if ($frameworkNodes.Count -ne 1 -or
-        -not [string]::Equals(
-            $frameworkNodes[0].InnerText.Trim(),
-            'true',
-            [StringComparison]::OrdinalIgnoreCase)) {
-        throw 'CodecHostPackage must be a framework package.'
+    if ($mainDependencies.Count -ne 0) {
+        throw "MainPackage must not declare a PackageDependency; found $($mainDependencies.Count)."
     }
 
     return [pscustomobject]@{
         Main = $main
-        CodecHost = $codecHost
     }
 }
 
@@ -583,9 +525,6 @@ function Assert-EzyAppInstallerDocument {
         [string]$MainPackageUri,
 
         [Parameter(Mandatory = $true)]
-        [string]$CodecHostPackageUri,
-
-        [Parameter(Mandatory = $true)]
         [ValidateSet('None', 'OnLaunch')]
         [string]$ExpectedUpdateMode,
 
@@ -611,7 +550,7 @@ function Assert-EzyAppInstallerDocument {
         -Label 'AppInstaller root version' -RequirePositiveMajor
 
     $children = @(Get-EzyExactElementChildren -Element $root -Label 'AppInstaller root')
-    $expectedChildCount = if ($ExpectedUpdateMode -eq 'OnLaunch') { 3 } else { 2 }
+    $expectedChildCount = if ($ExpectedUpdateMode -eq 'OnLaunch') { 2 } else { 1 }
     if ($children.Count -ne $expectedChildCount) {
         throw "AppInstaller child count mismatch: expected $expectedChildCount, actual $($children.Count)."
     }
@@ -630,32 +569,8 @@ function Assert-EzyAppInstallerDocument {
         throw 'MainPackage must be empty.'
     }
 
-    $dependencies = $children[1]
-    Assert-EzyElementName -Element $dependencies -Name 'Dependencies' -Label 'Dependencies'
-    Assert-EzyExactAttributes -Element $dependencies -Names @() -Label 'Dependencies'
-    $dependencyChildren = @(Get-EzyExactElementChildren `
-        -Element $dependencies -Label 'Dependencies')
-    if ($dependencyChildren.Count -ne 1) {
-        throw "Dependencies must contain exactly one Package; found $($dependencyChildren.Count)."
-    }
-    $package = $dependencyChildren[0]
-    Assert-EzyElementName -Element $package -Name 'Package' -Label 'CodecHost dependency'
-    Assert-EzyExactAttributes -Element $package `
-        -Names @('Name', 'Publisher', 'Version', 'ProcessorArchitecture', 'Uri') `
-        -Label 'CodecHost dependency'
-    Assert-EzyAttributeValue $package 'Name' $Pair.CodecHost.Name 'CodecHost dependency'
-    Assert-EzyAttributeValue $package 'Publisher' $Pair.CodecHost.Publisher 'CodecHost dependency'
-    Assert-EzyAttributeValue $package 'Version' $Pair.CodecHost.Version 'CodecHost dependency'
-    Assert-EzyAttributeValue $package 'ProcessorArchitecture' `
-        $Pair.CodecHost.Architecture 'CodecHost dependency'
-    Assert-EzyAttributeValue $package 'Uri' $CodecHostPackageUri 'CodecHost dependency'
-    if (@(Get-EzyExactElementChildren `
-            -Element $package -Label 'CodecHost dependency').Count -ne 0) {
-        throw 'CodecHost dependency Package must be empty.'
-    }
-
     if ($ExpectedUpdateMode -eq 'OnLaunch') {
-        $updateSettings = $children[2]
+        $updateSettings = $children[1]
         Assert-EzyElementName -Element $updateSettings `
             -Name 'UpdateSettings' -Label 'UpdateSettings'
         Assert-EzyExactAttributes -Element $updateSettings -Names @() -Label 'UpdateSettings'

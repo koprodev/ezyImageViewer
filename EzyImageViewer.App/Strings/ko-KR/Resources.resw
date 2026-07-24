@@ -78,9 +78,6 @@
   <data name="CaptureLaunchFailed" xml:space="preserve"><value>캡처 도구를 열 수 없습니다 — Win+Shift+S로 캡처하면 자동으로 가져옵니다</value></data>
   <data name="CaptureHotkeyUnavailable" xml:space="preserve"><value>전역 캡처 단축키({0})를 다른 앱이 사용 중입니다</value></data>
   <data name="CaptureFailed" xml:space="preserve"><value>캡처가 완료되지 않았습니다</value></data>
-  <data name="TrayWatchToggle" xml:space="preserve"><value>클립보드 캡처 감시</value></data>
-  <data name="TrayCapture" xml:space="preserve"><value>화면 캡처</value></data>
-  <data name="TrayOpenWindow" xml:space="preserve"><value>창 열기</value></data>
   <data name="ToolSave" xml:space="preserve"><value>저장 (Ctrl+S)</value></data>
   <data name="TipSave" xml:space="preserve"><value>빠른 저장 · 다른 이름으로 저장은 Ctrl+Shift+S</value></data>
   <data name="SaveDone" xml:space="preserve"><value>저장했습니다</value></data>
@@ -364,6 +361,11 @@
   <data name="FileAssocGroupRaster" xml:space="preserve"><value>래스터 이미지</value></data>
   <data name="FileAssocGroupCodec" xml:space="preserve"><value>코덱 확장 형식 (AVIF·HEIC)</value></data>
   <data name="FileAssocGroupVector" xml:space="preserve"><value>벡터 이미지</value></data>
+  <data name="FilmstripLabel" xml:space="preserve"><value>폴더 파일 썸네일 목록</value></data>
+  <data name="FilmstripCurrent" xml:space="preserve"><value>현재 파일</value></data>
+  <data name="FilmstripShow" xml:space="preserve"><value>썸네일 목록 열기</value></data>
+  <data name="FilmstripHide" xml:space="preserve"><value>썸네일 목록 닫기</value></data>
+  <data name="TipFilmstrip" xml:space="preserve"><value>목록은 열어 둔 채로 여러 이미지를 이어서 선택할 수 있습니다.</value></data>
   <data name="AboutDescription" xml:space="preserve"><value>가볍고 빠른 Windows 이미지 뷰어·편집기</value></data>
   <data name="AboutLicense" xml:space="preserve"><value>MIT 라이선스 · © 2026 koprodev</value></data>
   <data name="AboutProjectPage" xml:space="preserve"><value>GitHub에서 릴리스 보기</value></data>

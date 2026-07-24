@@ -2,30 +2,23 @@ using System.Security.AccessControl;
 
 namespace EzyImageViewer.Infrastructure;
 
-/// <summary>Access control the finished file carries.</summary>
+/// <summary>완료 파일에 적용할 접근 제어.</summary>
 public enum AtomicFileProtection
 {
-    /// <summary>The file inherits its directory's ACL, as any ordinary Windows file does.</summary>
+    /// <summary>일반 Windows 파일처럼 폴더 ACL 상속.</summary>
     Inherited,
 
-    /// <summary>The file gets the explicit current-user + SYSTEM ACL that
-    /// <see cref="AppDataSecurity"/> requires of everything inside the app-data tree.</summary>
+    /// <summary>앱 데이터 트리가 요구하는 현재 사용자 + SYSTEM 명시 ACL 적용.</summary>
     CurrentUserAndSystem,
 }
 
-/// <summary>
-/// Writes a file without ever leaving a torn target (§10 저장 정책): the content lands in a sibling
-/// temp file first (same directory → same volume, so the final move is a rename) and replace the
-/// target only after a successful flush. On any failure the previous target content survives.
-/// </summary>
+/// <summary>같은 폴더 임시 파일에 쓰고 flush 성공 뒤 이름 변경해 찢어진 대상 방지.</summary>
 public static class AtomicFileWriter
 {
     private const string TempSuffix = ".tmp";
     private const int TempTokenLength = 32;
 
-    /// <summary>Identifies a sibling temp produced by <see cref="Write(string, byte[])"/>. A write
-    /// in flight holds its temp exclusively, so readers that walk a directory must be able to tell
-    /// this transient entry apart from real content.</summary>
+    /// <summary>원자 쓰기가 만든 형제 임시 파일 식별. 디렉터리 순회자가 실제 내용과 구분.</summary>
     public static bool IsTempFileName(string fileName)
     {
         ArgumentNullException.ThrowIfNull(fileName);
@@ -82,8 +75,7 @@ public static class AtomicFileWriter
                 writeContent(stream);
                 stream.Flush(flushToDisk: true);
             }
-            // The rename carries the temp's ACL to the target, so the target would otherwise keep
-            // the ACEs the temp inherited from its directory rather than an explicit protected one.
+            // 이름 변경은 임시 파일 ACL도 옮기므로 명시 보호 ACL을 미리 적용.
             ApplyProtection(temp, protection);
             File.Move(temp, fullPath, overwrite: true);
         }
@@ -96,7 +88,7 @@ public static class AtomicFileWriter
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
             {
-                // The stray temp file is cosmetic; the original error is what matters.
+                // 남은 임시 파일은 부차적. 원래 오류가 우선.
             }
             throw;
         }

@@ -4,7 +4,7 @@ using EzyImageViewer.Core.Documents.Serialization;
 
 namespace EzyImageViewer.App;
 
-/// <summary>Everything a project open yields; the embedded source stays around for re-save.</summary>
+/// <summary>프로젝트 열기 결과 묶음. 포함된 원본은 다시 저장할 때까지 유지.</summary>
 public sealed record ProjectOpenData(
     ProjectDocumentState Document,
     string? Path,
@@ -16,9 +16,9 @@ public sealed record ProjectOpenData(
 }
 
 /// <summary>
-/// .ezyimg composition for the app (FR-OUT-009): the container carries the manifest, the v2
-/// document (with the active-layer hint), a preview and the embedded background source (§7.10
-/// embedded-source; external source links are a later option).
+/// 앱용 .ezyimg 구성(FR-OUT-009).
+/// 컨테이너에 매니페스트·활성 레이어 힌트가 든 v2 문서·미리보기·포함 배경 원본을 담음.
+/// 외부 원본 링크는 나중 문제(§7.10).
 /// </summary>
 public static class ProjectStore
 {

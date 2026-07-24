@@ -3,10 +3,7 @@ using SkiaSharp;
 
 namespace EzyImageViewer.Imaging.Skia;
 
-/// <summary>
-/// SKCodec path for formats outside the WIC dispatch set (M1: WebP). Applies the codec's
-/// EncodedOrigin so the output honors the same "orientation applied once" contract as WIC.
-/// </summary>
+/// <summary>WIC 밖 형식용 SKCodec 경로. EncodedOrigin을 한 번 적용해 방향 계약 통일.</summary>
 public sealed class SkiaImageDecoder : IImageDecoder
 {
     public Task<DecodeResult> DecodeAsync(Stream stream, DecodeRequest request, CancellationToken cancellationToken)
@@ -51,8 +48,7 @@ public sealed class SkiaImageDecoder : IImageDecoder
         var info = new SKImageInfo(decodeSize.Width, decodeSize.Height, SKColorType.Bgra8888, SKAlphaType.Premul);
         var bitmap = new SKBitmap(info);
         bitmap.Erase(SKColors.Transparent);
-        // The one-argument options use PriorFrame=-1, making Skia reconstruct any RequiredFrame
-        // chain instead of treating an animation's partial frame as a complete canvas.
+        // PriorFrame=-1로 필요한 이전 프레임 체인을 복원해 부분 프레임을 전체로 오인하지 않음.
         var frameOptions = new SKCodecOptions(frameIndex);
         var decodeResult = codec.GetPixels(
             info,
@@ -65,12 +61,12 @@ public sealed class SkiaImageDecoder : IImageDecoder
             throw new CorruptImageException($"Skia failed to decode frame {frameIndex} ({decodeResult}).");
         }
 
-        // ApplyOrigin consumes the input (disposes it when replaced); only the result is owned here.
+        // ApplyOrigin이 입력을 소비하므로 여기서는 결과만 소유.
         using var oriented = ApplyOrigin(bitmap, origin);
         var width = oriented.Width;
         var height = oriented.Height;
         var stride = oriented.RowBytes;
-        var buffer = oriented.Bytes; // copy owned by the frame from here on
+        var buffer = oriented.Bytes; // 여기부터 프레임이 복사본 소유.
 
         var hasAlpha = PixelAnalysis.HasTransparency(buffer, stride, width, height);
         return new DecodeResult(
@@ -79,11 +75,7 @@ public sealed class SkiaImageDecoder : IImageDecoder
             new PixelSize(orientedWidth, orientedHeight));
     }
 
-    /// <summary>
-    /// Returns a bitmap with the EXIF origin baked in; consumes the input (disposed if replaced).
-    /// Matrices are the EXIF mappings written directly (x' = sx·x + kx·y + tx / y' = ky·x + sy·y + ty)
-    /// with w/h = source dimensions.
-    /// </summary>
+    /// <summary>EXIF 방향을 픽셀에 반영한 비트맵 반환. 입력은 소비.</summary>
     internal static SKBitmap ApplyOrigin(SKBitmap bitmap, SKEncodedOrigin origin)
     {
         if (origin == SKEncodedOrigin.TopLeft)
@@ -102,13 +94,13 @@ public sealed class SkiaImageDecoder : IImageDecoder
         {
             canvas.SetMatrix(origin switch
             {
-                SKEncodedOrigin.TopRight => new SKMatrix(-1, 0, w, 0, 1, 0, 0, 0, 1),      // mirror H
+                SKEncodedOrigin.TopRight => new SKMatrix(-1, 0, w, 0, 1, 0, 0, 0, 1),      // 좌우 대칭
                 SKEncodedOrigin.BottomRight => new SKMatrix(-1, 0, w, 0, -1, h, 0, 0, 1),  // 180°
-                SKEncodedOrigin.BottomLeft => new SKMatrix(1, 0, 0, 0, -1, h, 0, 0, 1),    // mirror V
-                SKEncodedOrigin.LeftTop => new SKMatrix(0, 1, 0, 1, 0, 0, 0, 0, 1),        // transpose
-                SKEncodedOrigin.RightTop => new SKMatrix(0, -1, h, 1, 0, 0, 0, 0, 1),      // 90° CW
-                SKEncodedOrigin.RightBottom => new SKMatrix(0, -1, h, -1, 0, w, 0, 0, 1),  // transpose+180°
-                SKEncodedOrigin.LeftBottom => new SKMatrix(0, 1, 0, -1, 0, w, 0, 0, 1),    // 90° CCW
+                SKEncodedOrigin.BottomLeft => new SKMatrix(1, 0, 0, 0, -1, h, 0, 0, 1),    // 상하 대칭
+                SKEncodedOrigin.LeftTop => new SKMatrix(0, 1, 0, 1, 0, 0, 0, 0, 1),        // 전치
+                SKEncodedOrigin.RightTop => new SKMatrix(0, -1, h, 1, 0, 0, 0, 0, 1),      // 90° 시계
+                SKEncodedOrigin.RightBottom => new SKMatrix(0, -1, h, -1, 0, w, 0, 0, 1),  // 전치+180°
+                SKEncodedOrigin.LeftBottom => new SKMatrix(0, 1, 0, -1, 0, w, 0, 0, 1),    // 90° 반시계
                 _ => SKMatrix.Identity,
             });
             canvas.DrawBitmap(bitmap, 0, 0, new SKSamplingOptions(SKFilterMode.Nearest));

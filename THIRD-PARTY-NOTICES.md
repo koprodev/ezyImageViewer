@@ -34,11 +34,8 @@ core(`UserChoiceHash`)는 Infrastructure 어셈블리에 존재하지만 writer/
 
 ## 인벤토리 범위와 재현 방법
 
-이 목록은 단순히 모든 lock 파일 항목을 합친 것이 아니라 다음 두 실제 Windows x64
-제품 산출물의 `.deps.json`과 파일 레이아웃을 기준으로 합니다.
-
-- 주 앱: `packaging/out/layout/ezyImageViewer.deps.json`
-- 격리 코덱 호스트: `packaging/out/codec-host-layout/EzyImageViewer.CodecHost.deps.json`
+이 목록은 단순히 모든 lock 파일 항목을 합친 것이 아니라 실제 Windows x64 제품 산출물
+`packaging/out/layout/ezyImageViewer.deps.json`의 파일 레이아웃을 기준으로 합니다.
 
 목록을 재현하려면 다음 순서로 확인합니다.
 
@@ -88,41 +85,6 @@ Windows App SDK upstream source repository의 MIT 표기와 실제 재배포 NuG
 License Terms는 동일한 계약이 아닙니다. SignPath Foundation의 OSS 조건에서 이 self-contained
 runtime이 System Library 예외에 해당하는지도 현재 미확정이므로 신청 전에 확인합니다.
 
-## 격리 CodecHost 런타임
-
-CodecHost는 주 앱과 별도 MSIX로 설치되는 self-contained x64 제품 구성 요소입니다.
-PDF와 PSD가 정상 사용자 UI에서 아직 비활성이어도 아래 바이너리는 CodecHost 배포물에
-포함되므로 제품 런타임 인벤토리에서 제외하지 않습니다.
-
-| 구성 요소 | 확인 버전 | 패키지 라이선스 기록 | 원문·출처 |
-|---|---:|---|---|
-| PDFtoImage | 5.2.1 | MIT | `pdftoimage/5.2.1/*.nuspec`; <https://github.com/sungaila/PDFtoImage> |
-| bblanchon.PDFium.Win32 | 147.0.7690 | nuspec `Apache-2.0`; upstream 배포 `LICENSE`는 MIT(Benoît Blanchon) | `bblanchon.pdfium.win32/147.0.7690/*.nuspec`; 실제 PDFium·Chromium 고지 집합은 아래 §PDFium/Chromium 고지 집합 참조. nuspec 표현과 배포 `LICENSE` 원문이 다르므로 둘 다 기록한다. |
-| Magick.NET.Core, Magick.NET-Q8-AnyCPU | 14.15.0 | Apache-2.0 | `magick.net-q8-anycpu/14.15.0/Notice.txt`; <https://github.com/dlemstra/Magick.NET>. 이 고지에는 동봉 ImageMagick 7.1.2-27의 라이선스와 귀속 정보가 포함됩니다. |
-| SkiaSharp, SkiaSharp.NativeAssets.Win32 | 3.119.2 | MIT | 각 패키지의 `LICENSE.txt`; native 패키지의 `THIRD-PARTY-NOTICES.txt` |
-| Microsoft.NETCore.App Runtime win-x64 | 10.0.10 | MIT | `microsoft.netcore.app.runtime.win-x64/10.0.10/LICENSE.TXT`, `THIRD-PARTY-NOTICES.TXT`; <https://github.com/dotnet/runtime> |
-
-### PDFium/Chromium 고지 집합
-
-복원된 `bblanchon.PDFium.Win32` NuGet 패키지에는 PDFium·Chromium 제3자 고지 원문이 없어,
-재배포 바이너리에 대응하는 upstream 고지 집합을 버전 고정으로 확보해 CodecHost 배포물에
-포함했습니다. 출처와 무결성은 다음과 같이 고정합니다.
-
-| 항목 | 값 |
-|---|---|
-| upstream 릴리스 | bblanchon/pdfium-binaries `chromium/7690` ("PDFium 147.0.7690.0", published 2026-02-16) |
-| 아카이브 | `pdfium-win-x64.tgz` SHA-256 `06EF95AC4F9B8897731224639DDF0F185693CB48BC9EE650F1E92F71E0D2A94E` |
-| 바이너리 대응 증명 | 아카이브 `bin/pdfium.dll` SHA-256 `15DF9DDDD81EDDC5A177946AA5E34CDA821EBC46A51440ECB607F91E99644895`이 복원 NuGet `runtimes/win-x64/native/pdfium.dll`과 정확히 일치 |
-| 포함 위치 | `EzyImageViewer.CodecHost/Notices/PDFium/` → CodecHost MSIX에 `Notices/PDFium/` 로 배포 |
-| 무결성 계약 | `packaging/verify-msix-release.ps1`이 16개 파일 각각의 SHA-256을 fail-closed로 검증 |
-
-포함 파일은 배포 `LICENSE.txt`(MIT, Benoît Blanchon)와 `licenses/`의 14개 upstream 제3자 고지이며,
-그중 `licenses/pdfium.txt`가 PDFium Authors(Google)의 BSD-3-Clause 원문입니다. 나머지는
-abseil, agg23, fast_float, freetype, icu, lcms, libjpeg-turbo(ijg·md), libopenjpeg, libpng,
-libtiff, llvm-libc, simdutf, zlib 고지입니다. 파일은 upstream 바이트를 변경 없이 재현하며
-`.gitattributes`의 `-text` 규칙으로 clone·CI 체크아웃에서도 고정 해시를 유지합니다. 이
-포함은 공학적 확보·무결성 고정이며 별도 법무 검토를 대신하지 않습니다.
-
 ## 설치 빌드 도구와 배포되는 파생 파일
 
 WiX Toolset은 제품 런타임 라이브러리가 아니라 MSI와 Burn Setup을 만드는 빌드 도구입니다.
@@ -150,14 +112,14 @@ WiX Toolset은 제품 런타임 라이브러리가 아니라 MSI와 Burn Setup�
 - 다른 RID용 네이티브 패키지: lock 그래프에만 존재하는 Linux·macOS 자산.
 
 이 항목들은 제품 런타임 SBOM이 아니라 개발·빌드 도구 SBOM에서 추적할 수 있습니다.
-테스트 프로젝트가 PDFtoImage, Magick.NET, SkiaSharp를 직접 참조하더라도 같은 패키지가
-CodecHost 또는 주 앱 레이아웃에 실재하면 위 제품 런타임 범위가 우선합니다.
+테스트 프로젝트는 픽스처 이미지를 만들기 위해 Magick.NET을 직접 참조하지만, 이 패키지는
+어떤 제품 레이아웃에도 들어가지 않습니다. `packaging/verify-msix-release.ps1`과
+`verify-portable-release.ps1`이 배포물 유입을 fail-closed로 차단합니다.
 
 ## 출시 전 확인 사항
 
 - 이 문서가 가리키는 앱 MIT 원문과 모든 제3자 라이선스·고지 원문을 해당 MSIX에
   포함하고 설치 후 접근 경로를 확인합니다.
-- PDFium·Chromium의 버전 고정 제3자 고지 집합은 확보·포함했다(위 §PDFium/Chromium 고지 집합). 남은 것은 법무 검토뿐이다.
 - Windows App SDK WinUI 2.2.1의 Engineering Preview/live 운영 제한을 명시적 근거 또는
   release-safe dependency 전환으로 해소합니다.
 - SignPath Foundation에 self-contained Windows App SDK redistributable의 System Library 예외

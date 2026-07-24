@@ -3,10 +3,9 @@ using System.Runtime.InteropServices;
 namespace EzyImageViewer.Capture.Snipping;
 
 /// <summary>
-/// Clipboard-change and global-hotkey delivery (FR-CAP-003/004, M0-B③ design):
-/// AddClipboardFormatListener posts WM_CLIPBOARDUPDATE straight to our message-only window —
-/// identical behavior packaged or unpackaged. Create and dispose on the UI thread; events fire
-/// on it (the message loop is the UI thread's).
+/// 클립보드 변경과 전역 단축키 전달(FR-CAP-003/004, M0-B③).
+/// AddClipboardFormatListener가 WM_CLIPBOARDUPDATE를 메시지 전용 창으로 곧장 보냄.
+/// 패키지 여부와 무관. UI 스레드에서 만들고 해제하며 이벤트도 그곳에서 발생.
 /// </summary>
 public sealed class ClipboardWatcher : IDisposable
 {
@@ -23,7 +22,7 @@ public sealed class ClipboardWatcher : IDisposable
     public event Action? ClipboardUpdated;
     public event Action? HotkeyPressed;
 
-    /// <summary>The delivery window — diagnostics and message-injection tests.</summary>
+    /// <summary>메시지 전달 창. 진단과 메시지 주입 테스트에도 사용.</summary>
     public nint WindowHandle => _window.Handle;
     public bool HotkeyRegistered => _hotkeyRegistered;
 
@@ -38,7 +37,7 @@ public sealed class ClipboardWatcher : IDisposable
         }
     }
 
-    /// <summary>FR-CAP-004: false when another app owns the combination — the caller reports it.</summary>
+    /// <summary>FR-CAP-004: 다른 앱이 조합을 선점했으면 false. 안내는 호출자 몫.</summary>
     public bool TryRegisterHotkey(uint modifiers, uint virtualKey)
     {
         if (_hotkeyRegistered)
@@ -52,8 +51,8 @@ public sealed class ClipboardWatcher : IDisposable
         return _hotkeyRegistered;
     }
 
-    /// <summary>Replaces the active binding and restores the previous one if the requested chord
-    /// is unavailable. False means the requested chord was not installed.</summary>
+    /// <summary>활성 단축키 교체. 새 조합을 못 쓰면 이전 조합 복구.
+    /// false면 요청한 조합을 설치하지 못한 것.</summary>
     public bool TryChangeHotkey(uint modifiers, uint virtualKey)
     {
         if (!_hotkeyRegistered)

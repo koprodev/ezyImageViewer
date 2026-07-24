@@ -2,7 +2,7 @@ using System.Collections.Immutable;
 
 namespace EzyImageViewer.Core.Documents.Layers;
 
-/// <summary>Iterative Ramer-Douglas-Peucker simplification for a completed native-pixel stroke.</summary>
+/// <summary>완성된 원본 픽셀 획에 반복형 Ramer-Douglas-Peucker 단순화 적용.</summary>
 public static class InkSimplifier
 {
     public static ImmutableArray<AnnotationPoint> Simplify(

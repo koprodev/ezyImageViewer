@@ -2,9 +2,7 @@
 [CmdletBinding(DefaultParameterSetName = 'Development')]
 param(
     [Parameter(Mandatory)][string]$Version,
-    [Parameter(Mandatory)][string]$CodecHostVersion,
     [Parameter(Mandatory)][string]$Publisher,
-    [Parameter(Mandatory)][string]$CodecHostPackage,
     [Parameter(Mandatory)][string]$EulaRtf,
     [Parameter(Mandatory)][string]$OutputDirectory,
     [ValidateSet('10.0.19041.0')][string]$MinVersion = '10.0.19041.0',
@@ -36,6 +34,28 @@ function Get-PhysicalFile([string]$Path, [string]$Label, [string]$Extension) {
         throw "$Label must be a physical $Extension file: '$Path'."
     }
     return $item
+}
+
+function Get-GeneratedPayloadFileCount([string]$Path) {
+    $settings = [Xml.XmlReaderSettings]::new()
+    $settings.DtdProcessing = [Xml.DtdProcessing]::Prohibit
+    $settings.XmlResolver = $null
+    $reader = [Xml.XmlReader]::Create([IO.Path]::GetFullPath($Path), $settings)
+    try {
+        $document = [Xml.XmlDocument]::new()
+        $document.XmlResolver = $null
+        $document.Load($reader)
+    }
+    finally { $reader.Dispose() }
+
+    $files = @($document.SelectNodes(
+            "/*[local-name()='Wix']/*[local-name()='Fragment']" +
+            "/*[local-name()='ComponentGroup' and @Id='ApplicationPayload']" +
+            "/*[local-name()='Component']/*[local-name()='File']"))
+    if ($files.Count -eq 0) {
+        throw "Generated WiX payload contains no files: '$Path'."
+    }
+    return $files.Count
 }
 
 function ConvertTo-Rtf([string]$SourcePath, [string]$DestinationPath) {
@@ -127,12 +147,10 @@ function Sign-BurnBundle(
 }
 
 Assert-EzyExternalFourPartVersion $Version 'Version'
-Assert-EzyExternalFourPartVersion $CodecHostVersion 'CodecHostVersion'
 Assert-EzyExternalPublisher $Publisher
 Assert-EzyExternalMinVersion $MinVersion
 $versionParts = $Version.Split('.')
 $productVersion = ($versionParts[0..2] -join '.')
-$codecHost = Get-PhysicalFile $CodecHostPackage 'CodecHostPackage' '.msix'
 $eula = Get-PhysicalFile $EulaRtf 'EulaRtf' '.rtf'
 $themeSource = Get-PhysicalFile (Join-Path $repositoryRoot `
         'installer\bundle\EzyRtfLargeTheme.xml') 'Burn theme source' '.xml'
@@ -187,23 +205,20 @@ try {
     [void](Get-PhysicalFile $koreanEula 'Generated Korean EULA' '.rtf')
     & (Join-Path $scriptRoot 'stage-msi-foundation.ps1') `
         -OutputDirectory $foundation -Version $Version `
-        -CodecHostVersion $CodecHostVersion -Publisher $Publisher -MinVersion $MinVersion
+        -Publisher $Publisher -MinVersion $MinVersion
     if ($LASTEXITCODE -ne 0) { throw 'MSI foundation staging failed.' }
     & (Join-Path $scriptRoot 'verify-msi-foundation.ps1') `
         -StagingDirectory $foundation -Version $Version `
-        -CodecHostVersion $CodecHostVersion -Publisher $Publisher -MinVersion $MinVersion
+        -Publisher $Publisher -MinVersion $MinVersion
     if ($LASTEXITCODE -ne 0) { throw 'MSI foundation verification failed.' }
 
     [void][IO.Directory]::CreateDirectory($identityRoot)
-    $preparedCodecHost = Join-Path $identityRoot 'ezyImageViewer.CodecHost.msix'
     $preparedExternal = Join-Path $identityRoot 'ezyImageViewer.ExternalIdentity.msix'
-    [IO.File]::Copy($codecHost.FullName, $preparedCodecHost, $false)
     [IO.File]::Copy((Join-Path $foundation 'identity\ezyImageViewer.ExternalIdentity.msix'),
         $preparedExternal, $false)
-    [void](Assert-EzyIdentityPackagePair $preparedCodecHost $preparedExternal)
+    [void](Assert-EzyIdentityPackage $preparedExternal)
 
     if (-not $DevelopmentUnsigned) {
-        Sign-Artifact $signTool $certificate $TimestampUrl $preparedCodecHost
         Sign-Artifact $signTool $certificate $TimestampUrl $preparedExternal
     }
 
@@ -213,12 +228,12 @@ try {
             [PSCustomObject]@{ Scope = 'PerMachine'; Path = $perMachineFragment }
         )) {
         & $generator -PayloadDirectory (Join-Path $foundation 'payload') `
-            -Scope $contract.Scope -CodecHostPackage $preparedCodecHost `
+            -Scope $contract.Scope `
             -ExternalIdentityPackage $preparedExternal -OutputPath $contract.Path
         if ($LASTEXITCODE -ne 0) { throw "$($contract.Scope) payload generation failed." }
         $firstHash = (Get-FileHash -LiteralPath $contract.Path -Algorithm SHA256).Hash
         & $generator -PayloadDirectory (Join-Path $foundation 'payload') `
-            -Scope $contract.Scope -CodecHostPackage $preparedCodecHost `
+            -Scope $contract.Scope `
             -ExternalIdentityPackage $preparedExternal -OutputPath $contract.Path
         if ($LASTEXITCODE -ne 0) { throw "$($contract.Scope) repeat generation failed." }
         $secondHash = (Get-FileHash -LiteralPath $contract.Path -Algorithm SHA256).Hash
@@ -267,9 +282,12 @@ try {
         Sign-Artifact $signTool $certificate $TimestampUrl $perMachineMsi
     }
 
-    $metadata = Get-Content -LiteralPath (Join-Path $foundation 'STAGING-METADATA.json') `
-        -Raw | ConvertFrom-Json
-    $expectedFiles = [int]$metadata.payload.fileCount - 1 + 5
+    $perUserExpectedFiles = Get-GeneratedPayloadFileCount $perUserFragment
+    $perMachineExpectedFiles = Get-GeneratedPayloadFileCount $perMachineFragment
+    if ($perUserExpectedFiles -ne $perMachineExpectedFiles) {
+        throw "Generated WiX payload counts differ by scope."
+    }
+    $expectedFiles = $perUserExpectedFiles
     & (Join-Path $scriptRoot 'verify-wix-installer.ps1') `
         -PerUserMsi $perUserMsi -PerMachineMsi $perMachineMsi `
         -ProductVersion $productVersion -ExpectedPayloadFileCount $expectedFiles `
@@ -328,7 +346,6 @@ try {
         schemaVersion = 1
         version = $Version
         productVersion = $productVersion
-        codecHostVersion = $CodecHostVersion
         publisher = $Publisher
         minVersion = $MinVersion
         architecture = 'x64'

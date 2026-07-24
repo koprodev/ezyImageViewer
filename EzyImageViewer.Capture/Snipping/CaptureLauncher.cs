@@ -1,17 +1,15 @@
 namespace EzyImageViewer.Capture.Snipping;
 
 /// <summary>
-/// FR-CAP-001: opens the Windows snipping overlay. Packaged (Q7=b) the official protocol is
-/// used — the capture comes back through the redirect-uri callback. Unpackaged (dev loop) the
-/// bare legacy URI stays as a BEST-EFFORT interim ([21차] 필수 1): a failed launch guides the
-/// user to Win+Shift+S, whose result the armed clipboard pipeline still auto-opens.
+/// FR-CAP-001: Windows 캡처 오버레이 실행.
+/// 패키지(Q7=b)는 공식 프로토콜과 redirect-uri 콜백 사용.
+/// 비패키지 개발 실행은 구형 URI를 최선형으로 사용. 실패하면 Win+Shift+S를 안내하고 클립보드가 결과를 자동으로 엶.
 /// </summary>
 public static class CaptureLauncher
 {
     public const string SnippingUri = "ms-screenclip:";
 
-    /// <summary>Official capture request; Launcher.LaunchUriAsync is mandatory — only it carries
-    /// the caller's package identity, which Snipping Tool uses to route the response.</summary>
+    /// <summary>공식 캡처 요청. 호출자 패키지 ID를 실어 응답을 돌려받으려면 Launcher.LaunchUriAsync가 필수.</summary>
     public static async Task<bool> LaunchOfficialAsync(string correlationId)
     {
         try
@@ -37,8 +35,7 @@ public static class CaptureLauncher
         }
     }
 
-    /// <summary>Non-intrusive support probe (no overlay flashes) — unattended evidence for the
-    /// best-effort contract on the current OS build.</summary>
+    /// <summary>오버레이를 띄우지 않는 지원 여부 확인. 현재 OS의 최선형 계약을 조용히 실측.</summary>
     public static async Task<bool> IsSnippingAvailableAsync()
     {
         try

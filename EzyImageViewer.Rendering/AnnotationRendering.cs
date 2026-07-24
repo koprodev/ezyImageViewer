@@ -4,7 +4,7 @@ using SkiaSharp;
 
 namespace EzyImageViewer.Rendering;
 
-/// <summary>Composites immutable annotation objects over the background at paint time.</summary>
+/// <summary>불변 주석 객체를 그리기 시점에 배경 위로 합성.</summary>
 public static class AnnotationRendering
 {
     private static readonly SKPathEffect SelectionDash = SKPathEffect.CreateDash([4f, 4f], 0f);
@@ -34,7 +34,7 @@ public static class AnnotationRendering
             : new BackgroundSource(backgroundFrame, frameToNative ?? SKMatrix.Identity);
         canvas.Save();
         canvas.SetMatrix(nativeToView);
-        // Layer order is the coarse paint order; a hidden layer hides all its objects (UR-007).
+        // 레이어 순서가 큰 그리기 순서. 숨김 레이어는 객체 전부 숨김.
         foreach (var layer in state.Layers)
         {
             if (!layer.IsVisible)
@@ -60,7 +60,7 @@ public static class AnnotationRendering
             DrawSelection(canvas, selected, nativeToView);
     }
 
-    /// <summary>Allocation-free domain boundary for the live pointer draft.</summary>
+    /// <summary>실시간 포인터 초안의 무할당 도메인 경계.</summary>
     public static void DrawInkDraft(
         SKCanvas canvas,
         IReadOnlyList<AnnotationPoint> points,
@@ -79,7 +79,7 @@ public static class AnnotationRendering
         canvas.Restore();
     }
 
-    /// <summary>The background frame plus its frame→native map, for effects that sample it.</summary>
+    /// <summary>배경을 샘플링하는 효과용 프레임과 프레임→원본 변환.</summary>
     private readonly record struct BackgroundSource(SKImage Frame, SKMatrix FrameToNative);
 
     private static void DrawAnnotation(
@@ -115,14 +115,13 @@ public static class AnnotationRendering
         }
     }
 
-    /// <summary>Longest edge of a protection effect's offscreen; larger regions compute at reduced
-    /// resolution (still obscuring — the effect destroys detail by design).</summary>
+    /// <summary>보호 효과 오프스크린의 최대 한 변. 큰 영역은 축소 계산.</summary>
     private const int MaxEffectDim = 2_048;
 
-    /// <summary>Draws a privacy region (FR-ANNO-008~010). Mosaic and blur sample the background
-    /// frame only — never annotations beneath — in an offscreen at native resolution, so the view
-    /// at any zoom and the flattened export produce the same pixels. Output is fully opaque and
-    /// covers everything below its bounds. Without a background source only the mask can draw.</summary>
+    /// <summary>
+    /// 개인정보 보호 영역 그리기. 모자이크·흐림은 원본 해상도 배경만 샘플링해
+    /// 화면과 내보내기 픽셀을 맞추며 출력은 완전 불투명.
+    /// </summary>
     private static void DrawProtection(
         SKCanvas canvas, ProtectionAnnotation protection, BackgroundSource? background)
     {
@@ -156,9 +155,7 @@ public static class AnnotationRendering
             canvas.DrawImage(blurred, destination, new SKSamplingOptions(SKFilterMode.Linear));
     }
 
-    /// <summary>True block grid: cells are BlockSize native pixels anchored at the region origin,
-    /// the trailing partial cells are clipped at the bounds (§9.3 edge default), and each cell is
-    /// the exact box average of the pixels it covers.</summary>
+    /// <summary>영역 원점을 기준으로 한 원본 픽셀 블록 격자. 각 칸은 덮은 픽셀의 정확한 평균.</summary>
     private static SKImage? RenderMosaic(ProtectionAnnotation protection, BackgroundSource source)
     {
         var bounds = protection.Bounds;
@@ -211,7 +208,7 @@ public static class AnnotationRendering
                     var row = y * rowBytes;
                     for (var x = x0; x < x1; x++)
                     {
-                        var offset = row + (x * 4); // BGRA, opaque frame: premul == straight
+                        var offset = row + (x * 4); // 불투명 BGRA라 premul과 straight가 같음.
                         b += span[offset];
                         g += span[offset + 1];
                         r += span[offset + 2];
@@ -226,9 +223,7 @@ public static class AnnotationRendering
         return result.Snapshot();
     }
 
-    /// <summary>Gaussian blur at native resolution (capped by <see cref="MaxEffectDim"/>), padded by
-    /// the full 3σ so region edges blur into their real neighbors instead of transparency. The
-    /// validator's sigma ceiling (80) bounds the padding at 240px.</summary>
+    /// <summary>원본 해상도 가우시안 흐림. 3σ 여백으로 투명색 대신 실제 이웃과 섞음.</summary>
     private static SKImage? RenderBlur(ProtectionAnnotation protection, BackgroundSource source)
     {
         var bounds = protection.Bounds;
@@ -390,9 +385,7 @@ public static class AnnotationRendering
         AnnotationTextRenderer.Draw(canvas, text, EffectiveColor(text.ForegroundArgb, text.Opacity));
     }
 
-    /// <summary>FR-ANNO-007: body and tail are boolean-unioned into one path so the outline never
-    /// strokes the seam where the tail base crosses into the body (SpeechBubbleGeometry overlaps
-    /// the base inward for a stable union).</summary>
+    /// <summary>말풍선 몸통·꼬리를 한 경로로 합쳐 접합선 윤곽이 생기지 않게 함.</summary>
     private static void DrawSpeechBubble(SKCanvas canvas, SpeechBubbleAnnotation bubble, float scale)
     {
         var bounds = bubble.Bounds;
@@ -445,7 +438,7 @@ public static class AnnotationRendering
             bounds.X + padding, bounds.Y + padding,
             MathF.Max(1f, bounds.Width - (padding * 2f)),
             MathF.Max(1f, bounds.Height - (padding * 2f)));
-        // The shared text layout path keeps bubble text and plain text metrically identical.
+        // 공유 텍스트 배치로 말풍선·일반 텍스트 치수 일치.
         var layout = new TextAnnotation
         {
             Id = bubble.Id,
@@ -547,7 +540,7 @@ public static class AnnotationRendering
 
         var scale = AverageScale(nativeToView);
         var rotationOffset = 24f / scale;
-        // Protection regions never rotate (ADR-0015): no rotate affordance is offered at all.
+        // 보호 영역은 회전하지 않아 회전 손잡이도 제공 안 함.
         var canRotate = annotation is not ProtectionAnnotation;
         if (canRotate)
         {

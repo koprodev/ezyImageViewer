@@ -25,7 +25,6 @@ if ([int]$contract.schemaVersion -ne 1 -or
     throw 'Preview release contract is invalid.'
 }
 Assert-EzyExternalFourPartVersion ([string]$contract.applicationVersion) 'applicationVersion'
-Assert-EzyExternalFourPartVersion ([string]$contract.codecHostVersion) 'codecHostVersion'
 Assert-EzyExternalPublisher ([string]$contract.publisher)
 Assert-EzyPortableVersion ([string]$contract.portableVersion)
 $applicationParts = ([string]$contract.applicationVersion).Split('.')
@@ -69,16 +68,13 @@ try {
 
     & (Join-Path $scriptRoot 'pack-msix.ps1') `
         -Version ([string]$contract.applicationVersion) `
-        -CodecHostVersion ([string]$contract.codecHostVersion) `
         -Publisher ([string]$contract.publisher) -SkipSign
     if ($LASTEXITCODE -ne 0) { throw 'Unsigned identity package build failed.' }
 
     $installerOutput = Join-Path $working 'installer'
     & (Join-Path $scriptRoot 'build-wix-installer.ps1') `
         -Version ([string]$contract.applicationVersion) `
-        -CodecHostVersion ([string]$contract.codecHostVersion) `
         -Publisher ([string]$contract.publisher) `
-        -CodecHostPackage (Join-Path $scriptRoot 'out\ezyImageViewer.CodecHost.msix') `
         -EulaRtf (Join-Path $repositoryRoot 'installer\assets\EULA.rtf') `
         -OutputDirectory $installerOutput `
         -MinVersion '10.0.19041.0' -DevelopmentUnsigned
@@ -142,7 +138,6 @@ try {
             architecture = 'x64'
         }
         applicationVersion = [string]$contract.applicationVersion
-        codecHostVersion = [string]$contract.codecHostVersion
         portableVersion = [string]$contract.portableVersion
         artifacts = $artifactRecords.ToArray()
     }

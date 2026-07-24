@@ -74,7 +74,7 @@ public sealed record AppSettings
     public CaptureHotkey CaptureHotkey { get; init; } = new();
     public ToolDefaults ToolDefaults { get; init; } = new();
     public bool CaptureAutoSaveEnabled { get; init; }
-    /// <summary>UR-010: each rail group collapses into its dropdown/split button independently.</summary>
+    /// <summary>UR-010: 도구 막대 그룹은 각자 드롭다운·분할 버튼으로 접힘.</summary>
     public bool ToolbarOpenGroupEnabled { get; init; } = true;
     public bool ToolbarSelectGroupEnabled { get; init; } = true;
     public bool ToolbarTransformGroupEnabled { get; init; } = true;
@@ -83,7 +83,7 @@ public sealed record AppSettings
     public bool ToolbarProtectGroupEnabled { get; init; } = true;
 }
 
-/// <summary>Merges stale window snapshots without reverting unrelated concurrent changes.</summary>
+    /// <summary>오래된 창 스냅숏을 병합하되 무관한 동시 변경은 되돌리지 않음.</summary>
 public static class AppSettingsMerger
 {
     public static AppSettings MergeSettingsDialogChanges(
@@ -291,7 +291,7 @@ internal sealed record LegacyAppSettingsV4
     public bool CaptureAutoSaveEnabled { get; init; }
     public bool ToolbarDropdownsEnabled { get; init; } = true;
 
-    // The single v4 dropdown preference seeds every per-group toggle it used to control.
+            // v4 단일 드롭다운 설정으로 예전에 함께 제어하던 그룹별 토글 초기화.
     public AppSettings ToCurrent() => new()
     {
         ToolRailDock = ToolRailDock,

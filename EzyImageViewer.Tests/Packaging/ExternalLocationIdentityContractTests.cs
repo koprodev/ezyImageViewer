@@ -2,7 +2,7 @@ using System.Diagnostics;
 using System.Xml.Linq;
 using Xunit;
 
-namespace EzyImageViewer.Tests.Codec;
+namespace EzyImageViewer.Tests.Packaging;
 
 public sealed class ExternalLocationIdentityContractTests
 {
@@ -43,10 +43,7 @@ public sealed class ExternalLocationIdentityContractTests
         var dependencies = root.Element(Foundation + "Dependencies")!;
         var target = dependencies.Element(Foundation + "TargetDeviceFamily")!;
         Assert.Equal("{{MIN_VERSION}}", target.Attribute("MinVersion")!.Value);
-        var host = dependencies.Element(Foundation + "PackageDependency")!;
-        Assert.Equal("GRTech.ezyImageViewer.CodecHost", host.Attribute("Name")!.Value);
-        Assert.Equal("{{PUBLISHER}}", host.Attribute("Publisher")!.Value);
-        Assert.Equal("{{CODEC_HOST_VERSION}}", host.Attribute("MinVersion")!.Value);
+        Assert.Empty(dependencies.Elements(Foundation + "PackageDependency"));
 
         var application = Assert.Single(root.Element(Foundation + "Applications")!
             .Elements(Foundation + "Application"));
@@ -227,14 +224,8 @@ public sealed class ExternalLocationIdentityContractTests
             "-File packaging/test-msi-foundation-contract.ps1",
             workflow,
             StringComparison.Ordinal);
-        Assert.DoesNotContain(
-            @"EzyImageViewer.CodecHost\obj\external",
-            stage,
-            StringComparison.OrdinalIgnoreCase);
-        Assert.DoesNotContain(
-            @"EzyImageViewer.CodecHost\obj\external",
-            verify,
-            StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("CodecHost", stage, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("CodecHost", verify, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

@@ -34,7 +34,7 @@ public static class ActivationArgsConverter
         return new LaunchActivation();
     }
 
-    /// <summary>Initial-process fallback: our own command line is authoritative for unpackaged launches.</summary>
+    /// <summary>최초 프로세스 대체 경로. 비패키지 실행은 자체 명령줄을 정답으로 사용.</summary>
     public static ActivationRequest FromCommandLine(string[] args, bool initial = false)
     {
         var paths = ParseFilePaths(args);
@@ -44,13 +44,14 @@ public static class ActivationArgsConverter
     }
 
     /// <summary>
-    /// Unpackaged launch arguments can include argv[0] (the exe path itself), so candidates are
-    /// filtered by the openable-format catalog, not just existence.
+    /// 비패키지 실행 인수에는 argv[0](실행 파일 경로)도 들어올 수 있음.
+    /// 파일 존재 여부만 보지 않고 열 수 있는 형식 목록으로 후보를 거름.
     /// </summary>
     private static List<string> ParseFilePaths(IEnumerable<string> rawArgs) =>
         rawArgs
             .Where(a => !a.StartsWith('-')
-                && EzyImageViewer.Core.Imaging.ImageFormatCatalog.IsViewable(a)
+                && EzyImageViewer.Core.Imaging.ImageFormatCatalog
+                    .ViewableExtensions.Contains(Path.GetExtension(a))
                 && File.Exists(a))
             .Select(Path.GetFullPath)
             .ToList();
@@ -59,7 +60,7 @@ public static class ActivationArgsConverter
     {
         if (string.IsNullOrWhiteSpace(arguments))
             yield break;
-        // Minimal quote-aware split; full CommandLineToArgv fidelity is not needed for file paths.
+        // 따옴표만 챙기는 최소 분리. 파일 경로에 CommandLineToArgv 완전 복제까지는 과함.
         var current = new System.Text.StringBuilder();
         var inQuotes = false;
         foreach (var ch in arguments)

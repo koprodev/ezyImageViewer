@@ -162,7 +162,7 @@ function Test-MsiContract(
             "$Scope payload file count mismatch."
         $fileMap = Get-Map $files 'File'
         foreach ($id in @('ApplicationExecutable', 'IdentityRegistrationInvoker',
-                'CodecHostIdentityPackage', 'ExternalIdentityPackage')) {
+                'ExternalIdentityPackage')) {
             Assert-True $fileMap.ContainsKey($id) "$Scope required file '$id' is missing."
         }
 

@@ -226,16 +226,12 @@
           "EzyImageViewer.Core": "[0.1.0-m0, )"
         }
       },
-      "ezyimageviewer.codecprotocol": {
-        "type": "Project"
-      },
       "ezyimageviewer.core": {
         "type": "Project"
       },
       "ezyimageviewer.imaging": {
         "type": "Project",
         "dependencies": {
-          "EzyImageViewer.CodecProtocol": "[0.1.0-m0, )",
           "EzyImageViewer.Core": "[0.1.0-m0, )",
           "SkiaSharp": "[4.150.1, )",
           "Svg.Skia": "[5.1.1, )"

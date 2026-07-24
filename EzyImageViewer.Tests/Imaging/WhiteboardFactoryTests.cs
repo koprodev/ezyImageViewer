@@ -19,7 +19,7 @@ public sealed class WhiteboardFactoryTests
         Assert.Equal(2160, bitmap.Height);
 
         var background = style == WhiteboardStyle.Black ? SKColors.Black : SKColors.White;
-        // Cell interior stays the plain background; grid lines live on the cell boundaries.
+        // 셀 안쪽은 단색 배경 유지. 격자선은 셀 경계에만 존재.
         Assert.Equal(background, bitmap.GetPixel(10, 10));
         Assert.Equal(background, bitmap.GetPixel(3830, 2150));
         Assert.Equal((byte)255, bitmap.GetPixel(0, 0).Alpha);
@@ -40,7 +40,7 @@ public sealed class WhiteboardFactoryTests
             Assert.NotEqual(background, bitmap.GetPixel(boundary, 10));
             Assert.NotEqual(background, bitmap.GetPixel(10 + cellIndex, boundary));
         }
-        // Off-boundary columns/rows carry no line.
+        // 경계가 아닌 행·열에는 선이 없음.
         Assert.Equal(background, bitmap.GetPixel(WhiteboardFactory.GridCellSize + 5, 10));
         Assert.Equal(background, bitmap.GetPixel(10, WhiteboardFactory.GridCellSize + 5));
     }

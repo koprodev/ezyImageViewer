@@ -14,31 +14,26 @@
     <InvariantGlobalization>false</InvariantGlobalization>
   </PropertyGroup>
 
-  <!-- The product and installer support win-x64 only. Keeping the RID graph uniform prevents
-       external publish restores from making referenced-project lock files unusable by CI. -->
+  <!-- 제품과 설치 프로그램은 win-x64 전용. RID 그래프를 통일해 외부 게시 복원이 CI 잠금 파일을 망치지 않게 함. -->
   <PropertyGroup Condition="'$(MSBuildProjectExtension)' == '.csproj'">
     <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
   </PropertyGroup>
 
-  <!-- The packaged (MSIX) flavor builds into its own bin/obj tree so pack-msix.ps1 -NoBuild can
-       never lay out a dev-flavor output (ADR-0018); the stock bin/obj must stay glob-excluded
-       or their stale generated sources leak into the compile items. -->
+  <!-- MSIX 빌드는 전용 bin/obj 사용. 개발 출력물과 묵은 생성 코드가 끼어들 틈을 차단(ADR-0018). -->
   <PropertyGroup Condition="'$(Packaged)' == 'true'">
     <BaseOutputPath>bin\packaged\</BaseOutputPath>
     <BaseIntermediateOutputPath>obj\packaged\</BaseIntermediateOutputPath>
     <DefaultItemExcludes>$(DefaultItemExcludes);bin\**;obj\**</DefaultItemExcludes>
   </PropertyGroup>
 
-  <!-- External-location identity embeds a Publisher-bound fusion manifest and therefore needs
-       an output tree isolated from both the normal dev loop and the full-MSIX flavor. -->
+  <!-- 외부 위치 ID는 게시자 결합 퓨전 매니페스트를 포함하므로 개발·MSIX 출력과 분리. -->
   <PropertyGroup Condition="'$(ExternalIdentity)' == 'true'">
     <BaseOutputPath>bin\external\</BaseOutputPath>
     <BaseIntermediateOutputPath>obj\external\</BaseIntermediateOutputPath>
     <DefaultItemExcludes>$(DefaultItemExcludes);bin\**;obj\**</DefaultItemExcludes>
   </PropertyGroup>
 
-  <!-- The identity-free portable preview has its own output tree so its archive can never
-       inherit package identity, installer manifests, or stale development-loop outputs. -->
+  <!-- ID 없는 포터블 미리보기는 전용 출력 사용. 패키지 ID·설치 매니페스트·개발 찌꺼기 상속 금지. -->
   <PropertyGroup Condition="'$(Portable)' == 'true'">
     <BaseOutputPath>bin\portable\</BaseOutputPath>
     <BaseIntermediateOutputPath>obj\portable\</BaseIntermediateOutputPath>

@@ -144,7 +144,7 @@
         <Level Value="1" Condition="EZY_DESKTOP_SHORTCUT = 1" />
         <ComponentGroupRef Id="DesktopShortcutComponents" />
       </Feature>
-      <!-- A new feature ID prevents upgrades from retaining the pre-1.0.12 absent feature state. -->
+      <!-- 새 기능 ID로 업그레이드 때 1.0.12 이전의 비활성 상태가 남지 않게 함. -->
       <Feature Id="ImageOpenWith" Title="지원 이미지 형식 등록" Level="2">
         <Level Value="1" Condition="EZY_FILE_ASSOCIATIONS = 1" />
         <ComponentGroupRef Id="FileAssociationComponents" />

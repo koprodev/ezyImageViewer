@@ -254,9 +254,6 @@ function Assert-EzyExternalPackageManifest {
         [string]$Version,
 
         [Parameter(Mandatory)]
-        [string]$CodecHostVersion,
-
-        [Parameter(Mandatory)]
         [string]$Publisher,
 
         [Parameter(Mandatory)]
@@ -264,7 +261,6 @@ function Assert-EzyExternalPackageManifest {
     )
 
     Assert-EzyExternalFourPartVersion -Value $Version -Label 'Version'
-    Assert-EzyExternalFourPartVersion -Value $CodecHostVersion -Label 'CodecHostVersion'
     Assert-EzyExternalPublisher -Value $Publisher
     Assert-EzyExternalMinVersion -Value $MinVersion
 
@@ -276,7 +272,7 @@ function Assert-EzyExternalPackageManifest {
     Assert-EzyExternalNodeCount $Document $namespaces '/f:Package' 1
     Assert-EzyExternalNodeCount $Document $namespaces '/f:Package/f:Identity' 1
     Assert-EzyExternalNodeCount $Document $namespaces '/f:Package/f:Dependencies/f:TargetDeviceFamily' 1
-    Assert-EzyExternalNodeCount $Document $namespaces '/f:Package/f:Dependencies/f:PackageDependency' 1
+    Assert-EzyExternalNodeCount $Document $namespaces '/f:Package/f:Dependencies/f:PackageDependency' 0
     Assert-EzyExternalNodeCount $Document $namespaces '/f:Package/f:Properties/uap10:AllowExternalContent' 1
     Assert-EzyExternalNodeCount $Document $namespaces '/f:Package/f:Applications/f:Application' 1
     Assert-EzyExternalNodeCount $Document $namespaces `
@@ -345,8 +341,7 @@ function Assert-EzyExternalPackageManifest {
     $dependencies = [Xml.XmlElement]$Document.SelectSingleNode(
         '/f:Package/f:Dependencies', $namespaces)
     Assert-EzyExternalExactAttributes $dependencies @()
-    Assert-EzyExternalExactElementChildren $dependencies @(
-        "$foundation|TargetDeviceFamily", "$foundation|PackageDependency")
+    Assert-EzyExternalExactElementChildren $dependencies @("$foundation|TargetDeviceFamily")
 
     $target = [Xml.XmlElement]$Document.SelectSingleNode(
         '/f:Package/f:Dependencies/f:TargetDeviceFamily', $namespaces)
@@ -356,14 +351,6 @@ function Assert-EzyExternalPackageManifest {
     Assert-EzyExternalAttribute $target 'Name' 'Windows.Desktop'
     Assert-EzyExternalAttribute $target 'MinVersion' $MinVersion
     Assert-EzyExternalAttribute $target 'MaxVersionTested' '10.0.26100.0'
-
-    $dependency = [Xml.XmlElement]$Document.SelectSingleNode(
-        '/f:Package/f:Dependencies/f:PackageDependency', $namespaces)
-    Assert-EzyExternalExactAttributes $dependency @('|MinVersion', '|Name', '|Publisher')
-    Assert-EzyExternalExactElementChildren $dependency @()
-    Assert-EzyExternalAttribute $dependency 'Name' 'GRTech.ezyImageViewer.CodecHost'
-    Assert-EzyExternalAttribute $dependency 'Publisher' $Publisher
-    Assert-EzyExternalAttribute $dependency 'MinVersion' $CodecHostVersion
 
     $application = [Xml.XmlElement]$Document.SelectSingleNode(
         '/f:Package/f:Applications/f:Application', $namespaces)
@@ -635,9 +622,6 @@ function New-EzyExternalLocationManifests {
         [string]$Version,
 
         [Parameter(Mandatory)]
-        [string]$CodecHostVersion,
-
-        [Parameter(Mandatory)]
         [string]$Publisher,
 
         [Parameter(Mandatory)]
@@ -645,7 +629,6 @@ function New-EzyExternalLocationManifests {
     )
 
     Assert-EzyExternalFourPartVersion -Value $Version -Label 'Version'
-    Assert-EzyExternalFourPartVersion -Value $CodecHostVersion -Label 'CodecHostVersion'
     Assert-EzyExternalPublisher -Value $Publisher
     Assert-EzyExternalMinVersion -Value $MinVersion
 
@@ -654,18 +637,14 @@ function New-EzyExternalLocationManifests {
     $identity = [Xml.XmlElement]$package.SelectSingleNode('/f:Package/f:Identity', $namespaces)
     $target = [Xml.XmlElement]$package.SelectSingleNode(
         '/f:Package/f:Dependencies/f:TargetDeviceFamily', $namespaces)
-    $dependency = [Xml.XmlElement]$package.SelectSingleNode(
-        '/f:Package/f:Dependencies/f:PackageDependency', $namespaces)
-    if ($null -eq $identity -or $null -eq $target -or $null -eq $dependency) {
-        throw 'External-location package template is missing required identity or dependency nodes.'
+    if ($null -eq $identity -or $null -eq $target) {
+        throw 'External-location package template is missing required identity nodes.'
     }
 
     Set-EzyExternalXmlAttribute $identity 'Publisher' $Publisher
     Set-EzyExternalXmlAttribute $identity 'Version' $Version
     Set-EzyExternalXmlAttribute $target 'MinVersion' $MinVersion
-    Set-EzyExternalXmlAttribute $dependency 'Publisher' $Publisher
-    Set-EzyExternalXmlAttribute $dependency 'MinVersion' $CodecHostVersion
-    Assert-EzyExternalPackageManifest $package $Version $CodecHostVersion $Publisher $MinVersion
+    Assert-EzyExternalPackageManifest $package $Version $Publisher $MinVersion
 
     $application = Read-EzyExternalXml -Path $ApplicationTemplatePath
     $applicationNamespaces = [Xml.XmlNamespaceManager]::new($application.NameTable)

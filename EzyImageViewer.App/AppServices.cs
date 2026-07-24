@@ -3,7 +3,6 @@ using EzyImageViewer.Capture.Snipping;
 using EzyImageViewer.Core.Activation;
 using EzyImageViewer.Core.Imaging;
 using EzyImageViewer.Imaging;
-using EzyImageViewer.Imaging.Codecs;
 using EzyImageViewer.Infrastructure;
 
 namespace EzyImageViewer.App;
@@ -16,10 +15,7 @@ public enum RecoveryAvailability
     Unavailable,
 }
 
-/// <summary>
-/// Composition root. The router exists before any UI so activations posted from Program.Main
-/// buffer until <see cref="App.OnLaunched"/> attaches the window manager.
-/// </summary>
+/// <summary>구성 루트. UI 전부터 라우터가 활성화를 모아 창 관리자가 붙을 때까지 보관.</summary>
 public static class AppServices
 {
     private static readonly object SettingsSync = new();
@@ -124,10 +120,16 @@ public static class AppServices
                     Name = StructuredLogEventNames.RecoverySaved,
                 }),
             reportAvailable: ReportRecoveryAvailable);
+        StartupTimeline.Mark("servicesCtor");
     }
 
-    public static ActivationRouter Router { get; } = new();
+    public static ActivationRouter Router => ActivationChannel.Router;
     public static InputLimits Limits { get; } = InputLimits.Default;
+
+    /// <summary>열기·탐색 화면은 실제 디코드 가능한 형식만 제공.</summary>
+    public static IReadOnlySet<string> ViewableExtensions { get; } =
+        ImageFormatCatalog.ViewableExtensions;
+
     public static DocumentLoader Loader { get; } = new(Limits);
     public static IAppDataPaths DataPaths { get; }
     public static AppDataProtectionException? AppDataProtectionFailure { get; }
@@ -188,7 +190,7 @@ public static class AppServices
     public static event Action<AppSettings>? SettingsChanged;
     public static event Action<RecoveryAvailability>? RecoveryAvailabilityChanged;
 
-    /// <summary>Capture integration (M7); null in unattended runs and after the last window closed.</summary>
+    /// <summary>캡처 연동. 무인 실행과 마지막 창 종료 뒤에는 null.</summary>
     public static CaptureCoordinator? Capture { get; private set; }
 
     public static void InitializeUi(Microsoft.UI.Dispatching.DispatcherQueue dispatcherQueue)
@@ -205,9 +207,7 @@ public static class AppServices
                     AppDataProtectionFailure);
             var failureVersion = Volatile.Read(ref _recoveryFailureVersion);
             var crashMarkers = RecoveryStore.EnumerateCrashMarkers();
-            // A valid orphan snapshot is still user data: a marker can be lost or quarantined
-            // before the authenticated payload. Delete marker-only sessions only after a complete
-            // snapshot classification.
+            // 표식이 먼저 사라져도 고아 스냅샷은 사용자 데이터. 전체 분류 뒤 표식 전용 세션만 삭제.
             var recoveryEnumeration = RecoveryStore.EnumerateSummaryState();
             PendingRecoveryState = recoveryEnumeration;
             if (recoveryEnumeration.IsComplete)
@@ -253,7 +253,7 @@ public static class AppServices
 
         void StartRouter()
         {
-            // Handler contract (P0-2): enqueue to the UI thread and return — never await load completion.
+            // 처리기는 UI 스레드에 넣고 즉시 반환. 로드 완료 대기 금지.
             Router.Start(envelope =>
             {
                 var request = ActivationRoutingPolicy.Apply(
@@ -324,6 +324,7 @@ public static class AppServices
         else
         {
             var recoveryStarted = TryStartRecovery();
+            StartupTimeline.Mark("recoveryScan");
             if (!recoveryStarted || PendingRecoveries.Count == 0)
             {
                 EnsureCapture(RuntimeSettings);
@@ -358,6 +359,7 @@ public static class AppServices
         _ = Logs.TryEnqueue(
             LocalLogLevel.Information,
             new StructuredLogEvent { Name = StructuredLogEventNames.AppStarted });
+        StartupTimeline.Mark("uiInit");
     }
 
     private static void ReportRecoveryFailure(
@@ -393,8 +395,7 @@ public static class AppServices
             RecoveryAvailabilityChanged?.Invoke(availability);
     }
 
-    /// <summary>Persists one validated immutable snapshot and publishes it process-wide. A privacy
-    /// restriction is applied before disk I/O and remains restrictive if persistence fails.</summary>
+    /// <summary>검증된 불변 설정을 저장·전역 게시. 개인정보 제한은 디스크 쓰기 전에 적용.</summary>
     public static async Task<AppSettings> UpdateSettingsAsync(
         Func<AppSettings, AppSettings> update,
         CancellationToken cancellationToken = default)
@@ -442,8 +443,7 @@ public static class AppServices
                     }
                     catch (RecentFileHistoryClearException ex)
                     {
-                        // The restrictive preference must still be persisted; the caller is
-                        // notified after the disabled state is durably published.
+                        // 제한 설정은 저장해야 하므로 비활성 상태를 영구 게시한 뒤 호출자에게 알림.
                         deferredRecentClearFailure = ex;
                         updated = updated with { RecentFilesEnabled = false };
                     }
@@ -476,7 +476,7 @@ public static class AppServices
                     }
                     catch (RecentFileHistoryClearException)
                     {
-                        // Admission closes before the delete attempt, preserving fail-closed state.
+                        // 삭제 시도 전에 입구부터 닫아 안전 차단 상태 유지.
                     }
                 }
                 throw;
@@ -643,7 +643,7 @@ public static class AppServices
             ReadClipboardAsync = ct => clipboard.TryGetImageAsync(
                 CaptureCoordinator.CaptureReadLimit, ct),
             HasInternalMarker = clipboard.CurrentContentHasInternalMarker,
-            // Official path only with package identity (Q7=b); the dev loop stays legacy.
+            // 공식 경로는 패키지 identity가 있을 때만. 개발 루프는 구형 경로 유지.
             LaunchOfficialCaptureAsync = PackageIdentity.HasIdentity
                 ? CaptureLauncher.LaunchOfficialAsync
                 : null,
@@ -651,10 +651,7 @@ public static class AppServices
                 token, CaptureCoordinator.CaptureReadLimit, ct),
             LaunchFallbackMessage = AppStrings.CaptureLaunchFailed,
             CaptureFailedMessage = AppStrings.CaptureFailed,
-            Tray = new TrayIconStrings(
-                "ezy Image Viewer", AppStrings.TrayWatchToggle,
-                AppStrings.TrayCapture, AppStrings.TrayOpenWindow),
-            TrayIconPath = Path.Combine(AppContext.BaseDirectory, "Assets", "ezyImageViewer.ico"),
+            // 저장된 감시 설정을 빼먹으면 프라이버시가 운다.
             InitialWatchEnabled = settings.ClipboardWatchEnabled,
             RegisterHotkey = true,
             HotkeyModifiers = (uint)settings.CaptureHotkey.Modifiers,
@@ -680,13 +677,4 @@ public static class AppServices
 
     internal static DocumentLoader CreateDocumentLoader(InputLimits? limits = null) =>
         new(limits ?? Limits);
-
-    /// <summary>Explicit packaged-smoke seam. Normal product loaders remain disabled until the
-    /// ADR-0006 corpus and security activation gates pass.</summary>
-    internal static DocumentLoader CreateIsolatedCodecSmokeLoader(InputLimits? limits = null)
-    {
-        var codecHost = CodecHostDependencyResolver.TryResolve()
-            ?? throw new CodecUnavailableException("The packaged CodecHost dependency is unavailable.");
-        return new DocumentLoader(limits ?? Limits, codecHost);
-    }
 }

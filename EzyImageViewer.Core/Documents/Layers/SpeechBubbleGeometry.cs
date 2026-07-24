@@ -1,30 +1,20 @@
 namespace EzyImageViewer.Core.Documents.Layers;
 
-/// <summary>
-/// Single source of the speech-bubble tail shape (FR-ANNO-007). Rendering, point hit-testing,
-/// band selection and the tail handle all consume the same triangle so they can never disagree.
-/// All coordinates are pre-rotation annotation-local native pixels.
-/// </summary>
+/// <summary>말풍선 꼬리 모양 단일 기준. 렌더·히트·영역 선택·손잡이가 같은 삼각형 공유.</summary>
 public static class SpeechBubbleGeometry
 {
-    /// <summary>Tail base sits this far inside the body so the union with the rounded body never
-    /// meets at a bare tangent point (a degenerate boolean-op boundary).</summary>
+    /// <summary>꼬리 밑변을 몸통 안으로 겹치는 거리. 접점 하나짜리 불안정 결합 방지.</summary>
     public const float BaseOverlap = 2f;
 
     private const float MinBaseHalf = 3f;
     private const float MaxBaseHalf = 12f;
 
-    /// <summary>Default tip for a fresh bubble: below-left of the body, clearly outside.</summary>
+    /// <summary>새 말풍선 기본 꼬리 끝. 몸통 왼쪽 아래 바깥.</summary>
     public static AnnotationPoint DefaultTailTip(RectF bounds) => new(
         bounds.X + (bounds.Width * 0.2f),
         bounds.Bottom + MathF.Max(16f, bounds.Height * 0.35f));
 
-    /// <summary>
-    /// The tail triangle for <paramref name="bubble"/>, or false when the tip lies inside the
-    /// body (no tail is drawn). Base points are on the edge nearest the tip, pulled inward by
-    /// <see cref="BaseOverlap"/>, centered on the tip's projection and clamped clear of the
-    /// rounded corners.
-    /// </summary>
+    /// <summary>말풍선 꼬리 삼각형. 끝점이 몸통 안이면 꼬리 없이 false.</summary>
     public static bool TryGetTail(
         SpeechBubbleAnnotation bubble,
         out AnnotationPoint baseA, out AnnotationPoint baseB, out AnnotationPoint tip)
@@ -54,7 +44,7 @@ public static class SpeechBubbleGeometry
         if (outsideX <= 0f && outsideY <= 0f)
             return false;
 
-        // Dominant escape axis picks the edge; the exact >= makes ties deterministic (horizontal).
+        // 더 많이 벗어난 축으로 변 선택. 동률은 가로로 고정.
         var horizontalEscape = outsideX >= outsideY;
         var radius = MathF.Max(0f, MathF.Min(
             cornerRadius, MathF.Min(bounds.Width, bounds.Height) / 2f));
@@ -79,7 +69,7 @@ public static class SpeechBubbleGeometry
         return true;
     }
 
-    /// <summary>Point-in-tail test in pre-rotation local coordinates.</summary>
+    /// <summary>회전 전 지역 좌표의 꼬리 내부 점 검사.</summary>
     public static bool HitTail(SpeechBubbleAnnotation bubble, AnnotationPoint point, float tolerance)
     {
         if (!TryGetTail(bubble, out var a, out var b, out var tip))
@@ -89,7 +79,7 @@ public static class SpeechBubbleGeometry
 
     private static float BaseHalf(float edgeLength, float radius)
     {
-        // Never wider than what fits between the two rounded corners.
+        // 둥근 모서리 사이에 들어가는 너비만 허용.
         var room = MathF.Max(0f, (edgeLength / 2f) - radius);
         return Math.Clamp(edgeLength * 0.15f, MathF.Min(MinBaseHalf, room), MathF.Min(MaxBaseHalf, room));
     }
@@ -97,8 +87,7 @@ public static class SpeechBubbleGeometry
     private static bool PointInTriangle(
         AnnotationPoint p, AnnotationPoint a, AnnotationPoint b, AnnotationPoint c, float tolerance)
     {
-        // Sign-consistent half-plane test; tolerance grows the triangle by moving the test point
-        // check to each edge's distance.
+        // 부호 일관 반평면 검사. 허용 오차만큼 삼각형을 넓혀 판정.
         var d1 = Cross(a, b, p);
         var d2 = Cross(b, c, p);
         var d3 = Cross(c, a, p);

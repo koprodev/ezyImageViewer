@@ -95,13 +95,9 @@ try {
 
     foreach ($forbidden in @(
             'AppxManifest.xml',
-            'AppxSignature.p7x',
-            'EzyImageViewer.CodecHost.exe',
-            'EzyImageViewer.CodecHost.dll',
-            'pdfium.dll',
-            'PDFtoImage.dll')) {
+            'AppxSignature.p7x')) {
         if (Test-Path -LiteralPath (Join-Path $payload $forbidden)) {
-            throw "Portable payload contains forbidden packaged or isolated content: '$forbidden'."
+            throw "Portable payload contains forbidden packaged content: '$forbidden'."
         }
     }
 

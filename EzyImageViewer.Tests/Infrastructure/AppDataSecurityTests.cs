@@ -117,8 +117,8 @@ public sealed class AppDataSecurityTests : IDisposable
         File.WriteAllText(Path.Combine(root, "settings.json"), "{}");
         AppDataSecurity.EnsureProtected(new AppDataPaths(root));
 
-        // Mirrors AtomicFileWriter's in-flight state: the sibling temp exists and is held with
-        // FileShare.None until the final rename, which is what a second instance walks into.
+        // AtomicFileWriter 작업 중 상태 재현.
+        // 형제 임시 파일을 마지막 이름 변경까지 FileShare.None으로 잡아 두어 두 번째 인스턴스와 충돌.
         var temp = Path.Combine(root, $".settings.json.{Guid.NewGuid():N}.tmp");
         using (new FileStream(temp, FileMode.CreateNew, FileAccess.Write, FileShare.None))
         {
@@ -140,8 +140,8 @@ public sealed class AppDataSecurityTests : IDisposable
         File.WriteAllText(doomed, "{}");
         AppDataSecurity.EnsureProtected(new AppDataPaths(root));
 
-        // A delete-on-close handle makes the entry disappear the moment the walk releases it,
-        // standing in for log retention pruning a file mid-pass.
+        // 닫을 때 삭제되는 핸들로 순회가 놓는 순간 항목이 사라지게 함.
+        // 로그 보존 정리가 순회 중 파일을 지우는 상황 대역.
         using (new FileStream(
             doomed, FileMode.Open, FileAccess.ReadWrite,
             FileShare.ReadWrite | FileShare.Delete, 4096, FileOptions.DeleteOnClose))
@@ -160,7 +160,7 @@ public sealed class AppDataSecurityTests : IDisposable
 
         var root = Path.Combine(_directory, "foreign-lock");
         Directory.CreateDirectory(root);
-        // Only atomic-write temps are skipped; an ordinary locked file must still fail closed.
+        // 원자 쓰기 임시 파일만 건너뜀. 평범한 잠긴 파일은 닫힘 우선으로 실패해야 함.
         var locked = Path.Combine(root, "settings.json");
         using var handle = new FileStream(
             locked, FileMode.CreateNew, FileAccess.Write, FileShare.None);
@@ -182,8 +182,8 @@ public sealed class AppDataSecurityTests : IDisposable
         var target = Path.Combine(root, "settings.json");
         AtomicFileWriter.Write(target, [1, 2, 3], AtomicFileProtection.CurrentUserAndSystem);
 
-        // Without the explicit ACL the renamed file keeps the ACEs it inherited from the
-        // directory, which the verify pass rejects as unprotected.
+        // 명시적 ACL이 없으면 이름 바꾼 파일이 디렉터리 ACE를 물려받음.
+        // 검증 단계는 이를 보호되지 않은 파일로 거부.
         AssertProtectedFile(target);
         AppDataSecurity.EnsureProtected(new AppDataPaths(root));
         AssertProtectedFile(target);

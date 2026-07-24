@@ -9,7 +9,7 @@ public enum ExportFormat
     WebP,
 }
 
-/// <summary>Per-export knobs. Quality applies to JPEG and lossy WebP; PNG ignores it.</summary>
+/// <summary>내보내기별 설정. 품질은 JPEG·손실 WebP에 적용하고 PNG는 무시.</summary>
 public sealed record ExportOptions
 {
     public static ExportOptions Default { get; } = new();
@@ -27,21 +27,21 @@ public sealed record ExportOptions
         }
     }
 
-    /// <summary>WebP only (FR-OUT-005).</summary>
+    /// <summary>WebP 전용(FR-OUT-005).</summary>
     public bool WebPLossless { get; init; }
 
-    /// <summary>JPEG has no alpha: transparency composites over this color (FR-OUT-004).</summary>
+    /// <summary>JPEG에는 알파가 없어 투명 영역을 이 색 위에 합성(FR-OUT-004).</summary>
     public uint JpegBackgroundArgb { get; init; } = 0xFFFF_FFFF;
 
-    /// <summary>FR-OUT-008 keep option (Q6 = b): carry source EXIF minus the sensitive fields
-    /// <see cref="ExportMetadata"/> always strips. False (default) keeps the structural
-    /// full strip — privacy minimization is the default, not a choice.</summary>
+    /// <summary>FR-OUT-008 유지 옵션(Q6=b).
+    /// <see cref="ExportMetadata"/>가 민감 필드를 뺀 뒤 원본 EXIF 전달.
+    /// false가 기본이며 구조적으로 전부 제거. 개인정보 최소화는 선택이 아니라 기본값.</summary>
     public bool KeepMetadata { get; init; }
 }
 
 /// <summary>
-/// Encodes a flattened raster (FR-OUT-003~005). Re-encoding through Skia carries no source
-/// metadata — the FR-OUT-008 default (privacy-minimizing strip) is structural, not a filter.
+/// 평탄화 래스터 인코딩(FR-OUT-003~005).
+/// Skia 재인코딩은 원본 메타데이터를 옮기지 않으므로 FR-OUT-008 기본 제거는 필터가 아닌 구조적 보장.
 /// </summary>
 public static class ImageExporter
 {
@@ -57,14 +57,6 @@ public static class ImageExporter
             _ => throw new ArgumentOutOfRangeException(nameof(format), format, "Unknown export format."),
         };
     }
-
-    public static string ExtensionFor(ExportFormat format) => format switch
-    {
-        ExportFormat.Png => ".png",
-        ExportFormat.Jpeg => ".jpg",
-        ExportFormat.WebP => ".webp",
-        _ => throw new ArgumentOutOfRangeException(nameof(format), format, "Unknown export format."),
-    };
 
     private static byte[] EncodeSimple(SKImage image, SKEncodedImageFormat format, int quality)
     {
@@ -83,7 +75,7 @@ public static class ImageExporter
     {
         if (!options.WebPLossless)
             return EncodeSimple(image, SKEncodedImageFormat.Webp, options.Quality);
-        // Skia's lossless WebP path goes through the pixmap encoder options.
+        // Skia 무손실 WebP는 픽스맵 인코더 옵션 경로 사용.
         using var raster = ToRaster(image);
         using var pixmap = raster.PeekPixels()
             ?? throw new InvalidOperationException("WebP encoding failed: no readable pixels.");
@@ -92,7 +84,7 @@ public static class ImageExporter
         return data.ToArray();
     }
 
-    /// <summary>Flattens transparency onto a background: JPEG cannot carry alpha.</summary>
+    /// <summary>투명 영역을 배경에 평탄화. JPEG는 알파를 담지 못함.</summary>
     private static SKImage CompositeOver(SKImage image, SKColor background)
     {
         var info = new SKImageInfo(image.Width, image.Height, SKColorType.Bgra8888, SKAlphaType.Premul);

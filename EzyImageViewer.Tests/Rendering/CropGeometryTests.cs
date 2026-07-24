@@ -3,11 +3,7 @@ using Xunit;
 
 namespace EzyImageViewer.Tests.Rendering;
 
-/// <summary>
-/// FR-EDIT-001 fixed-ratio semantics: the ratio must survive the canvas edge. Clamping the axes
-/// independently after fitting the ratio silently produced non-ratio crops — the regression that
-/// motivated solving constraint and containment together.
-/// </summary>
+/// <summary>캔버스 끝에서도 비율이 살아남는 고정 비율 자르기 검증.</summary>
 public class CropGeometryTests
 {
     private const float Square = 1f;
@@ -25,8 +21,7 @@ public class CropGeometryTests
     [Fact]
     public void FixedRatio_SurvivesTheCanvasEdge()
     {
-        // The regression case: anchor (90,50), dragging 1:1 to (150,110) — only 10px remain to the
-        // right, so the square shrinks to 10×10 instead of degrading to 10×50.
+        // 기준점 (90,50)에서 1:1로 (150,110) 드래그. 오른쪽 10px만 남아 10×10으로 축소.
         var rect = CropGeometry.Constrain((90f, 50f), (150f, 110f), Square, 100f, 100f);
         Assert.Equal(rect.Width, rect.Height);
         Assert.Equal(10f, rect.Width);
@@ -35,10 +30,10 @@ public class CropGeometryTests
     }
 
     [Theory]
-    [InlineData(1f, -200f, -200f)]   // up-left
-    [InlineData(1f, 300f, -200f)]    // up-right
-    [InlineData(1f, -200f, 300f)]    // down-left
-    [InlineData(1f, 300f, 300f)]     // down-right
+    [InlineData(1f, -200f, -200f)]   // 왼쪽 위
+    [InlineData(1f, 300f, -200f)]    // 오른쪽 위
+    [InlineData(1f, -200f, 300f)]    // 왼쪽 아래
+    [InlineData(1f, 300f, 300f)]     // 오른쪽 아래
     [InlineData(4f / 3f, 300f, 300f)]
     [InlineData(16f / 9f, -200f, 300f)]
     public void FixedRatio_HoldsInEveryDirection_EvenDraggedFarOutside(float ratio, float px, float py)
@@ -53,7 +48,7 @@ public class CropGeometryTests
     [Fact]
     public void WideRatio_LimitedByHeight_ShrinksTheWidthWithIt()
     {
-        // 16:9 from (0,90) downward: only 10px of height remain, so width follows to 17.78.
+        // (0,90)에서 아래로 16:9. 높이 10px만 남아 너비도 17.78로 조정.
         var rect = CropGeometry.Constrain((0f, 90f), (100f, 200f), 16f / 9f, 100f, 100f);
         Assert.Equal(10f, rect.Height);
         Assert.Equal(160f / 9f, rect.Width, 2);

@@ -3,10 +3,9 @@ using EzyImageViewer.Core.Documents.Layers;
 namespace EzyImageViewer.Core.Commands;
 
 /// <summary>
-/// One undo entry for the region lift (UR-009): appends the erase op that vacates the source rect
-/// AND adds the lifted pixels as a raster-asset annotation. Both endpoints verify the transform
-/// they run against, like <see cref="TransformCommand"/>, so a state swapped underneath fails
-/// loudly instead of corrupting.
+/// 영역 들어 올리기를 실행 취소 항목 하나로 처리(UR-009).
+/// 원본 사각형을 비우는 지우기 연산과 들어 올린 픽셀의 래스터 주석 추가를 함께 수행.
+/// <see cref="TransformCommand"/>처럼 양 끝점이 대상 변환을 검증해 상태가 바뀌면 바로 실패.
 /// </summary>
 public sealed class LiftRegionCommand : IEditCommand
 {

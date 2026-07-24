@@ -3,8 +3,7 @@ using Xunit;
 
 namespace EzyImageViewer.Tests.Capture;
 
-/// <summary>FR-CAP-001 (Q7=b): the official ms-screenclip request URI and the redirect-uri
-/// callback parser, against the documented protocol (v1.2).</summary>
+/// <summary>FR-CAP-001(Q7=b): 공식 ms-screenclip 요청 URI와 redirect-uri 콜백 해석기를 문서 규격(v1.2)과 대조.</summary>
 public sealed class SnipProtocolTests
 {
     [Fact]
@@ -16,7 +15,7 @@ public sealed class SnipProtocolTests
         Assert.Equal("capture", uri.Host);
         Assert.Equal("/image", uri.AbsolutePath);
         var query = uri.Query;
-        // The mode parameter must be value-less by spec.
+        // 모드 매개변수는 규격상 값 없이 존재해야 함.
         Assert.Contains("?rectangle&", query);
         Assert.Contains("&user-agent=ezyImageViewer", query);
         Assert.Contains("&api-version=1.2", query);
@@ -81,8 +80,8 @@ public sealed class SnipProtocolTests
         Assert.Equal("tok", response.FileAccessToken);
     }
 
-    /// <summary>The packaged manifest must register exactly the scheme the code redirects to —
-    /// a drift here silently kills the callback ([25차] 후속).</summary>
+    /// <summary>패키지 매니페스트 스킴은 코드의 리디렉션 스킴과 정확히 같아야 함.
+    /// 어긋나면 콜백이 소리 없이 죽음.</summary>
     [Fact]
     public void ManifestTemplate_RegistersTheRedirectScheme()
     {

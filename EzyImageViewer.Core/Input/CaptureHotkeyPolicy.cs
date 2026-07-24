@@ -2,7 +2,7 @@ using System.Collections.ObjectModel;
 
 namespace EzyImageViewer.Core.Input;
 
-/// <summary>Defines the persisted and runtime-safe global capture hotkey domain.</summary>
+/// <summary>저장 가능하고 런타임에도 안전한 전역 캡처 단축키 범위 정의.</summary>
 public static class CaptureHotkeyPolicy
 {
     public const uint AllowedModifierMask = 0x000F;

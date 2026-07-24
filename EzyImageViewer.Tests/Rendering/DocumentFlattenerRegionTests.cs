@@ -6,14 +6,10 @@ using Xunit;
 
 namespace EzyImageViewer.Tests.Rendering;
 
-/// <summary>
-/// FR-EDIT-007 region copy: FlattenRegion delegates to the one CropOp/TransformEvaluator contract,
-/// so its pixels equal the same rectangle cut from a full Flatten and its rounding, clamping,
-/// rejection and byte budget are the evaluator's — never a private re-implementation.
-/// </summary>
+/// <summary>영역 평면화가 자르기·변환 평가의 반올림·제한·예산 계약을 그대로 쓰는지 검증.</summary>
 public sealed class DocumentFlattenerRegionTests
 {
-    /// <summary>Unique per-pixel color, so any coordinate shift breaks the oracle comparison.</summary>
+    /// <summary>좌표가 한 칸만 틀어져도 비교가 깨지는 픽셀별 고유색.</summary>
     private static SKImage GradientImage(int width, int height)
     {
         using var bitmap = new SKBitmap(new SKImageInfo(
@@ -48,7 +44,7 @@ public sealed class DocumentFlattenerRegionTests
         var native = new PixelSize(16, 16);
         using var frame = GradientImage(16, 16);
 
-        // floor(1.4)=1, floor(2.6)=2, ceil(4.6)=5, ceil(4.4)=5 → 4x3 at (1,2).
+        // floor(1.4)=1, floor(2.6)=2, ceil(4.6)=5, ceil(4.4)=5 → (1,2)의 4x3.
         AssertMatchesFullFlattenSubset(
             frame, native, DocumentState.Empty, new RectF(1.4f, 2.6f, 3.2f, 1.8f),
             expectedX0: 1, expectedY0: 2, expectedWidth: 4, expectedHeight: 3);
@@ -60,7 +56,7 @@ public sealed class DocumentFlattenerRegionTests
         var native = new PixelSize(16, 16);
         using var frame = GradientImage(16, 16);
 
-        // Clamped to (0,0)..(ceil(3),ceil(3)) → 3x3.
+        // (0,0)..(ceil(3),ceil(3))로 제한 → 3x3.
         AssertMatchesFullFlattenSubset(
             frame, native, DocumentState.Empty, new RectF(-5f, -5f, 8f, 8f),
             expectedX0: 0, expectedY0: 0, expectedWidth: 3, expectedHeight: 3);
@@ -69,7 +65,7 @@ public sealed class DocumentFlattenerRegionTests
     [Fact]
     public void FlattenRegion_AfterQuarterRotate_UsesOutputSpace()
     {
-        // 16x8 rotated 90° → 8x16 output; the region addresses the rotated canvas.
+        // 16x8을 90° 회전 → 8x16 출력, 영역은 회전 캔버스 좌표 사용.
         var native = new PixelSize(16, 8);
         var state = DocumentState.Empty.WithTransform(
             BackgroundTransform.Identity.Append(RotateOp.FromDegrees(90)));
@@ -97,7 +93,7 @@ public sealed class DocumentFlattenerRegionTests
     [Fact]
     public void FlattenRegion_SmallRegionSucceeds_WhereFullOutputExceedsBudget()
     {
-        // 40000x40000 BGRA ≈ 6.4GB > 2GiB: the full flatten must refuse, the region must not.
+        // 40000x40000 BGRA 약 6.4GB라 전체는 거절, 작은 영역은 허용.
         var native = new PixelSize(4, 4);
         var state = DocumentState.Empty.WithTransform(
             BackgroundTransform.Identity.Append(new ResizeOp(new PixelSize(40_000, 40_000))));

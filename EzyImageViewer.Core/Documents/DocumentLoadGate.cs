@@ -1,30 +1,22 @@
 namespace EzyImageViewer.Core.Documents;
 
-/// <summary>What the user chose when warned about unsaved edits (FR-HIST-005).</summary>
+/// <summary>저장하지 않은 편집 경고의 사용자 선택.</summary>
 public enum DiscardDecision
 {
-    /// <summary>Proceed and lose the edits.</summary>
+    /// <summary>편집을 버리고 진행.</summary>
     Discard,
 
-    /// <summary>Abandon the replacement; the edited document stays.</summary>
+    /// <summary>교체를 취소하고 현재 문서 유지.</summary>
     Cancel,
 
-    /// <summary>Persist first, then proceed. The dialog layer resolves this before answering the
-    /// gate: a successful save comes back as <see cref="Discard"/>, a failed one as
-    /// <see cref="Cancel"/> — so the gate itself never sees this value.</summary>
+    /// <summary>먼저 저장. 대화상자 계층이 성공은 <see cref="Discard"/>, 실패는
+    /// <see cref="Cancel"/>로 바꿔 보내므로 게이트에는 도달하지 않음.</summary>
     Save,
 }
 
 /// <summary>
-/// Guards every document replacement against unsaved edits (FR-HIST-005). Lives here rather than in
-/// the window because the policy — not the dialog — is what needs testing, and because the prompt is
-/// injected, the same policy serves the toolbar, drag-drop, clipboard, folder navigation and the
-/// single-instance activation redirect, which is the only ingress the user does not initiate.
-///
-/// Threading: UI-thread-affine, like <see cref="DocumentEditor"/>.
-///
-/// Non-blocking by construction: <see cref="RequestLoadAsync"/> is awaited by nobody on the
-/// activation path, so a prompt can never stall the router queue.
+/// 저장하지 않은 편집을 모든 문서 교체 경로에서 지키는 공용 게이트.
+/// UI 스레드 전용이며 활성화 라우터를 막지 않음.
 /// </summary>
 public sealed class DocumentLoadGate(
     DocumentSession session,
@@ -39,36 +31,25 @@ public sealed class DocumentLoadGate(
     private bool _promptOpen;
     private Func<CancellationToken, Task<ImageDocument>>? _pending;
     private long _requestSequence;
-    private long _activeRequest; // latest request whose settlement the UI thread has not yet observed
+    private long _activeRequest; // UI 스레드가 아직 완료를 확인하지 못한 최신 요청.
 
     /// <summary>
-    /// Document the user agreed to discard. The approval covers the latest-wins batch of requests
-    /// that start while the approved load is still decoding (they replace the same edits the user
-    /// already gave up); it is cleared when the approved load settles, so anything after a failed
-    /// or superseded decode finds the edits alive and re-prompts. Over-prompting is the accepted
-    /// failure direction — silent loss never is.
+    /// 사용자가 버리기로 승인한 문서. 승인한 로드가 끝날 때까지만 최신 요청 묶음에 적용.
+    /// 애매하면 다시 묻고, 조용히 날리는 일은 없음.
     /// </summary>
     private Guid _discardApprovedFor;
 
     public bool IsPrompting => _promptOpen;
 
     /// <summary>
-    /// True while a replacement is prompted for or decoding. Editing is disallowed here: the swap
-    /// lands without re-consulting the guard, so an edit made now would be destroyed unasked.
-    /// Keyed on the LATEST request's generation, cleared by its own UI-thread continuation — not on
-    /// a raw request count (a superseded loader that ignores its token would block a Ready document
-    /// forever), and not on the session state (the worker flips it to Ready before the UI thread has
-    /// rebound the editor, and an edit slipped into that gap would be destroyed by the rebind).
+    /// 교체 질문·디코딩 중이면 true. 이 틈의 편집은 재결합 때 사라지므로 차단.
+    /// 최신 요청 세대로만 해제해 오래된 로더가 문을 잠그거나 일찍 열지 못하게 함.
     /// </summary>
     public bool IsReplacementPending => _promptOpen || _activeRequest != 0;
 
     /// <summary>
-    /// Starts a load, prompting first if the current document has unsaved edits. Requests arriving
-    /// while a prompt is open collapse to the newest one (a prompt storm answers about a file the
-    /// user has already moved past).
-    /// The returned task settles when this request's load settles — or immediately when the request
-    /// was queued behind an open prompt (its fate then belongs to the prompting call). Callers on
-    /// the activation path discard it, which is what keeps the router non-blocking.
+    /// 수정 문서는 먼저 확인하고 로드. 질문 중 들어온 요청은 최신 하나로 합침.
+    /// 반환 작업은 해당 요청만 추적하며 활성화 경로는 기다리지 않음.
     /// </summary>
     public async Task RequestLoadAsync(Func<CancellationToken, Task<ImageDocument>> loader)
     {
@@ -96,23 +77,17 @@ public sealed class DocumentLoadGate(
         }
         finally
         {
-            // Captured with the prompt flag so a throwing confirm cannot leave a stale loader
-            // latched for a later prompt to resurrect; the fault itself propagates fail-closed
-            // (no load started, edits kept).
+            // 질문 상태와 함께 꺼내 예외가 나도 묵은 로더가 부활하지 않게 함.
             _promptOpen = false;
             queued = _pending;
             _pending = null;
         }
 
-        // Fail-closed: only an explicit Discard proceeds. Save never reaches here — the dialog
-        // layer resolves it into Discard (write succeeded) or Cancel (write failed or refused),
-        // so an unresolved Save could only mean a broken prompt, and it must not destroy edits.
+        // 명시적 버리기만 진행. 해석 안 된 저장 선택은 망가진 질문이므로 편집 보존.
         if (decision != DiscardDecision.Discard)
-            return; // Also drops what queued behind the prompt — the user said stop.
+            return; // 사용자가 멈췄으니 뒤에 줄 선 요청도 함께 중단.
 
-        // Approval authorizes replacing *this* document with *this* load and nothing more: it is
-        // scoped to the load and cleared when the load settles, so a failed or superseded decode
-        // leaves the edits intact and still guarded.
+        // 승인은 이 문서를 이 로드로 바꾸는 한 번에만 유효.
         _discardApprovedFor = current;
         try
         {
@@ -124,7 +99,7 @@ public sealed class DocumentLoadGate(
         }
     }
 
-    /// <summary>True when the window may close without asking (FR-HIST-005).</summary>
+    /// <summary>추가 확인 없이 창을 닫아도 되면 true.</summary>
     public bool CanCloseWithoutPrompt() => !_editor.IsModified;
 
     private bool NeedsConfirmation()
@@ -145,8 +120,7 @@ public sealed class DocumentLoadGate(
         }
         finally
         {
-            // Only the latest request may clear the flag: a stale loader resuming later must not
-            // reopen editing while a newer replacement is still pending.
+            // 최신 요청만 잠금 해제. 늦잠 잔 로더가 문을 먼저 열면 곤란함.
             if (_activeRequest == request)
                 _activeRequest = 0;
         }

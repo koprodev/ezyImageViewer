@@ -2,8 +2,8 @@ using EzyImageViewer.Core.Activation;
 
 namespace EzyImageViewer.Infrastructure;
 
-/// <summary>Maps persisted single-instance behavior onto warm file activations. It never creates
-/// a second process; initial and explicitly targeted activations retain their requested window.</summary>
+/// <summary>저장된 단일 인스턴스 설정을 웜 파일 활성화에 적용.
+/// 두 번째 프로세스는 만들지 않으며 최초·명시 대상 활성화는 요청한 창 유지.</summary>
 public static class ActivationRoutingPolicy
 {
     public static ActivationRequest Apply(

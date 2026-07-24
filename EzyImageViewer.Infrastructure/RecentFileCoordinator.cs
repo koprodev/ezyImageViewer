@@ -11,7 +11,7 @@ public sealed class RecentFileHistoryClearException : IOException
 }
 
 /// <summary>
-/// Serializes recent-file persistence for the process. Register one instance and share it across windows.
+/// 프로세스의 최근 파일 저장을 직렬화. 인스턴스 하나를 모든 창이 공유.
 /// </summary>
 public sealed class RecentFileCoordinator : IAsyncDisposable
 {
@@ -57,8 +57,8 @@ public sealed class RecentFileCoordinator : IAsyncDisposable
         }
     }
 
-    /// <summary>Stops recording and hides snapshots for this process without changing the
-    /// persisted preference or deleting existing history. Safe mode uses this one-way pause.</summary>
+    /// <summary>저장 설정과 기존 기록은 건드리지 않고 현재 프로세스의 기록·노출만 중지.
+    /// 안전 모드에서 되돌릴 수 없는 일시 정지로 사용.</summary>
     public void PauseForSession()
     {
         lock (_stateLock)
@@ -114,8 +114,8 @@ public sealed class RecentFileCoordinator : IAsyncDisposable
         return completion.Task;
     }
 
-    /// <summary>Clears history without changing the persisted enabled preference. Admission closes
-    /// before the clear is queued and reopens only after a successful delete.</summary>
+    /// <summary>활성 설정은 유지한 채 기록 삭제.
+    /// 삭제를 큐에 넣기 전에 입력을 닫고 성공한 뒤에만 다시 엶.</summary>
     public Task ClearAsync()
     {
         var completion = CreateCompletion();

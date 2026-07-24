@@ -4,9 +4,8 @@ using Windows.ApplicationModel.DataTransfer;
 namespace EzyImageViewer.Capture.Snipping;
 
 /// <summary>
-/// Redeems a Snipping Tool file-access-token into an owned in-memory payload. Tokens are
-/// one-shot by OS contract (redeeming consumes them), so a failed read cannot be retried —
-/// callers surface the failure instead.
+/// 캡처 도구 파일 접근 토큰을 소유권 있는 메모리 데이터로 교환.
+/// OS 계약상 토큰은 한 번 쓰면 끝. 읽기 실패는 재시도 대신 호출자에게 전달.
 /// </summary>
 public static class CaptureTokenReader
 {
@@ -19,8 +18,7 @@ public static class CaptureTokenReader
         return await ReadWithinBudgetAsync(stream, maxBytes, cancellationToken).ConfigureAwait(false);
     }
 
-    /// <summary>Budget gate (inclusive at maxBytes) kept separate from WinRT so the boundary is
-    /// unit-testable; null = empty or over budget.</summary>
+    /// <summary>경계값을 단위 테스트하도록 WinRT와 분리한 용량 문턱. null이면 비었거나 한도 초과.</summary>
     public static async Task<ClipboardImagePayload?> ReadWithinBudgetAsync(
         Stream stream, long maxBytes, CancellationToken cancellationToken)
     {
@@ -30,7 +28,7 @@ public static class CaptureTokenReader
 
         var bytes = new byte[stream.Length];
         await stream.ReadExactlyAsync(bytes, cancellationToken).ConfigureAwait(false);
-        // Snipping Tool produces PNG screenshots; anything else is left to sniffing at open.
+        // 캡처 도구는 PNG 생성. 다른 형식 판별은 열기 단계에 맡김.
         return new ClipboardImagePayload(bytes, ClipboardImagePayload.Png);
     }
 }

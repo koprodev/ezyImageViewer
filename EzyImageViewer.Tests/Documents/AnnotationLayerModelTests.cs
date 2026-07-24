@@ -6,7 +6,7 @@ using Xunit;
 
 namespace EzyImageViewer.Tests.Documents;
 
-/// <summary>UR-007 acceptance: layer containers, per-layer z-order, migration and exact undo.</summary>
+/// <summary>레이어 컨테이너·레이어별 z 순서·승격·정확한 실행 취소 검증.</summary>
 public sealed class AnnotationLayerModelTests
 {
     private static RectangleAnnotation Rect(float x = 0f) => new()
@@ -138,7 +138,7 @@ public sealed class AnnotationLayerModelTests
         var command = new ReorderAnnotationCommand(state, frontB.Id, 0);
         var applied = command.Apply(state);
 
-        // frontB moved below frontA inside the top layer, but the whole layer stays above `back`.
+        // frontB가 상단 레이어 안에서 frontA 아래로 이동해도 레이어 전체는 back 위.
         Assert.Equal([back.Id, frontB.Id, frontA.Id], applied.Annotations.Select(a => a.Id));
         Assert.Equal(
             [frontB.Id, frontA.Id], applied.FindLayer(top.Id)!.Annotations.Select(a => a.Id));
@@ -206,7 +206,7 @@ public sealed class AnnotationLayerModelTests
         var flat = """{"transform":[],"annotations":[]}""";
         var layered = $$"""{"transform":[],"layers":[{"id":"{{Guid.NewGuid()}}","annotations":[]}]}""";
 
-        // Both agreeing directions read; both mismatching directions and out-of-range versions fail.
+        // 양방향 버전 일치는 읽고, 불일치·범위 밖 버전은 실패.
         Assert.Single(DocumentStateSerializer.Read(flat, 1).Layers);
         Assert.Single(DocumentStateSerializer.Read(layered, 2).Layers);
         Assert.Throws<InvalidDataException>(() => DocumentStateSerializer.Read(flat, 2));
@@ -249,7 +249,7 @@ public sealed class AnnotationLayerModelTests
         Assert.Throws<InvalidOperationException>(() => state.ReplaceLayer(mutated));
         Assert.Throws<ArgumentException>(
             () => new ReplaceLayerCommand(LayerEditKind.Name, layer, mutated));
-        // A kind-scoped edit must not smuggle a second property change.
+        // 종류 한정 편집이 두 번째 속성 변경을 몰래 끼우면 안 됨.
         Assert.Throws<ArgumentException>(() => new ReplaceLayerCommand(
             LayerEditKind.Name, layer, layer with { Name = "renamed", IsLocked = true }));
     }
@@ -342,22 +342,22 @@ public sealed class AnnotationLayerModelTests
     public void HostileLayerFragments_FailTheRead()
     {
         var id = Guid.NewGuid();
-        // Both shapes at once.
+        // 두 모양 동시 존재.
         Assert.Throws<InvalidDataException>(() => DocumentStateSerializer.Read(
             $$"""{"transform":[],"annotations":[],"layers":[{"id":"{{id}}","annotations":[]}]}"""));
-        // Neither shape.
+        // 모양 둘 다 없음.
         Assert.Throws<InvalidDataException>(() => DocumentStateSerializer.Read(
             """{"transform":[]}"""));
-        // Zero layers.
+        // 레이어 0개.
         Assert.Throws<InvalidDataException>(() => DocumentStateSerializer.Read(
             """{"transform":[],"layers":[]}"""));
-        // Duplicate layer ids.
+        // 레이어 ID 중복.
         Assert.Throws<InvalidDataException>(() => DocumentStateSerializer.Read(
             $$"""{"transform":[],"layers":[{"id":"{{id}}","annotations":[]},{"id":"{{id}}","annotations":[]}]}"""));
-        // Active layer pointing nowhere.
+        // 활성 레이어가 없는 곳을 가리킴.
         Assert.Throws<InvalidDataException>(() => DocumentStateSerializer.Read(
             $$"""{"transform":[],"layers":[{"id":"{{id}}","annotations":[]}],"activeLayerId":"{{Guid.NewGuid()}}"}"""));
-        // Duplicate annotation id across layers.
+        // 레이어 사이 주석 ID 중복.
         var annotation = Guid.NewGuid();
         Assert.Throws<InvalidDataException>(() => DocumentStateSerializer.Read(
             $$"""

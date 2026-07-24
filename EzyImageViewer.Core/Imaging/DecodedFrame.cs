@@ -1,9 +1,9 @@
 namespace EzyImageViewer.Core.Imaging;
 
 /// <summary>
-/// Platform-neutral decoded pixels. Contract: BGRA8, premultiplied alpha, EXIF orientation already
-/// applied exactly once (dimensions are post-orientation). The frame owns its buffer; ownership is
-/// transferred wherever the frame is handed off, and the final owner must dispose.
+/// 플랫폼 중립 해석 픽셀.
+/// 계약: BGRA8·미리 곱한 알파·EXIF 방향 1회 적용 완료. 크기는 방향 적용 후 기준.
+/// 프레임이 버퍼를 소유하며 넘길 때 소유권도 이동. 마지막 주인이 반드시 해제.
 /// </summary>
 public sealed class DecodedFrame : IDisposable
 {
@@ -71,7 +71,7 @@ public sealed class DecodedFrame : IDisposable
         }
     }
 
-    /// <summary>For interop copies (e.g. SKImage.FromPixelCopy). Do not cache beyond the frame's lifetime.</summary>
+    /// <summary>상호 운용 복사용(예: SKImage.FromPixelCopy). 프레임 수명 밖으로 캐시 금지.</summary>
     public byte[] DangerousGetBuffer() =>
         _pixels ?? throw new ObjectDisposedException(nameof(DecodedFrame));
 

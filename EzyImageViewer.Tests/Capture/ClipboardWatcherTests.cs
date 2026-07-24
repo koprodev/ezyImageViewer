@@ -5,9 +5,9 @@ using Xunit;
 namespace EzyImageViewer.Tests.Capture;
 
 /// <summary>
-/// FR-CAP-003/004 plumbing: the message-only window raises events for directly-posted messages.
-/// SendMessage invokes the WndProc synchronously on this thread — no pump, no real clipboard
-/// mutation (CI must never touch the user clipboard).
+/// FR-CAP-003/004 배관 검사. 메시지 전용 창이 직접 받은 메시지를 이벤트로 올림.
+/// SendMessage가 현재 스레드에서 WndProc을 동기 호출하므로 펌프와 실제 클립보드 변경은 불필요.
+/// CI가 사용자 클립보드를 만지는 사고도 방지.
 /// </summary>
 public sealed class ClipboardWatcherTests
 {
@@ -34,7 +34,7 @@ public sealed class ClipboardWatcherTests
         watcher.HotkeyPressed += () => raised++;
 
         SendMessageW(watcher.WindowHandle, WmHotkey, 1, 0);
-        SendMessageW(watcher.WindowHandle, WmHotkey, 42, 0); // someone else's id
+        SendMessageW(watcher.WindowHandle, WmHotkey, 42, 0); // 남의 ID.
 
         Assert.Equal(1, raised);
     }
@@ -42,8 +42,8 @@ public sealed class ClipboardWatcherTests
     [Fact]
     public void HotkeyRegistration_WorksAndUnregistersOnDispose()
     {
-        // Ctrl+Alt+Shift+F24: collision-proof in practice; registering twice while held proves
-        // the first registration was real, and re-registering after dispose proves the release.
+        // Ctrl+Alt+Shift+F24는 사실상 충돌 없음.
+        // 잡은 채 두 번 등록해 실제 선점을, 해제 뒤 재등록해 반환을 확인.
         const uint modifiers = ClipboardWatcher.ModControl | ClipboardWatcher.ModAlt | ClipboardWatcher.ModShift;
         const uint f24 = 0x87;
 

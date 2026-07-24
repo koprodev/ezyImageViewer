@@ -1,8 +1,8 @@
 namespace EzyImageViewer.App;
 
 /// <summary>
-/// UI strings resolved from Resources.resw (NFR-I18N), with hardcoded ko-KR fallbacks so
-/// unpackaged runs without a PRI still show correct text.
+/// Resources.resw에서 UI 문자열 조회(NFR-I18N).
+/// PRI 없는 비패키지 실행도 멀쩡히 보이도록 ko-KR 대체 문자열 포함.
 /// </summary>
 public static class AppStrings
 {
@@ -140,6 +140,11 @@ public static class AppStrings
     public static string FileAssocGroupRaster => Get("FileAssocGroupRaster", "래스터 이미지");
     public static string FileAssocGroupCodec => Get("FileAssocGroupCodec", "코덱 확장 형식 (AVIF·HEIC)");
     public static string FileAssocGroupVector => Get("FileAssocGroupVector", "벡터 이미지");
+    public static string FilmstripLabel => Get("FilmstripLabel", "폴더 파일 썸네일 목록");
+    public static string FilmstripCurrent => Get("FilmstripCurrent", "현재 파일");
+    public static string FilmstripShow => Get("FilmstripShow", "썸네일 목록 열기");
+    public static string FilmstripHide => Get("FilmstripHide", "썸네일 목록 닫기");
+    public static string TipFilmstrip => Get("TipFilmstrip", "목록은 열어 둔 채로 여러 이미지를 이어서 선택할 수 있습니다.");
     public static string AboutDescription => Get("AboutDescription", "가볍고 빠른 Windows 이미지 뷰어·편집기");
     public static string AboutLicense => Get("AboutLicense", "MIT 라이선스 · © 2026 koprodev");
     public static string AboutProjectPage => Get("AboutProjectPage", "GitHub에서 릴리스 보기");
@@ -321,9 +326,6 @@ public static class AppStrings
     public static string CaptureHotkeyUnavailable => Get("CaptureHotkeyUnavailable",
         "전역 캡처 단축키({0})를 다른 앱이 사용 중입니다");
     public static string CaptureFailed => Get("CaptureFailed", "캡처가 완료되지 않았습니다");
-    public static string TrayWatchToggle => Get("TrayWatchToggle", "클립보드 캡처 감시");
-    public static string TrayCapture => Get("TrayCapture", "화면 캡처");
-    public static string TrayOpenWindow => Get("TrayOpenWindow", "창 열기");
     public static string ToolSave => Get("ToolSave", "저장 (Ctrl+S)");
     public static string TipSave => Get("TipSave", "빠른 저장 · 다른 이름으로 저장은 Ctrl+Shift+S");
     public static string SaveDone => Get("SaveDone", "저장했습니다");

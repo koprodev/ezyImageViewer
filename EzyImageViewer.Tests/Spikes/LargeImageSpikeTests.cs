@@ -6,15 +6,15 @@ using Xunit.Abstractions;
 namespace EzyImageViewer.Tests.Spikes;
 
 /// <summary>
-/// M0-B spike 7: large-image protection — decode a reduced-size preview instead of full pixels.
-/// JPEG is used because its codec supports native scaled decode (also matches NFR-PERF-002's 24MP JPEG).
+/// M0-B 스파이크 7: 대형 이미지 보호. 전체 픽셀 대신 축소 미리보기 해석.
+/// 코덱이 네이티브 축소 해석을 지원하고 NFR-PERF-002 24MP와도 맞아 JPEG 사용.
 /// </summary>
 public class LargeImageSpikeTests(ITestOutputHelper output)
 {
     [Fact]
     public void ScaledDecode_ProducesBoundedPreviewFasterThanFullDecode()
     {
-        const int size = 6000; // 36MP, ~137MB as BGRA
+        const int size = 6000; // 36MP, BGRA면 약 137MB.
         byte[] encoded;
         using (var bitmap = new SKBitmap(size, size, SKColorType.Bgra8888, SKAlphaType.Opaque))
         {
@@ -53,7 +53,7 @@ public class LargeImageSpikeTests(ITestOutputHelper output)
         Assert.NotNull(preview);
         Assert.True(preview.Width <= size / 4, $"preview not reduced: {preview.Width}");
 
-        // Timing is reported, not asserted: wall-clock comparisons are flaky on shared CI agents.
+        // 시간은 보고만 하고 단정하지 않음. 공유 CI의 벽시계 비교는 변덕쟁이.
         output.WriteLine($"SPIKE-METRIC source={size}x{size} jpegBytes={encoded.Length}");
         output.WriteLine($"SPIKE-METRIC fullDecodeMs={fullWatch.Elapsed.TotalMilliseconds:0}");
         output.WriteLine($"SPIKE-METRIC scaledDecodeMs={scaledWatch.Elapsed.TotalMilliseconds:0} preview={preview.Width}x{preview.Height}");

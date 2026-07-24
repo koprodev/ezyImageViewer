@@ -72,7 +72,7 @@ public sealed class AppDataProtectionException : IOException
     }
 }
 
-/// <summary>Creates and migrates the local data tree under a user-and-SYSTEM-only DACL.</summary>
+/// <summary>현재 사용자·SYSTEM 전용 DACL 아래 로컬 데이터 트리 생성·이전.</summary>
 public static class AppDataSecurity
 {
     public static void EnsureProtected(IAppDataPaths paths)
@@ -187,16 +187,14 @@ public static class AppDataSecurity
         return errorCode is 32 or 33;
     }
 
-    /// <summary>A concurrent instance legitimately rewriting a file inside the tree can make the
-    /// verify pass observe a freshly created (still inheriting) DACL; re-running the whole pass
-    /// re-protects it, so that is retried rather than reported as a protection failure.</summary>
+    /// <summary>동시 인스턴스가 막 만든 상속 DACL을 보면 전체 검증을 재시도해 다시 보호.</summary>
     private static bool IsRetryable(Exception exception) =>
         IsTransientSharingViolation(exception) || exception is UnauthorizedAccessException;
 
-    /// <summary>Entries that a concurrent instance is creating or renaming away must not fail the
-    /// whole tree. Two cases are skipped: an atomic write still holding its sibling temp
-    /// exclusively, and any entry already gone by the time it is reached — there is nothing left to
-    /// protect, and the durable file a temp becomes is protected on the next pass.</summary>
+    /// <summary>
+    /// 동시 생성·이름 변경 중 항목 때문에 전체 트리를 실패시키지 않음.
+    /// 원자 쓰기 임시 파일의 공유 위반과 순회 전 사라진 항목만 건너뜀.
+    /// </summary>
     private static bool SkipTransientEntry(string path, Exception exception)
     {
         if (exception is FileNotFoundException or DirectoryNotFoundException)
@@ -288,9 +286,7 @@ public static class AppDataSecurity
         return security;
     }
 
-    /// <summary>The file ACL this policy demands, for callers that must create a file already
-    /// carrying it. A file created without this inherits its directory's ACEs, which the verify
-    /// pass rejects as unprotected until the next startup re-protects it.</summary>
+    /// <summary>앱 데이터 파일 생성 때 즉시 적용할 명시적 ACL.</summary>
     [SupportedOSPlatform("windows")]
     internal static FileSecurity CreateProtectedFileSecurityForCurrentUser()
     {

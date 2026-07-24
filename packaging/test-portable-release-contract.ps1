@@ -79,7 +79,7 @@ foreach ($expected in @(
         'MICROSOFT WINDOWS APP SDK ENGINEERING PREVIEW',
         "'NotSigned'",
         'AppxManifest',
-        'EzyImageViewer\.CodecHost')) {
+        'Magick\.')) {
     Assert-ContractContains $verify $expected 'Portable verifier'
 }
 foreach ($expected in @(

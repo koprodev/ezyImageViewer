@@ -14,27 +14,21 @@ namespace EzyImageViewer.Core.Documents.Serialization;
 public sealed partial class DocumentSerializationContext : JsonSerializerContext;
 
 /// <summary>
-/// Maps <see cref="DocumentState"/> to and from the storage-neutral v1 fragment. Every read is a
-/// hostile-input boundary: unknown kinds/properties, missing fields, non-finite numbers, duplicate
-/// ids and absurd cardinalities all fail with <see cref="InvalidDataException"/> — the same failure
-/// type the container reader uses — rather than degrading silently.
+/// 문서 상태와 저장용 조각을 변환. 읽기는 불신 경계라 알 수 없는 값·누락·중복·과다 입력을
+/// <see cref="InvalidDataException"/>으로 한결같이 거절.
 /// </summary>
 public static class DocumentStateSerializer
 {
-    /// <summary>Ingress caps: orders of magnitude past interactive use, small enough that a hostile
-    /// fragment cannot balloon the op pipeline or the annotation list. Enforced on BOTH directions —
-    /// Write refuses what Read would refuse, so Read(Write(x)) never fails asymmetrically.
-    /// MaxAnnotations counts across all layers.</summary>
+    /// <summary>악성 입력이 작업·주석 목록을 부풀리지 못하게 양방향 상한 적용.</summary>
     public const int MaxOps = 10_000;
     public const int MaxAnnotations = 10_000;
     public const int MaxLayers = AnnotationValidator.MaxLayers;
     public const int MaxAssets = 1_024;
 
-    /// <summary>Pre-parse size gate: rejected before any DTO graph is materialized.</summary>
+    /// <summary>DTO를 만들기 전에 막는 원문 크기 상한.</summary>
     public const int MaxJsonChars = 96 * 1024 * 1024;
 
-    /// <summary>Writes the v2 (layered) shape. The optional active layer id is an authoring hint the
-    /// window owns; when supplied it must reference a layer in the state.</summary>
+    /// <summary>v2 레이어 형식 작성. 활성 레이어 힌트는 실제 레이어를 가리켜야 함.</summary>
     public static string Write(DocumentState state, Guid? activeLayerId = null)
     {
         ArgumentNullException.ThrowIfNull(state);
@@ -82,14 +76,11 @@ public static class DocumentStateSerializer
 
     public static DocumentState Read(string json) => Read(json, declaredSchemaVersion: null, out _);
 
-    /// <summary>Project-level boundary: the container manifest's schema version must agree with the
-    /// fragment shape (v1 = flat annotations, v2 = layers). The one-argument overload serves
-    /// fragments that carry no manifest.</summary>
+    /// <summary>컨테이너 스키마와 조각 형식 일치 확인. v1은 평면 주석, v2는 레이어.</summary>
     public static DocumentState Read(string json, int schemaVersion) =>
         Read(json, schemaVersion, out _);
 
-    /// <summary>Also returns the authoring hint the fragment carried (validated against the layer
-    /// list; null for v1 or when absent) so the app can restore the active layer (FR-OUT-009).</summary>
+    /// <summary>검증된 활성 레이어 힌트도 반환. v1이거나 없으면 null.</summary>
     public static DocumentState Read(string json, int schemaVersion, out Guid? activeLayerId)
     {
         if (schemaVersion is < 1 or > ProjectManifest.CurrentSchemaVersion)
@@ -108,18 +99,17 @@ public static class DocumentStateSerializer
         {
             dto = JsonSerializer.Deserialize(json, DocumentSerializationContext.Default.DocumentStateDto);
         }
-        // NotSupportedException is what STJ raises for a missing polymorphic discriminator; at this
-        // boundary both mean the same thing: bad data.
+        // 다형성 구분자 누락 예외도 이 경계에서는 똑같이 잘못된 데이터.
         catch (Exception ex) when (ex is JsonException or NotSupportedException)
         {
             throw new InvalidDataException("Document fragment is malformed.", ex);
         }
         if (dto is null)
             throw new InvalidDataException("Document fragment is empty.");
-        // `required` only demands presence — an explicit JSON null satisfies it for a reference type.
+        // required는 존재만 확인하므로 참조형의 명시적 null은 따로 검사.
         if (dto.Transform is null)
             throw new InvalidDataException("Document fragment has null sections.");
-        // Shape is version: v1 carries the flat list, v2 carries layers — never both, never neither.
+        // 버전이 곧 모양. v1은 평면 목록, v2는 레이어이며 둘 다거나 둘 다 없음은 금지.
         if (dto.Annotations is null == dto.Layers is null)
             throw new InvalidDataException("Document fragment must have exactly one of annotations or layers.");
         if (dto.Layers is null && dto.ActiveLayerId is not null)
@@ -144,7 +134,7 @@ public static class DocumentStateSerializer
             var transform = BackgroundTransform.Identity;
             foreach (var op in dto.Transform)
             {
-                // A JSON `null` element deserializes as a null list entry, not a JsonException.
+                // JSON null 요소는 예외가 아니라 null 목록 항목으로 들어옴.
                 if (op is null)
                     throw new InvalidDataException("Document fragment has a null transform op.");
                 transform = transform.Append(ToDomain(op));
@@ -166,7 +156,7 @@ public static class DocumentStateSerializer
             var seen = new HashSet<Guid>();
             if (dto.Annotations is { } flat)
             {
-                // v1 migration: the whole flat list becomes the single initial layer, order intact.
+                // v1 승격: 평면 목록을 순서 그대로 초기 레이어 하나에 담음.
                 foreach (var annotation in flat)
                     state = state.AddAnnotation(ToDomainChecked(annotation, seen));
                 return state;
@@ -200,14 +190,13 @@ public static class DocumentStateSerializer
             if (dto.ActiveLayerId is { } active && !seenLayers.Contains(active))
                 throw new InvalidDataException($"Active layer {active} is not in the document.");
             activeLayerId = dto.ActiveLayerId;
-            // Manual construction: uniqueness, caps and asset references were all checked above.
+            // 고유성·상한·자산 참조는 위에서 검증 완료.
             return state with { Layers = layers };
         }
         catch (Exception ex) when (ex is ArgumentException or InvalidOperationException
             or NotSupportedException or OverflowException)
         {
-            // Domain constructors are the single validation authority (finite, positive, capped);
-            // at this boundary their rejection means bad data, not a bad caller.
+            // 도메인 생성자가 유한값·양수·상한의 단일 검증자. 여기서 실패하면 잘못된 데이터.
             throw new InvalidDataException("Document fragment contains invalid values.", ex);
         }
     }

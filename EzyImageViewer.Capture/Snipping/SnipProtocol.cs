@@ -1,13 +1,13 @@
 namespace EzyImageViewer.Capture.Snipping;
 
-/// <summary>Parsed Snipping Tool callback (response parameters arrive as the redirect URI's query).</summary>
+/// <summary>캡처 도구 콜백 해석 결과. 응답 매개변수는 리디렉션 URI 쿼리로 도착.</summary>
 public sealed record SnipResponse(int Code, string Reason, string? CorrelationId, string? FileAccessToken);
 
 /// <summary>
-/// Official Snipping Tool launch protocol (FR-CAP-001, Q7=b): request URIs against
-/// ms-screenclip://capture and the redirect-uri callback contract. Pure string work — launching
-/// and token redemption live elsewhere. The scheme below must match the package manifest's
-/// windows.protocol registration; responses are only delivered to packaged callers.
+/// 공식 캡처 도구 실행 프로토콜(FR-CAP-001, Q7=b).
+/// ms-screenclip://capture 요청과 redirect-uri 콜백 계약만 담당.
+/// 실행·토큰 교환은 다른 곳의 몫. 스킴은 패키지 매니페스트의 windows.protocol 등록과 같아야 함.
+/// 응답은 패키지 ID가 있는 호출자에게만 전달.
 /// </summary>
 public static class SnipProtocol
 {
@@ -15,7 +15,7 @@ public static class SnipProtocol
     public const string ResponseHost = "capture-response";
     public const string UserAgent = "ezyImageViewer";
 
-    /// <summary>Pinned protocol version: requests stay on known semantics across Snipping Tool updates.</summary>
+    /// <summary>프로토콜 버전 고정. 캡처 도구가 갱신돼도 아는 규칙으로 요청.</summary>
     public const string ApiVersion = "1.2";
 
     public const int CodeSuccess = 200;
@@ -23,9 +23,8 @@ public static class SnipProtocol
 
     public static string RedirectUri => $"{Scheme}://{ResponseHost}";
 
-    /// <summary>Rectangle pre-selected with every snip mode available; mode parameters are
-    /// value-less by spec. The redirect URI carries no query of its own, so the callback's query
-    /// is exactly the response parameters.</summary>
+    /// <summary>사각형을 기본 선택하고 모든 캡처 모드 허용. 모드 매개변수는 규격상 값 없음.
+    /// 리디렉션 URI 자체 쿼리가 없어 콜백 쿼리 전체가 곧 응답 매개변수.</summary>
     public static Uri BuildImageCaptureUri(string correlationId) => new(
         "ms-screenclip://capture/image?rectangle&enabledModes=SnippingAllModes"
         + $"&user-agent={UserAgent}&api-version={ApiVersion}"
@@ -36,7 +35,7 @@ public static class SnipProtocol
         string.Equals(uri.Scheme, Scheme, StringComparison.OrdinalIgnoreCase)
         && string.Equals(uri.Host, ResponseHost, StringComparison.OrdinalIgnoreCase);
 
-    /// <summary>False for foreign schemes/hosts or a malformed/missing status code.</summary>
+    /// <summary>스킴·호스트가 다르거나 상태 코드가 없거나 깨졌으면 false.</summary>
     public static bool TryParseResponse(Uri uri, out SnipResponse response)
     {
         response = null!;

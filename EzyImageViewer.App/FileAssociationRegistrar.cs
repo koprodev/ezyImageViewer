@@ -4,11 +4,7 @@ using Microsoft.Win32;
 
 namespace EzyImageViewer.App;
 
-/// <summary>
-/// Per-user (HKCU) "Open With" registration mirroring the Setup registry shape
-/// (FileAssociationPolicy). Only this app's values are added or removed; other apps'
-/// OpenWithProgids entries and the user's default-app choice are never touched.
-/// </summary>
+/// <summary>Setup 레지스트리 모양을 따르는 사용자별 연결 프로그램 등록. 우리 값만 추가·제거.</summary>
 internal static class FileAssociationRegistrar
 {
     private const int ShcneAssocChanged = 0x0800_0000;
@@ -45,9 +41,7 @@ internal static class FileAssociationRegistrar
             else
                 UnregisterExtension(extension);
         }
-        // Never strip the shared ProgId/command while any extension still resolves to it as a
-        // default (the experimental UserChoice writer may have made it one); a dangling
-        // shell\open\command would break those double-clicks.
+        // 확장자 하나라도 기본값으로 쓰는 공유 ProgId·명령은 제거 금지. 더블클릭이 부러짐.
         if (desired.Count == 0 && !AnyExtensionUsesProgIdAsDefault())
             RemoveApplicationRegistration();
         SHChangeNotify(ShcneAssocChanged, ShcnfIdList, IntPtr.Zero, IntPtr.Zero);

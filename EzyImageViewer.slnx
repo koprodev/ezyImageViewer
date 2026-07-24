@@ -1,6 +1,4 @@
 <Solution>
-  <Project Path="EzyImageViewer.CodecProtocol/EzyImageViewer.CodecProtocol.csproj" />
-  <Project Path="EzyImageViewer.CodecHost/EzyImageViewer.CodecHost.csproj" />
   <Project Path="EzyImageViewer.App/EzyImageViewer.App.csproj" />
   <Project Path="EzyImageViewer.Capture/EzyImageViewer.Capture.csproj" />
   <Project Path="EzyImageViewer.Core/EzyImageViewer.Core.csproj" />

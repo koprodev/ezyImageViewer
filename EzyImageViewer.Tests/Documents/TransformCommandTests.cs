@@ -6,8 +6,8 @@ using Xunit;
 
 namespace EzyImageViewer.Tests.Documents;
 
-/// <summary>Transform edits ride the same command stack as annotations (FR-HIST-001), with the
-/// structured merge key guarding coalescing (§7.8).</summary>
+/// <summary>변환 편집은 주석과 같은 명령 스택 사용(FR-HIST-001).
+/// 구조화 병합 키가 엉뚱한 합치기를 막음(§7.8).</summary>
 public class TransformCommandTests
 {
     private static ImageDocument MakeDocument() => new()
@@ -61,7 +61,7 @@ public class TransformCommandTests
         var againstIdentity = Rotate(BackgroundTransform.Identity, 90f);
         editor.Apply(againstIdentity);
 
-        // The same before-state no longer matches: the pipeline moved on.
+        // 예전 이전 상태는 더는 맞지 않음. 파이프라인이 이미 전진.
         Assert.Throws<InvalidOperationException>(() => editor.Apply(Rotate(BackgroundTransform.Identity, 180f)));
 
         Assert.Single(editor.State.Transform.Ops);
@@ -81,7 +81,7 @@ public class TransformCommandTests
         Assert.Equal(25f, Assert.IsType<RotateOp>(Assert.Single(editor.State.Transform.Ops)).Degrees);
         editor.Undo();
         Assert.True(editor.State.Transform.IsIdentity);
-        Assert.False(editor.CanUndo); // one entry, not two
+        Assert.False(editor.CanUndo); // 항목은 둘이 아니라 하나.
     }
 
     [Fact]
@@ -95,7 +95,7 @@ public class TransformCommandTests
 
         Assert.Equal(2, editor.State.Transform.Ops.Count);
         editor.Undo();
-        Assert.Single(editor.State.Transform.Ops); // lands mid-way, not at identity
+        Assert.Single(editor.State.Transform.Ops); // 항등이 아니라 중간 상태에 도착.
     }
 
     [Fact]
@@ -133,7 +133,7 @@ public class TransformCommandTests
         editor.ApplyCoalesced(new MoveAnnotationCommand(
             annotation.Id, origin.Translated(5, 5), origin.Translated(9, 9), gestureId: 2));
 
-        // Two drags = two entries: undo returns to the first drag's end, not to the origin.
+        // 드래그 둘은 항목 둘. 실행 취소는 원점이 아닌 첫 드래그 끝으로 복귀.
         editor.Undo();
         Assert.Equal(origin.Translated(5, 5), editor.State.Annotations[0].Bounds);
     }

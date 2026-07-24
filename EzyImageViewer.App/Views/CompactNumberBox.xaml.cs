@@ -7,9 +7,8 @@ using Windows.System;
 
 namespace EzyImageViewer.App.Views;
 
-/// <summary>Compact numeric field for the context bar: always-visible micro spin arrows and no
-/// clear (X) button, so the value stays readable while editing. Typing commits on Enter or focus
-/// loss; arrows and Up/Down keys apply immediately.</summary>
+/// <summary>컨텍스트 막대용 작은 숫자 입력칸.
+/// 늘 보이는 미니 화살표와 지우기(X) 버튼 없는 구성. Enter·포커스 이탈은 확정, 화살표·위아래 키는 즉시 적용.</summary>
 internal sealed partial class CompactNumberBox : UserControl
 {
     public event TypedEventHandler<CompactNumberBox, double>? ValueChanged;
@@ -26,7 +25,7 @@ internal sealed partial class CompactNumberBox : UserControl
     public double Maximum { get; set; } = double.MaxValue;
     public double SmallChange { get; set; } = 1d;
 
-    // Mirrors NumberBox: programmatic assignment raises ValueChanged when the value changes.
+        // NumberBox처럼 코드에서 값이 바뀌어도 ValueChanged 발생.
     public double Value
     {
         get => _value;

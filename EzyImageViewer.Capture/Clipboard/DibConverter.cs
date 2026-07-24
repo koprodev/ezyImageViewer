@@ -3,8 +3,8 @@ using System.Buffers.Binary;
 namespace EzyImageViewer.Capture.Clipboard;
 
 /// <summary>
-/// Clipboard DIB/DIBv5 payloads lack the BITMAPFILEHEADER; prepending one yields a standard BMP
-/// that the normal decoder dispatch can sniff and decode (no special clipboard pixel path).
+/// 클립보드 DIB/DIBv5에는 BITMAPFILEHEADER가 없음.
+/// 앞에 헤더를 붙여 표준 BMP로 만들면 별도 픽셀 경로 없이 일반 디코더가 판별·해석.
 /// </summary>
 public static class DibConverter
 {
@@ -28,7 +28,7 @@ public static class DibConverter
         long paletteEntries = colorsUsed != 0
             ? colorsUsed
             : bitCount <= 8 ? 1L << bitCount : 0;
-        // 40-byte header + BI_BITFIELDS stores three RGB masks after the header (v5 embeds them).
+        // 40바이트 헤더 + BI_BITFIELDS는 헤더 뒤에 RGB 마스크 3개 저장. v5는 내부에 품음.
         long maskBytes = compression == BiBitfields && headerSize == MinInfoHeaderSize ? 12 : 0;
         var pixelOffset = checked(FileHeaderSize + headerSize + maskBytes + paletteEntries * 4);
         if (pixelOffset > FileHeaderSize + (long)dib.Length)

@@ -4,11 +4,7 @@ using Xunit;
 
 namespace EzyImageViewer.Tests.Documents;
 
-/// <summary>
-/// FR-ANNO-007 core contracts: the tail rides WithBounds proportionally (move = same delta,
-/// resize = preserved normalized position), the tail geometry is one deterministic SSOT shared
-/// by hit-testing and band selection, and the DTO kind "speechBubble" round-trips exactly.
-/// </summary>
+/// <summary>말풍선 꼬리 비례 이동·크기 조정·공유 기하·DTO 왕복 검증.</summary>
 public sealed class SpeechBubbleAnnotationTests
 {
     private static SpeechBubbleAnnotation Bubble(
@@ -35,7 +31,7 @@ public sealed class SpeechBubbleAnnotationTests
     [Fact]
     public void WithBounds_Resize_PreservesNormalizedTailPosition()
     {
-        // Tip at normalized (0.2, 1.6) relative to the 100x50 body must stay there after 2x/0.5x.
+        // 100x50 몸통 기준 정규화 (0.2, 1.6) 끝점은 2x/0.5x 뒤에도 유지.
         var bubble = Bubble();
         var resized = (SpeechBubbleAnnotation)bubble.WithBounds(new RectF(10f, 10f, 200f, 25f));
 
@@ -49,13 +45,13 @@ public sealed class SpeechBubbleAnnotationTests
         var bubble = Bubble(new RectF(10f, 5f, 40f, 20f), new AnnotationPoint(30f, 38f));
 
         Assert.True(SpeechBubbleGeometry.TryGetTail(bubble, out var a, out var b, out var tip));
-        // Base sits BaseOverlap inside the bottom edge, centered on the tip's projection.
+        // 밑변은 아래 변 안쪽 BaseOverlap에 두고 끝점 투영 중심에 맞춤.
         Assert.Equal(25f - SpeechBubbleGeometry.BaseOverlap, a.Y, 3);
         Assert.Equal(a.Y, b.Y, 3);
         Assert.True(a.X < 30f && b.X > 30f);
         Assert.Equal(new AnnotationPoint(30f, 38f), tip);
 
-        // A tip projected past the rounded corner clamps clear of it.
+        // 둥근 모서리 밖으로 투영한 끝점은 모서리를 피해 제한.
         var cornered = Bubble(new RectF(10f, 5f, 40f, 20f), new AnnotationPoint(0f, 38f));
         Assert.True(SpeechBubbleGeometry.TryGetTail(cornered, out var ca, out _, out _));
         Assert.True(ca.X >= 10f + cornered.CornerRadius);
@@ -95,7 +91,7 @@ public sealed class SpeechBubbleAnnotationTests
         Assert.Equal(SelectionHandle.Tail, SelectionGeometry.HitTest(
             bubble, new AnnotationPoint(30f, 38f), 4f, 24f));
 
-        // A rectangle probed at its center must not report the Tail fallback point.
+        // 사각형 중심 검사가 꼬리 대체점을 보고하면 안 됨.
         var rectangle = new RectangleAnnotation
         {
             Id = Guid.NewGuid(),

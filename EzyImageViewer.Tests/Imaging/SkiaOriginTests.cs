@@ -4,10 +4,7 @@ using Xunit;
 
 namespace EzyImageViewer.Tests.Imaging;
 
-/// <summary>
-/// Pixel-corner verification of all 8 EXIF origins. Source is 2x1: [red, green].
-/// Expected positions follow the EXIF orientation definitions (row0/col0 placement).
-/// </summary>
+/// <summary>2x1 [빨강, 초록] 표본으로 EXIF 방향 8종 모서리 검증.</summary>
 public class SkiaOriginTests
 {
     private static readonly SKColor Red = new(0xFF, 0x00, 0x00);
@@ -23,15 +20,15 @@ public class SkiaOriginTests
 
     public static TheoryData<SKEncodedOrigin, int, int, string> Cases => new()
     {
-        // origin, expected size, expected red position
+        // 방향, 예상 크기, 빨강 예상 위치.
         { SKEncodedOrigin.TopLeft, 2, 1, "0,0" },
-        { SKEncodedOrigin.TopRight, 2, 1, "1,0" },      // mirrored horizontally
+        { SKEncodedOrigin.TopRight, 2, 1, "1,0" },      // 좌우 대칭.
         { SKEncodedOrigin.BottomRight, 2, 1, "1,0" },   // 180°
-        { SKEncodedOrigin.BottomLeft, 2, 1, "0,0" },    // mirrored vertically
-        { SKEncodedOrigin.LeftTop, 1, 2, "0,0" },       // 90° CW + mirror
-        { SKEncodedOrigin.RightTop, 1, 2, "0,0" },      // 90° CW
-        { SKEncodedOrigin.RightBottom, 1, 2, "0,1" },   // 90° CCW + mirror
-        { SKEncodedOrigin.LeftBottom, 1, 2, "0,1" },    // 90° CCW
+        { SKEncodedOrigin.BottomLeft, 2, 1, "0,0" },    // 상하 대칭.
+        { SKEncodedOrigin.LeftTop, 1, 2, "0,0" },       // 90° 시계 + 대칭.
+        { SKEncodedOrigin.RightTop, 1, 2, "0,0" },      // 90° 시계.
+        { SKEncodedOrigin.RightBottom, 1, 2, "0,1" },   // 90° 반시계 + 대칭.
+        { SKEncodedOrigin.LeftBottom, 1, 2, "0,1" },    // 90° 반시계.
     };
 
     [Theory]
@@ -47,7 +44,7 @@ public class SkiaOriginTests
         var (x, y) = (int.Parse(parts[0]), int.Parse(parts[1]));
         AssertColor(Red, oriented.GetPixel(x, y), origin, "red");
 
-        // The green pixel occupies the remaining cell.
+        // 초록 픽셀은 남은 칸.
         var greenX = width == 2 ? 1 - x : x;
         var greenY = height == 2 ? 1 - y : y;
         AssertColor(Green, oriented.GetPixel(greenX, greenY), origin, "green");

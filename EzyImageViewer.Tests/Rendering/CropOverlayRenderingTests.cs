@@ -5,9 +5,9 @@ using Xunit;
 namespace EzyImageViewer.Tests.Rendering;
 
 /// <summary>
-/// The crop draft marker is a border-only dashed box (user decision 2026-07-22): every pixel
-/// away from the border keeps its original content — no dim, no veil — while the border itself
-/// stays visible on both light and dark content thanks to the dark underlay + light dash.
+/// 자르기 초안은 테두리만 있는 점선 상자(2026-07-22 결정).
+/// 테두리 밖 픽셀은 어둡게 가리지 않고 원본 유지.
+/// 테두리는 어두운 밑선 + 밝은 점선으로 밝고 어두운 그림 모두에서 보임.
 /// </summary>
 public sealed class CropOverlayRenderingTests
 {
@@ -28,7 +28,7 @@ public sealed class CropOverlayRenderingTests
     {
         using var bitmap = RenderOverlay(SKColors.White, SKRect.Create(10f, 10f, 16f, 16f));
 
-        // Outside the draft, inside the draft, and the far corner: all original content.
+        // 초안 밖·안·먼 모서리까지 모두 원본 내용 유지.
         foreach (var (x, y) in new[] { (4, 4), (18, 18), (35, 35), (4, 18), (18, 4) })
             Assert.Equal(SKColors.White, bitmap.GetPixel(x, y));
     }

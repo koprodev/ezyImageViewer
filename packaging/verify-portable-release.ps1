@@ -165,10 +165,10 @@ try {
 
     $forbidden = @(Get-ChildItem -LiteralPath $extractRoot -Recurse -File -Force | Where-Object {
             $_.Extension -ieq '.pdb' -or
-            $_.Name -match '(?i)^(AppxManifest\.xml|AppxSignature\.p7x|EzyImageViewer\.CodecHost\.|pdfium\.dll|PDFtoImage\.dll|Magick\.)'
+            $_.Name -match '(?i)^(AppxManifest\.xml|AppxSignature\.p7x|Magick\.)'
         })
     if ($forbidden.Count -ne 0) {
-        throw "Portable preview contains forbidden package or codec content: '$($forbidden[0].FullName)'."
+        throw "Portable preview contains forbidden package or test-only content: '$($forbidden[0].FullName)'."
     }
 
     $portableReadme = [IO.File]::ReadAllText((Join-Path $extractRoot 'PORTABLE-README.txt'))

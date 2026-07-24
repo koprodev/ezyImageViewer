@@ -2,7 +2,7 @@ namespace EzyImageViewer.Imaging;
 
 internal static class PixelAnalysis
 {
-    /// <summary>Early-exit alpha scan on BGRA8 rows (drives checkerboard display, FR-VIEW-007).</summary>
+/// <summary>BGRA8 행의 알파를 조기 종료 방식으로 검사. 체크무늬 표시 판단에 사용(FR-VIEW-007).</summary>
     public static bool HasTransparency(byte[] bgra, int strideBytes, int width, int height)
     {
         for (var y = 0; y < height; y++)

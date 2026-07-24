@@ -33,7 +33,7 @@ public class InitialWindowGeometryTests
         Assert.True(layout.ContentScale < 1f);
         Assert.True(layout.WindowSize.Height
             <= (int)Math.Round(WorkArea.Height * InitialWindowGeometry.WorkAreaFraction));
-        // The margin survives the downscale: it is added on top of the scaled image.
+        // 여백은 축소 뒤에도 유지. 축소된 이미지 크기에 더함.
         Assert.Equal(
             (int)Math.Round(4000 * (double)layout.ContentScale) + (2 * 80) + 100,
             layout.WindowSize.Height);
@@ -49,7 +49,7 @@ public class InitialWindowGeometryTests
         Assert.Equal(
             (int)Math.Round(1920 * InitialWindowGeometry.WorkAreaFraction),
             layout.WindowSize.Width);
-        // The flattened image leaves the window under its floor, which then wins.
+        // 평탄화 이미지 기준 창 크기가 하한보다 작아 하한이 이김.
         Assert.Equal(MinimumWindow.Height, layout.WindowSize.Height);
     }
 
@@ -83,6 +83,51 @@ public class InitialWindowGeometryTests
         Assert.True(layout.WindowSize.Width >= 1);
         Assert.True(layout.WindowSize.Height >= 1);
         Assert.True(layout.ContentScale > 0f);
+    }
+
+        // 아직 안 보인 창은 장식 크기를 모름.
+        // 클라이언트 영역을 한 번 정하고 비클라이언트 프레임을 읽은 뒤 바깥 창 공간에서 다시 측정.
+        // 두 번째 측정이 작업 영역 상한과 최소 창 크기를 책임짐.
+    private static readonly PixelSize NonClientFrame = new(16, 47);
+    private static readonly PixelSize StatusBar = new(0, 44);
+
+    private static InitialWindowLayout MeasureClientFirst(int width, int height, PixelSize workArea)
+    {
+        var image = new PixelSize(width, height);
+        var client = InitialWindowGeometry.Measure(image, StatusBar, Margin, workArea, MinimumWindow);
+        Assert.True(client.WindowSize.Width >= 1 && client.WindowSize.Height >= 1);
+        return InitialWindowGeometry.Measure(
+            image,
+            new PixelSize(NonClientFrame.Width, NonClientFrame.Height + StatusBar.Height),
+            Margin,
+            workArea,
+            MinimumWindow);
+    }
+
+    [Fact]
+    public void ClientFirstMeasure_LeavesTheImageAndMarginsInsideTheClientArea()
+    {
+        var layout = MeasureClientFirst(1000, 500, WorkArea);
+
+        Assert.Equal(1f, layout.ContentScale);
+        // 캔버스 = 창 - 프레임 - 상태 막대. 이미지와 양쪽 여백은 여전히 들어감.
+        Assert.Equal(1000 + (2 * Margin.Width), layout.WindowSize.Width - NonClientFrame.Width);
+        Assert.Equal(
+            500 + (2 * Margin.Height),
+            layout.WindowSize.Height - NonClientFrame.Height - StatusBar.Height);
+    }
+
+    [Fact]
+    public void ClientFirstMeasure_CapsTheOuterWindowNotTheClientArea()
+    {
+        var layout = MeasureClientFirst(6000, 4000, WorkArea);
+
+        // 상한은 프레임까지 포함해 사용자가 보는 창 크기에 대한 약속.
+        Assert.True(layout.WindowSize.Width
+            <= (int)Math.Round(WorkArea.Width * InitialWindowGeometry.WorkAreaFraction));
+        Assert.True(layout.WindowSize.Height
+            <= (int)Math.Round(WorkArea.Height * InitialWindowGeometry.WorkAreaFraction));
+        Assert.True(layout.ContentScale < 1f);
     }
 
     [Fact]

@@ -39,8 +39,8 @@ internal sealed record StartupHealthDocument
 [JsonSerializable(typeof(StartupHealthDocument))]
 internal sealed partial class StartupHealthJsonContext : JsonSerializerContext;
 
-/// <summary>Tracks only a SHA-256 failure fingerprint and bounded UTC metadata so startup
-/// recovery never persists exception messages, paths, or document content.</summary>
+    /// <summary>SHA-256 실패 지문과 제한된 UTC 메타데이터만 기록.
+    /// 시작 복구에 예외 문구·경로·문서 내용이 남지 않게 함.</summary>
 public sealed class StartupHealthTracker
 {
     public const int SafeModeThreshold = 2;
@@ -279,7 +279,7 @@ public sealed class StartupHealthTracker
         }
         catch
         {
-            // Diagnostics must not turn startup recovery into another startup failure.
+            // 진단 때문에 시작 복구가 또 다른 시작 실패가 되면 곤란함.
         }
     }
 

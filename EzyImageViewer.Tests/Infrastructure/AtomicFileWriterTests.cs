@@ -3,7 +3,7 @@ using Xunit;
 
 namespace EzyImageViewer.Tests.Infrastructure;
 
-/// <summary>§10 저장 정책: a save either fully lands or leaves the previous file untouched.</summary>
+/// <summary>§10 저장 정책: 저장은 완전히 끝나거나 이전 파일을 그대로 둬야 함. 어중간함 금지.</summary>
 public sealed class AtomicFileWriterTests : IDisposable
 {
     private readonly string _directory = Path.Combine(

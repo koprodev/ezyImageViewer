@@ -2,16 +2,15 @@ using System.Threading.Channels;
 
 namespace EzyImageViewer.Core.Activation;
 
-/// <summary>Immutable ordering envelope; requests themselves are never mutated by the router.</summary>
+/// <summary>불변 순서 봉투. 라우터는 요청 본문을 손대지 않음.</summary>
 public sealed record SequencedActivation(long Sequence, ActivationRequest Request);
 
 /// <summary>
-/// Serializes activation dispatch across initial launch, redirected activations, and in-app requests.
-/// Ordering contract: the sequence number is assigned and enqueued atomically at ingress, so
-/// dispatch order always equals sequence order (channel FIFO). Handlers must return quickly
-/// (kick off work, e.g. DocumentSession.StartLoad, then yield) — the router serializes dispatch,
-/// not load completion. Handler exceptions surface via <see cref="DispatchFailed"/> and never stop
-/// the loop. Posting before <see cref="Start"/> buffers in the channel.
+/// 최초 실행·리디렉션·앱 내부 활성화 요청을 차례로 전달.
+/// 진입 시 순번 부여와 큐 삽입을 한 덩어리로 처리해 전달 순서 = 순번(FIFO).
+/// 처리기는 작업만 시작하고 빠르게 반환해야 함. 직렬화 대상은 로드 완료가 아니라 전달.
+/// 처리기 예외는 <see cref="DispatchFailed"/>로 알리고 루프는 계속 감.
+/// <see cref="Start"/> 전 요청은 채널에서 얌전히 대기.
 /// </summary>
 public sealed class ActivationRouter : IAsyncDisposable
 {

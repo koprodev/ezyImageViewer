@@ -55,7 +55,7 @@ public sealed class IconSystemContractTests
             .Where(name => name?.EndsWith("Separator", StringComparison.Ordinal) == true)
             .ToArray();
 
-        // 9 since 2026-07-23: the fit/1:1 zoom group moved between File and History (user layout).
+        // 맞춤·1:1 줌 그룹 이동 뒤 도구 그룹 수는 9.
         Assert.Equal(9, separators.Length);
         Assert.Contains("separator.Width = horizontal ? 1 : 28", code, StringComparison.Ordinal);
         Assert.Contains("separator.Height = horizontal ? 28 : 1", code, StringComparison.Ordinal);
@@ -69,14 +69,13 @@ public sealed class IconSystemContractTests
         var code = File.ReadAllText(RepoFile("EzyImageViewer.App", "Views", "ViewerWindow.xaml.cs"));
         var rendering = File.ReadAllText(RepoFile("EzyImageViewer.Rendering", "AnnotationRendering.cs"));
 
-        // FR-ANNO-010: the mask color is its own state (black default); the palette edits exactly
-        // one of (mask color | stroke color) depending on context and reflects that same color.
+        // 마스크 색은 독립 상태. 팔레트는 문맥에 따라 마스크·선 중 하나만 편집·반영.
         Assert.Contains("private uint _maskColor = 0xFF00_0000;", code, StringComparison.Ordinal);
         Assert.Contains("private bool IsMaskColorContext()", code, StringComparison.Ordinal);
         Assert.Contains(
             "var effective = IsMaskColorContext() ? _maskColor : _strokeColor;",
             code, StringComparison.Ordinal);
-        // ADR-0015: protection never rotates — press handler and selection overlay both refuse.
+        // 보호 효과는 회전하지 않아 누름 처리와 선택 오버레이 모두 거절.
         Assert.Contains(
             "handle == SelectionHandle.Rotate && selected is ProtectionAnnotation",
             code, StringComparison.Ordinal);
@@ -92,8 +91,7 @@ public sealed class IconSystemContractTests
         var viewModel = File.ReadAllText(RepoFile("EzyImageViewer.App", "ViewModels", "ViewerViewModel.cs"));
         var clipboard = File.ReadAllText(RepoFile("EzyImageViewer.Capture", "Clipboard", "WinRtClipboardBackend.cs"));
 
-        // [15차] 보완 1: saved is marked only through the captured state token, and the worker
-        // flatten owns its frame and asset cache — never the UI snapshot or the UI cache.
+        // 저장 완료는 확보 상태 토큰으로만 표시. 작업자 평면화는 자체 프레임·캐시 소유.
         Assert.Contains("_viewModel.Editor.MarkSaved(stateId);", window, StringComparison.Ordinal);
         Assert.Contains("private SKImage CopySnapshot()", window, StringComparison.Ordinal);
         Assert.Contains("WarmExportAssetsAsync(state, token)", window, StringComparison.Ordinal);
@@ -102,8 +100,7 @@ public sealed class IconSystemContractTests
             window,
             @"document\.WasAnimationFlattened\s*&&\s*document\.IsReducedPreview").Count);
 
-        // [15차] 보완 2: project metadata rides the exact document instance its loader produced,
-        // and the restored active layer repaints the panel that was drawn before it existed.
+        // 프로젝트 메타데이터는 로더의 정확한 문서 인스턴스에 결박. 복원 레이어로 패널 재그리기.
         Assert.Contains("ConditionalWeakTable<ImageDocument, ProjectOpenData>",
             viewModel, StringComparison.Ordinal);
         var consume = window.IndexOf("_activeLayerId = projectLayer;", StringComparison.Ordinal);
@@ -117,7 +114,7 @@ public sealed class IconSystemContractTests
             viewModel,
             StringComparison.Ordinal);
 
-        // [15차] 보완 6: the copy survives app exit, and Ctrl+C yields to focused text input.
+        // 복사는 앱 종료 뒤에도 남고 Ctrl+C는 포커스 있는 텍스트 입력에 양보.
         Assert.Contains("Clipboard.Flush()", clipboard, StringComparison.Ordinal);
         Assert.Contains("IsTextInputFocused()", window, StringComparison.Ordinal);
     }
@@ -242,8 +239,7 @@ public sealed class IconSystemContractTests
         var viewer = File.ReadAllText(RepoFile("EzyImageViewer.App", "Views", "ViewerWindow.xaml"));
         var code = File.ReadAllText(RepoFile("EzyImageViewer.App", "Views", "ViewerWindow.xaml.cs"));
         var csproj = File.ReadAllText(RepoFile("EzyImageViewer.App", "EzyImageViewer.App.csproj"));
-        // User-approved mapping 2026-07-17 (PingPong [3차]) + lead extensions verified against the
-        // official MaterialSymbolsOutlined codepoints file.
+        // 승인된 매핑과 공식 MaterialSymbolsOutlined codepoints 파일로 추가 글리프 검증.
         var expected = new Dictionary<string, string>(StringComparer.Ordinal)
         {
             ["Icon.File.Open"] = "E2C7",
@@ -326,9 +322,8 @@ public sealed class IconSystemContractTests
             "ms-appx:///Assets/Fonts/MaterialSymbolsOutlined.ttf#Material Symbols Outlined",
             family.Value);
 
-        // Custom vectors: the two glyphs without a Material Symbols equivalent, plus the speech
-        // bubble (FR-ANNO-007, 2026-07-22) and the whiteboard (UR-008, 2026-07-22) kept custom
-        // until a subset-font refresh cycle adds matching glyphs to the approved manifest.
+        // Material Symbols에 없는 두 글리프·말풍선·화이트보드는 사용자 벡터 유지.
+        // 갈매기표는 보기의 아이콘 참조 고유성 계약 때문에 용도별 키로 같은 모양 반복.
         var customVectors = icons.Root!.Elements()
             .Where(element => element.Name.LocalName == "PathIconSource")
             .Select(element => (string?)element.Attribute(Xaml + "Key"))
@@ -339,21 +334,21 @@ public sealed class IconSystemContractTests
                 "Icon.Shape.SpeechBubble", "Icon.Shape.RoundedRectangle", "Icon.View.ActualSize",
                 "Icon.File.Whiteboard", "Icon.Image.RegionSelect", "Icon.Common.ChevronDown",
                 "Icon.Chevron.Small.Open", "Icon.Chevron.Small.Transform", "Icon.Chevron.Small.Crop",
-                "Icon.Chevron.Small.Zoom", "Icon.Chevron.Small.Protect", "Icon.Image.RegionSelectFlat",
+                "Icon.Chevron.Small.Zoom", "Icon.Chevron.Small.Protect",
+                "Icon.Chevron.Small.Filmstrip", "Icon.Image.RegionSelectFlat",
             },
             customVectors);
 
-        // Runtime-created page/play controls clone static FontIconSource resources; treating those
-        // resources as the x:String-only dynamic glyph set crashed ViewerWindow construction.
+        // 실행 중 만든 페이지·재생 컨트롤은 정적 아이콘 원본 복제. 문자열 집합 취급 시 창 생성 실패.
         Assert.Contains("FontIconSource source => source.Glyph", code, StringComparison.Ordinal);
 
-        // flip has no vertical variant: the usage site must rotate the shared glyph 90 degrees.
+        // 뒤집기 글리프는 세로 변형이 없어 사용처에서 공유 글리프를 90도 회전.
         Assert.Contains(
             "IconSource=\"{StaticResource Icon.Image.FlipVertical}\" Style=\"{StaticResource ToolIconStyle}\" RenderTransformOrigin=\"0.5,0.5\"",
             viewer, StringComparison.Ordinal);
         Assert.Contains("<RotateTransform Angle=\"90\" />", viewer, StringComparison.Ordinal);
 
-        // Provenance from ADR-0013: google/material-design-icons@abd7f5c0. A swapped asset must fail here.
+        // 출처는 google/material-design-icons@abd7f5c0. 자산이 바뀌면 여기서 실패.
         var ttf = RepoFile("EzyImageViewer.App", "Assets", "Fonts", "MaterialSymbolsOutlined.ttf");
         var license = RepoFile("EzyImageViewer.App", "Assets", "Fonts", "LICENSE-MaterialSymbols.txt");
         Assert.Equal(

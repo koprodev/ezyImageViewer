@@ -141,10 +141,6 @@ function Assert-EzyMsiPayload {
         }
         if ($extension -ceq '.pdb' -or
             $entry.File.Name -in @(
-                'EzyImageViewer.CodecHost.exe',
-                'EzyImageViewer.CodecHost.dll',
-                'pdfium.dll',
-                'PDFtoImage.dll',
                 'makeappx.exe',
                 'signtool.exe',
                 'mt.exe')) {

@@ -5,9 +5,9 @@ using SkiaSharp;
 namespace EzyImageViewer.App.Views;
 
 /// <summary>
-/// Shared scripted zoom/pan benchmark used by both render backends (WP4/NFR-PERF-005).
-/// Metrics: frameIntervalMs = time between paint callbacks (queue latency included);
-/// paintMs = raster/GL work only. Exactly <see cref="MeasuredFrames"/> intervals are recorded.
+/// 두 렌더 백엔드가 함께 쓰는 확대·이동 스크립트 벤치마크(WP4/NFR-PERF-005).
+/// frameIntervalMs는 큐 지연을 포함한 그리기 콜백 간격, paintMs는 래스터·GL 작업 시간.
+/// <see cref="MeasuredFrames"/>개 구간만 정확히 기록.
 /// </summary>
 public sealed class BenchScenario(string backend, string outputPath)
 {
@@ -50,7 +50,7 @@ public sealed class BenchScenario(string backend, string outputPath)
         return bitmap;
     }
 
-    /// <summary>Draws one scripted frame; returns false once measurement is complete.</summary>
+    /// <summary>스크립트 프레임 하나 그리기. 측정이 끝나면 false.</summary>
     public bool PaintFrame(SKCanvas canvas, int viewportWidth, int viewportHeight, double rasterizationScale)
     {
         if (IsDone)

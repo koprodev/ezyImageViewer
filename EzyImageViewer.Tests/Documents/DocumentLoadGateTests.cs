@@ -6,7 +6,7 @@ using Xunit;
 
 namespace EzyImageViewer.Tests.Documents;
 
-/// <summary>FR-HIST-005: the unsaved-edit guard in front of every document replacement.</summary>
+/// <summary>모든 문서 교체 앞의 저장 안 한 편집 보호 검증.</summary>
 public class DocumentLoadGateTests
 {
     private static ImageDocument MakeDocument() => new()
@@ -37,7 +37,7 @@ public class DocumentLoadGateTests
             });
         }
 
-        /// <summary>Loads a document and dirties it, which is the only state that arms the gate.</summary>
+        /// <summary>문서를 열고 수정해 게이트가 작동하는 상태 생성.</summary>
         public async Task ArmAsync()
         {
             await Session.StartLoadAsync(_ => Task.FromResult(MakeDocument()));
@@ -90,9 +90,7 @@ public class DocumentLoadGateTests
     [Fact]
     public async Task ApprovedDiscard_IsNotAskedAgainWhileThatLoadIsStillDecoding()
     {
-        // Approval is scoped to the in-flight load: a second request for the same still-dirty
-        // document during that decode must not re-prompt. (Once the load settles the approval is
-        // dropped — see FailedDiscard_DoesNotLatchApprovalIntoTheNextLoad.)
+        // 승인은 진행 중 로드 범위. 같은 수정 문서의 둘째 요청은 재질문하지 않고 완료 뒤 승인 폐기.
         using var harness = new Harness();
         await harness.ArmAsync();
         var decoding = new TaskCompletionSource<ImageDocument>();
@@ -116,7 +114,7 @@ public class DocumentLoadGateTests
 
         await harness.Gate.RequestLoadAsync(_ => Task.FromException<ImageDocument>(new IOException("disk gone")));
 
-        // Approval is recorded, not acted on: nothing is destroyed until a load actually succeeds.
+        // 승인은 기록만 하고 실제 로드 성공 전에는 아무것도 버리지 않음.
         Assert.Same(original, harness.Session.Current);
         Assert.True(harness.Editor.IsModified);
         Assert.Single(harness.Editor.State.Annotations);
@@ -163,7 +161,7 @@ public class DocumentLoadGateTests
     [Fact]
     public async Task SaveDecision_DoesNotReplaceWhileNoWriterExists()
     {
-        // Fail-closed until M6 wires a writer: Save must never fall through to the discard path.
+        // 저장이 버리기 경로로 새지 않게 안전 차단.
         using var harness = new Harness();
         await harness.ArmAsync();
         var original = harness.Session.Current;
@@ -195,7 +193,7 @@ public class DocumentLoadGateTests
         harness.Pending.SetException(new InvalidOperationException("dialog torn down"));
         await Assert.ThrowsAsync<InvalidOperationException>(() => first);
 
-        // The queued loader must not survive the fault to be resurrected by a later prompt.
+        // 대기 로더는 오류 뒤 살아남아 다음 질문에서 부활하면 안 됨.
         harness.Pending = null;
         harness.Answer = DiscardDecision.Cancel;
         await harness.Gate.RequestLoadAsync(_ => Task.FromResult(MakeDocument()));
@@ -209,8 +207,7 @@ public class DocumentLoadGateTests
     [Fact]
     public async Task FailedDiscard_DoesNotLatchApprovalIntoTheNextLoad()
     {
-        // Regression: a discard approval that outlived a failed load once bypassed the guard on the
-        // very next open, destroying edits with no prompt.
+        // 실패 로드보다 오래 산 버리기 승인이 다음 열기 게이트를 우회하던 회귀.
         using var harness = new Harness();
         await harness.ArmAsync();
 
@@ -218,7 +215,7 @@ public class DocumentLoadGateTests
         Assert.Equal(1, harness.Prompts);
         Assert.True(harness.Editor.IsModified);
 
-        // Second open: the document is still the dirty original, so it must prompt again.
+        // 둘째 열기에도 수정 원본이 남아 다시 질문해야 함.
         harness.Answer = DiscardDecision.Cancel;
         var original = harness.Session.Current;
         await harness.Gate.RequestLoadAsync(_ => Task.FromResult(MakeDocument()));
@@ -244,8 +241,7 @@ public class DocumentLoadGateTests
     [Fact]
     public async Task SupersededLoaderThatIgnoresCancellation_DoesNotBlockEditingAfterTheWinnerLands()
     {
-        // Latest-wins: the stuck first loader can outlive the winning load. Pending must follow the
-        // session state, not an in-flight request count, or editing stays blocked on a Ready document.
+        // 첫 로더가 승자보다 오래 살아도 Pending은 요청 수가 아니라 세션 상태를 따라야 함.
         using var harness = new Harness();
         var stuck = new TaskCompletionSource<ImageDocument>();
 
@@ -255,7 +251,7 @@ public class DocumentLoadGateTests
         Assert.Equal(SessionState.Ready, harness.Session.State);
         Assert.False(harness.Gate.IsReplacementPending);
 
-        stuck.SetResult(MakeDocument()); // stale result: disposed unpublished
+        stuck.SetResult(MakeDocument()); // 묵은 결과라 게시 없이 해제.
         await first;
         Assert.False(harness.Gate.IsReplacementPending);
     }

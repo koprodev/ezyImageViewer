@@ -9,7 +9,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\EzyImageViewer.Core\EzyImageViewer.Core.csproj" />
-    <ProjectReference Include="..\EzyImageViewer.CodecProtocol\EzyImageViewer.CodecProtocol.csproj" />
     <PackageReference Include="SkiaSharp" />
     <PackageReference Include="Svg.Skia" />
   </ItemGroup>

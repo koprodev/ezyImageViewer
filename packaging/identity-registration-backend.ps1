@@ -72,38 +72,21 @@ function Read-EzyIdentityPackageManifest {
     }
 }
 
-function Assert-EzyIdentityPackagePair {
+function Assert-EzyIdentityPackage {
     param(
-        [Parameter(Mandatory)][string]$CodecHostPackagePath,
         [Parameter(Mandatory)][string]$ExternalPackagePath
     )
 
-    $codecPath = Get-EzyIdentityPhysicalFile $CodecHostPackagePath 'CodecHostPackage'
     $externalPath = Get-EzyIdentityPhysicalFile $ExternalPackagePath 'ExternalPackage'
-    if ([string]::Equals($codecPath, $externalPath, [StringComparison]::OrdinalIgnoreCase)) {
-        throw 'CodecHost and external identity package paths must be distinct.'
-    }
-    $codec = Read-EzyIdentityPackageManifest $codecPath 'CodecHostPackage'
     $external = Read-EzyIdentityPackageManifest $externalPath 'ExternalPackage'
-    if ($codec.Name -cne 'GRTech.ezyImageViewer.CodecHost' -or -not $codec.IsFramework) {
-        throw 'CodecHost package identity or framework contract mismatch.'
-    }
     if ($external.Name -cne 'GRTech.ezyImageViewer') {
         throw 'External package identity contract mismatch.'
     }
-    if ($codec.Publisher -cne $external.Publisher) {
-        throw 'CodecHost and external identity Publisher values must match exactly.'
-    }
-    $hostDependencies = @($external.Dependencies | Where-Object {
-            $_.Name -ceq $codec.Name -and $_.Publisher -ceq $codec.Publisher
-        })
-    if ($hostDependencies.Count -ne 1) {
-        throw 'External identity must contain exactly one matching CodecHost dependency.'
+    if (@($external.Dependencies).Count -ne 0) {
+        throw 'External identity must not declare any package dependency.'
     }
     return [PSCustomObject][ordered]@{
-        CodecHostPath = $codecPath
         ExternalPath = $externalPath
-        CodecHost = $codec
         External = $external
     }
 }
@@ -158,21 +141,6 @@ function New-EzyDefaultIdentityAdapter {
             param($packageName)
             Remove-AppxProvisionedPackage -Online -PackageName $packageName `
                 -ErrorAction Stop | Out-Null
-        }
-        HasInstalledDependents = {
-            param($dependencyName, $scope)
-            $packages = if ($scope -ceq 'CurrentUser') {
-                @(Get-AppxPackage -PackageTypeFilter Main -ErrorAction Stop)
-            }
-            else {
-                @(Get-AppxPackage -AllUsers -PackageTypeFilter Main -ErrorAction Stop)
-            }
-            foreach ($package in $packages) {
-                foreach ($dependency in @($package.Dependencies)) {
-                    if ($dependency.Id.Name -ceq $dependencyName) { return $true }
-                }
-            }
-            return $false
         }
     }
 }
@@ -243,7 +211,7 @@ function Read-EzyIdentityState {
     $state = [IO.File]::ReadAllText($file.FullName) | ConvertFrom-Json
     if ($state.SchemaVersion -ne 1 -or $state.Action -cne 'Register' -or
         $state.Scope -notin @('CurrentUser', 'AllUsers') -or
-        @($state.Steps).Count -ne 2) {
+        @($state.Steps).Count -ne 1) {
         throw 'Identity state contract mismatch.'
     }
     return $state
@@ -257,10 +225,6 @@ function Remove-EzyIntroducedIdentityStep {
     )
 
     if (-not $Step.Introduced) { return }
-    if ($Step.StepId -ceq 'codec-host' -and
-        (& $Adapter.HasInstalledDependents 'GRTech.ezyImageViewer.CodecHost' $Scope)) {
-        return
-    }
     foreach ($packageName in @($Step.ProvisionedPackageNames)) {
         & $Adapter.RemoveProvisionedPackage $packageName
     }
@@ -274,15 +238,14 @@ function Invoke-EzyIdentityRegister {
     param(
         [Parameter(Mandatory)][ValidateSet('CurrentUser', 'AllUsers')][string]$Scope,
         [Parameter(Mandatory)][string]$InstallDirectory,
-        [Parameter(Mandatory)][string]$CodecHostPackagePath,
         [Parameter(Mandatory)][string]$ExternalPackagePath,
         [Parameter(Mandatory)][string]$StatePath,
         [hashtable]$Adapter = (New-EzyDefaultIdentityAdapter)
     )
 
     $plan = New-EzyIdentityRegistrationPlan 'Register' $Scope $InstallDirectory `
-        $CodecHostPackagePath $ExternalPackagePath
-    $pair = Assert-EzyIdentityPackagePair $CodecHostPackagePath $ExternalPackagePath
+        $ExternalPackagePath
+    $package = Assert-EzyIdentityPackage $ExternalPackagePath
     $existingState = Read-EzyIdentityState $StatePath
     if ($null -ne $existingState -and
         ($existingState.Scope -cne $Scope -or
@@ -293,10 +256,7 @@ function Invoke-EzyIdentityRegister {
     $completed = [Collections.Generic.List[object]]::new()
     try {
         foreach ($step in $plan.Steps) {
-            $packageName = if ($step.StepId -ceq 'codec-host') {
-                $plan.Identity.CodecHostPackageName
-            }
-            else { $plan.Identity.MainPackageName }
+            $packageName = $plan.Identity.MainPackageName
             $before = Get-EzyIdentitySnapshot $Scope $packageName $Adapter
             $present = Test-EzyIdentitySnapshotPresent $before
             $previousStep = if ($null -ne $existingState) {
@@ -340,7 +300,7 @@ function Invoke-EzyIdentityRegister {
             Action = 'Register'
             Scope = $Scope
             InstallDirectory = $plan.InstallDirectory
-            Publisher = $pair.External.Publisher
+            Publisher = $package.External.Publisher
             Steps = @($completed)
         }
         Write-EzyIdentityState $StatePath $state
@@ -382,7 +342,7 @@ function Invoke-EzyIdentityUnregister {
     }
     $byId = @{}
     foreach ($step in @($state.Steps)) { $byId[$step.StepId] = $step }
-    $missingStepIds = @(@('main-identity', 'codec-host') | Where-Object {
+    $missingStepIds = @(@('main-identity') | Where-Object {
             -not $byId.ContainsKey($_)
         })
     if ($missingStepIds.Count -gt 0) {
@@ -391,8 +351,6 @@ function Invoke-EzyIdentityUnregister {
         Write-Warning "$message Package removal was skipped so MSI uninstall can continue safely."
         return
     }
-    foreach ($stepId in @('main-identity', 'codec-host')) {
-        Remove-EzyIntroducedIdentityStep $byId[$stepId] $Scope $Adapter
-    }
+    Remove-EzyIntroducedIdentityStep $byId['main-identity'] $Scope $Adapter
     [IO.File]::Delete($StatePath)
 }

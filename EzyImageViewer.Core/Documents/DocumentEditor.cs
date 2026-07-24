@@ -3,7 +3,7 @@ using EzyImageViewer.Core.Documents.Layers;
 
 namespace EzyImageViewer.Core.Documents;
 
-/// <summary>History bounds (FR-HIST-002 offers count or memory — both are enforced).</summary>
+/// <summary>실행 취소 기록의 개수·메모리 상한.</summary>
 public sealed record HistoryLimits
 {
     public static HistoryLimits Default { get; } = new();
@@ -21,11 +21,7 @@ public sealed record HistoryLimits
         }
     }
 
-    /// <summary>
-    /// Retained payload ceiling across the undo AND redo stacks. Small because commands store
-    /// geometry, not pixels; a single decoded frame is 192MB at the display budget and could never
-    /// fit here — which is what keeps whole-frame preimages out without a separate ban (ADR-0008).
-    /// </summary>
+    /// <summary>실행 취소·다시 실행 스택 전체의 보유 데이터 상한. 통째 픽셀 저장은 입구 컷.</summary>
     public long MaxRetainedBytes
     {
         get => _maxRetainedBytes;
@@ -38,23 +34,14 @@ public sealed record HistoryLimits
 }
 
 /// <summary>
-/// Per-window edit history over one document (§6.3 EditHistory). Sits beside <see cref="DocumentSession"/>
-/// rather than inside it: the session owns the load lifecycle (worker threads, latest-wins, gated
-/// swap), while editing is UI-thread-affine and must not disturb zoom/pan or cancel a load.
-///
-/// Threading: single-threaded — construct, mutate and read on the UI thread only.
-///
-/// Saved-state tracking is by state id, never by stack depth: undoing and then branching returns to
-/// the same depth with different content, which a depth savepoint would read as clean. State ids
-/// are monotonic and never reused, so once the saved id is evicted out of reach no reachable state
-/// can ever equal it again — eviction alone makes <see cref="IsModified"/> permanently true, with
-/// no separate reachability flag to keep in sync.
+/// 창별 문서 편집 기록. UI 스레드 전용.
+/// 저장 상태는 스택 깊이가 아닌 재사용 없는 상태 ID로 추적해 분기 후 거짓 정상 판정을 막음.
 /// </summary>
 public sealed class DocumentEditor(HistoryLimits? limits = null)
 {
     private readonly HistoryLimits _limits = limits ?? HistoryLimits.Default;
 
-    /// <summary>Oldest first: eviction takes index 0, traversal takes the tail.</summary>
+    /// <summary>오래된 항목이 앞. 축출은 0번, 탐색은 꼬리부터.</summary>
     private readonly List<Entry> _undo = [];
     private readonly List<Entry> _redo = [];
 
@@ -63,29 +50,22 @@ public sealed class DocumentEditor(HistoryLimits? limits = null)
     private long _savedStateId;
     private bool _inactiveScopesModified;
 
-    /// <summary>Raised after any observable change. Subscriber exceptions are the caller's problem
-    /// (unlike the session, this runs on the UI thread with no load to protect).</summary>
+    /// <summary>관찰 가능한 변경 뒤 발생. 구독자 예외는 호출자가 처리.</summary>
     public event Action? Changed;
 
-    /// <summary>The document being edited. Not owned — <see cref="DocumentSession"/> disposes it.</summary>
+    /// <summary>편집 중인 문서. 수명은 <see cref="DocumentSession"/> 소유.</summary>
     public ImageDocument? Document { get; private set; }
 
     public DocumentState State { get; private set; } = DocumentState.Empty;
 
-    /// <summary>
-    /// Bumped on every <see cref="Reset"/> (rebind). A UI gesture captures this with the document id
-    /// when it starts and re-validates before mutating, so an interaction that straddles a document
-    /// replacement dies instead of committing into the successor. Distinct from state ids, which
-    /// track history positions within one binding.
-    /// </summary>
+    /// <summary>재결합마다 증가. 문서 교체를 가로지른 제스처가 후임 문서를 건드리지 못하게 함.</summary>
     public long Revision { get; private set; }
 
     public bool CanUndo => _undo.Count > 0;
 
     public bool CanRedo => _redo.Count > 0;
 
-    /// <summary>FR-HIST-004. True while the current state differs from the last saved one — and
-    /// permanently once the saved state id has been evicted out of reach (ids are never reused).</summary>
+    /// <summary>현재 상태가 마지막 저장 상태와 다르면 true. 저장 ID가 축출되면 계속 true.</summary>
     public bool IsModified => Document is not null
         && (_currentStateId != _savedStateId || _inactiveScopesModified);
 
@@ -104,14 +84,10 @@ public sealed class DocumentEditor(HistoryLimits? limits = null)
 
     public long MaxRetainedBytes => _limits.MaxRetainedBytes;
 
-    /// <summary>
-    /// Binds a newly loaded source document and drops all history. Called only for a *source* load —
-    /// never for a document produced by an edit, whose history must outlive the instance swap.
-    /// </summary>
+    /// <summary>새 원본 문서를 결합하고 기록 초기화. 편집 결과 교체에는 사용 금지.</summary>
     public void Reset(ImageDocument? document) => Reset(document, DocumentState.Empty);
 
-    /// <summary>Binds with a pre-existing state (project open, FR-OUT-009). The seeded state arrives
-    /// clean: no history and saved at exactly this state.</summary>
+    /// <summary>프로젝트의 기존 상태 결합. 기록 없이 해당 상태를 저장점으로 시작.</summary>
     public void Reset(ImageDocument? document, DocumentState initialState)
     {
         ArgumentNullException.ThrowIfNull(initialState);
@@ -126,17 +102,14 @@ public sealed class DocumentEditor(HistoryLimits? limits = null)
         Changed?.Invoke();
     }
 
-    /// <summary>
-    /// Applies a command and records it. Throws only if the command itself throws, in which case
-    /// state and history are both unchanged.
-    /// </summary>
+    /// <summary>명령 적용 후 기록. 명령이 실패하면 상태와 기록 모두 그대로.</summary>
     public void Apply(IEditCommand command)
     {
         ArgumentNullException.ThrowIfNull(command);
         if (Document is null)
             throw new InvalidOperationException("No document is loaded.");
 
-        // Compute first: a throwing command must not leave a half-recorded history.
+        // 먼저 계산. 실패한 명령이 반쪽짜리 기록을 남기면 안 됨.
         var next = command.Apply(State);
         var entry = Entry.Create(command, _currentStateId, checked(++_nextStateId));
 
@@ -149,10 +122,8 @@ public sealed class DocumentEditor(HistoryLimits? limits = null)
     }
 
     /// <summary>
-    /// Replaces the newest entry instead of stacking a new one — for a drag that reports many
-    /// intermediate positions but is one user action (§7.8). Coalescing requires matching non-null
-    /// merge keys (same kind, target and gesture); anything else stacks normally, so a caller can
-    /// never fold an unrelated entry away by accident.
+    /// 드래그 중간값처럼 한 동작인 기록은 최신 항목으로 병합.
+    /// 종류·대상·제스처 키가 모두 같을 때만 합쳐 엉뚱한 기록 흡수 방지.
     /// </summary>
     public void ApplyCoalesced(IEditCommand command)
     {
@@ -171,8 +142,7 @@ public sealed class DocumentEditor(HistoryLimits? limits = null)
         var reverted = previous.Command.Revert(State);
         var next = command.Apply(reverted);
 
-        // Same user action, so the entry is replaced rather than stacked — but the content differs,
-        // so the resulting state earns its own id (a savepoint must never alias a refined state).
+        // 같은 동작이라 항목은 교체하되 내용이 달라졌으니 새 상태 ID 부여.
         var entry = Entry.Create(command, previous.BeforeStateId, checked(++_nextStateId));
         State = next;
         _undo[^1] = entry;
@@ -210,12 +180,10 @@ public sealed class DocumentEditor(HistoryLimits? limits = null)
         return true;
     }
 
-    /// <summary>Save-transaction token: capture with the state a write serializes, then pass to
-    /// <see cref="MarkSaved(long)"/>. Ids are monotonic across resets, so a token from a replaced
-    /// document can never alias the successor's state.</summary>
+    /// <summary>저장 트랜잭션 토큰. 직렬화한 상태와 함께 잡아 <see cref="MarkSaved(long)"/>에 전달.</summary>
     public long CurrentStateId => _currentStateId;
 
-    /// <summary>Opaque page/frame history snapshot. Commands and state are immutable and can be shared safely.</summary>
+    /// <summary>페이지·프레임 기록 스냅샷. 명령과 상태는 불변이라 안전하게 공유 가능.</summary>
     public sealed class Snapshot
     {
         internal readonly Entry[] UndoEntries;
@@ -271,7 +239,7 @@ public sealed class DocumentEditor(HistoryLimits? limits = null)
         return new Snapshot(state, [], [], stateId, stateId);
     }
 
-    /// <summary>Rebinds the same source document to another page/frame history.</summary>
+    /// <summary>같은 원본 문서를 다른 페이지·프레임 기록에 재결합.</summary>
     public void RestoreSnapshot(ImageDocument document, Snapshot snapshot)
     {
         ArgumentNullException.ThrowIfNull(document);
@@ -289,7 +257,7 @@ public sealed class DocumentEditor(HistoryLimits? limits = null)
         Changed?.Invoke();
     }
 
-    /// <summary>Includes dirty inactive pages in the replacement/save guard.</summary>
+    /// <summary>수정된 비활성 페이지도 교체·저장 보호에 포함.</summary>
     public void SetInactiveScopesModified(bool value)
     {
         if (_inactiveScopesModified == value)
@@ -298,15 +266,14 @@ public sealed class DocumentEditor(HistoryLimits? limits = null)
         Changed?.Invoke();
     }
 
-    /// <summary>Marks the current state as persisted (FR-HIST-004 clears on save).</summary>
+    /// <summary>현재 상태를 저장 완료로 표시.</summary>
     public void MarkSaved()
     {
         _savedStateId = _currentStateId;
         Changed?.Invoke();
     }
 
-    /// <summary>A crash-recovered project has no durable user-selected save target. Preserve its
-    /// restored state but force the normal modified/close/save contract until the user saves it.</summary>
+    /// <summary>복구 프로젝트는 저장 경로가 없으므로 사용자가 저장할 때까지 수정 상태 유지.</summary>
     public void MarkRecoveryPendingSave()
     {
         if (Document is null)
@@ -317,9 +284,7 @@ public sealed class DocumentEditor(HistoryLimits? limits = null)
         Changed?.Invoke();
     }
 
-    /// <summary>Marks saved only if the current state is still the one the write serialized.
-    /// An edit or rebind that landed during the write keeps the document modified — the file on
-    /// disk holds the captured state, not this one.</summary>
+    /// <summary>현재 상태가 실제 직렬화한 상태와 같을 때만 저장 완료 처리.</summary>
     public bool MarkSaved(long expectedStateId)
     {
         if (_currentStateId != expectedStateId)
@@ -328,15 +293,10 @@ public sealed class DocumentEditor(HistoryLimits? limits = null)
         return true;
     }
 
-    /// <summary>
-    /// Enforces both caps. Oldest undo entries go first; the distant future goes only after the
-    /// whole past is gone. An entry too large to ever fit is not recorded at all — and since undo
-    /// cannot skip an unrecorded edit, the past is dropped with it.
-    /// </summary>
+    /// <summary>두 상한 적용. 과거부터 버리고, 혼자서 상한을 넘는 명령은 기록하지 않음.</summary>
     private void Trim()
     {
-        // An entry that could never fit is not recorded at all. Undo cannot skip an unrecorded
-        // edit, so the recorded past is dropped with it rather than left inconsistent.
+        // 혼자서 상한을 넘으면 기록 안 함. 건너뛸 수 없으니 기존 과거도 함께 정리.
         if (_undo.Count > 0 && _undo[^1].RetainedBytes > _limits.MaxRetainedBytes)
         {
             _undo.Clear();
@@ -357,8 +317,7 @@ public sealed class DocumentEditor(HistoryLimits? limits = null)
 
     internal readonly record struct Entry(IEditCommand Command, long BeforeStateId, long AfterStateId, long RetainedBytes)
     {
-        /// <summary>Byte cost is captured once here: a mutable or lying command cannot skew the
-        /// budget after admission, and a negative claim is rejected outright.</summary>
+        /// <summary>입장 때 비용 고정. 뒤늦은 말 바꾸기와 음수 청구는 거절.</summary>
         public static Entry Create(IEditCommand command, long beforeStateId, long afterStateId)
         {
             var bytes = command.EstimatedRetainedBytes;

@@ -4,9 +4,9 @@
     <InstallerPlatform>x64</InstallerPlatform>
     <Cultures>ko-KR</Cultures>
     <OutputType>Package</OutputType>
-    <!-- Windows App SDK XAML MUI version resources contain LCIDs rejected by ICE03. -->
-    <!-- The bundle selects this user-layout MSI only for its per-user plan. -->
-    <!-- The app-local Material Symbols font is not registered in the system FontsFolder. -->
+    <!-- Windows App SDK XAML MUI 버전 리소스의 LCID를 ICE03이 거부하므로 억제. -->
+    <!-- 번들은 사용자별 계획에서만 이 MSI를 선택. -->
+    <!-- 앱 전용 Material Symbols 글꼴은 시스템 FontsFolder에 등록하지 않음. -->
     <SuppressIces>ICE03;ICE60;ICE91</SuppressIces>
     <OutputName>ezyImageViewer-$(ProductVersion)-x64-per-user</OutputName>
     <ProductVersion Condition="'$(ProductVersion)' == ''">1.0.0</ProductVersion>

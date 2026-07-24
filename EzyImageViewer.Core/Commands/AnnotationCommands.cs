@@ -2,8 +2,7 @@ using EzyImageViewer.Core.Documents.Layers;
 
 namespace EzyImageViewer.Core.Commands;
 
-/// <summary>Adds an object to a layer (FR-LAYER-001 authoring path). The caller passes the active
-/// layer; null targets the topmost layer.</summary>
+/// <summary>레이어에 개체 추가(FR-LAYER-001). 활성 레이어가 null이면 맨 위 레이어 사용.</summary>
 public sealed class AddAnnotationCommand(Annotation annotation, Guid? layerId = null) : IEditCommand
 {
     private readonly Annotation _annotation = annotation ?? throw new ArgumentNullException(nameof(annotation));
@@ -56,8 +55,7 @@ public sealed class AddImageAnnotationCommand : IEditCommand
 }
 
 /// <summary>
-/// Deletes an object (FR-LAYER-004). Retains the object and its (layer, index) position so undo
-/// restores identity, owner layer and z-order.
+/// 개체 삭제(FR-LAYER-004). 실행 취소가 ID·소유 레이어·z순서를 되살리도록 개체와 위치 보관.
 /// </summary>
 public sealed class DeleteAnnotationCommand : IEditCommand
 {
@@ -87,7 +85,7 @@ public sealed class DeleteAnnotationCommand : IEditCommand
         state.InsertAnnotation(_layerId, _innerIndex, _annotation);
 }
 
-/// <summary>Duplicates into the source's own layer, directly above the source (Photoshop order).</summary>
+/// <summary>원본 바로 위에 복제. 레이어와 포토샵식 순서는 그대로.</summary>
 public sealed class DuplicateAnnotationCommand : IEditCommand
 {
     private readonly Annotation _duplicate;
@@ -121,7 +119,7 @@ public sealed class DuplicateAnnotationCommand : IEditCommand
     public DocumentState Revert(DocumentState state) => state.RemoveAnnotation(_duplicate.Id);
 }
 
-/// <summary>Reorders within the object's own layer — indexes are layer-inner positions (UR-007).</summary>
+/// <summary>개체가 속한 레이어 안에서 순서 변경. 인덱스도 레이어 내부 기준(UR-007).</summary>
 public sealed class ReorderAnnotationCommand : IEditCommand
 {
     public ReorderAnnotationCommand(DocumentState state, Guid id, int targetIndex)
@@ -164,8 +162,8 @@ public sealed class ReorderAnnotationCommand : IEditCommand
 }
 
 /// <summary>
-/// Moves an object (FR-LAYER-002). Stores both endpoints rather than a delta so revert is exact
-/// regardless of what else touched the object, and so a drag coalesces by rewriting only <see cref="To"/>.
+/// 개체 이동(FR-LAYER-002). 델타 대신 양 끝점을 저장해 다른 변경 뒤에도 정확히 복원.
+/// 드래그 병합은 <see cref="To"/>만 갈아 끼움.
 /// </summary>
 public sealed class MoveAnnotationCommand(Guid id, RectF from, RectF to, long gestureId = 0) : IEditCommand
 {
@@ -175,12 +173,12 @@ public sealed class MoveAnnotationCommand(Guid id, RectF from, RectF to, long ge
 
     public RectF To { get; } = to;
 
-    /// <summary>Identity of the authoring drag; zero means "never coalesce".</summary>
+    /// <summary>작성 드래그 ID. 0이면 병합하지 않음.</summary>
     public long GestureId { get; } = gestureId;
 
     public string Name => "MoveAnnotation";
 
-    // Two rectangles plus an id.
+    // 사각형 둘과 ID 하나.
     public long EstimatedRetainedBytes => 48;
 
     public object? MergeKey => GestureId == 0 ? null : new MoveMergeKey(AnnotationId, GestureId);
@@ -189,7 +187,7 @@ public sealed class MoveAnnotationCommand(Guid id, RectF from, RectF to, long ge
 
     public DocumentState Revert(DocumentState state) => Retarget(state, From);
 
-    /// <summary>Extends an in-progress drag: same object, original start, new end (§7.8 coalescing).</summary>
+    /// <summary>진행 중 드래그 연장. 같은 개체·원래 시작점·새 끝점 조합(§7.8 병합).</summary>
     public MoveAnnotationCommand ExtendTo(RectF bounds) => new(AnnotationId, From, bounds, GestureId);
 
     public bool IsNoOp => From == To;
@@ -212,7 +210,7 @@ public enum AnnotationEditKind
     Content,
 }
 
-/// <summary>Replaces one immutable annotation while preserving its id and paint index.</summary>
+/// <summary>불변 주석 하나를 교체하되 ID와 그리기 순서는 유지.</summary>
 public sealed class ReplaceAnnotationCommand : IEditCommand
 {
     public ReplaceAnnotationCommand(

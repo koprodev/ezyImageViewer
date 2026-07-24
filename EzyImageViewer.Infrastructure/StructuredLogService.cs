@@ -71,7 +71,7 @@ public sealed class StructuredLogService : IAsyncDisposable
             SingleReader = true,
             SingleWriter = false,
             AllowSynchronousContinuations = false,
-            // TryWrite stays nonblocking while exposing a full queue for drop-newest accounting.
+        // TryWrite는 막지 않되 꽉 찬 큐를 드러내 최신 항목 폐기 수를 셈.
             FullMode = BoundedChannelFullMode.Wait,
         });
         _worker = RunWorkerAsync();

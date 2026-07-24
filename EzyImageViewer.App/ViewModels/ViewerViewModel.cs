@@ -11,18 +11,14 @@ using EzyImageViewer.Imaging;
 namespace EzyImageViewer.App.ViewModels;
 
 /// <summary>
-/// Per-window document state: session + edit history + folder navigation + status-bar text
-/// (FR-VIEW-010). Session events fire on worker threads; the window marshals to the UI thread
-/// before reading. The editor and the gate are UI-thread-affine.
-///
-/// Every document replacement goes through <see cref="RequestLoad"/> — the toolbar, drag-drop,
-/// clipboard, navigation and the activation redirect alike — so the unsaved-edit guard has no
-/// bypass (FR-HIST-005).
+/// 창별 문서 세션·편집 기록·폴더 탐색·상태 문구.
+/// 세션 이벤트는 작업자에서 오며 편집기·로드 게이트는 UI 스레드 전용.
+/// 모든 문서 교체는 <see cref="RequestLoad"/>를 지나 저장 안 한 편집 보호를 우회하지 못함.
 /// </summary>
 public sealed class ViewerViewModel : INotifyPropertyChanged, IDisposable
 {
     private readonly DocumentLoader _documentLoader;
-    private readonly FolderNavigator _navigator = new(ImageFormatCatalog.ViewableExtensions);
+    private readonly FolderNavigator _navigator = new(AppServices.ViewableExtensions);
     private readonly DocumentLoadGate _gate;
     private readonly SemaphoreSlim _navigatorGate = new(1, 1);
     private readonly CancellationTokenSource _navigationLifetime = new();
@@ -36,20 +32,14 @@ public sealed class ViewerViewModel : INotifyPropertyChanged, IDisposable
     private readonly Dictionary<int, Guid?> _pageActiveLayerIds = [];
     private bool _pageSwitchPending;
 
-    /// <summary>
-    /// Project metadata keyed by the exact document instance its loader produced — a shared slot
-    /// would let a stale (superseded) project loader overwrite the winner's metadata, or bind an
-    /// old state to a new document of the same path. Superseded documents are disposed without
-    /// publishing and collected, taking their entry with them.
-    /// </summary>
+    /// <summary>로더가 만든 정확한 문서 인스턴스별 프로젝트 메타데이터. 늦은 로더의 덮어쓰기 방지.</summary>
     private readonly ConditionalWeakTable<ImageDocument, ProjectOpenData> _pendingProjects = new();
     private readonly ConditionalWeakTable<ImageDocument, object> _pendingRecoveries = new();
 
-    /// <summary>The project the current document came from (null otherwise); its embedded source
-    /// backs quick re-save and full-resolution re-decode.</summary>
+    /// <summary>현재 문서의 프로젝트 원본. 빠른 재저장·전체 해상도 재디코드에 사용.</summary>
     public ProjectOpenData? OpenedProject { get; private set; }
 
-    /// <summary>Active-layer hint from the opened project; the window consumes it once.</summary>
+    /// <summary>열린 프로젝트의 활성 레이어 힌트. 창이 한 번 소비.</summary>
     public Guid? PendingActiveLayerId { get; private set; }
 
     public Guid? TakePendingActiveLayerId()
@@ -93,13 +83,19 @@ public sealed class ViewerViewModel : INotifyPropertyChanged, IDisposable
         { SequenceKind: DocumentSequenceKind.Pages, CurrentFrameIndex: > 0 };
     public bool CanOpenNextPage => Session.Current is { SequenceKind: DocumentSequenceKind.Pages } document
         && document.CurrentFrameIndex < document.FrameCount - 1;
+    /// <summary>다중 페이지·애니메이션 위치 표시 여부. 단일 프레임이면 숨김.</summary>
+    public bool HasMultipleFrames => Session.Current is { FrameCount: > 1 };
+    /// <summary>이동할 다른 파일이 있을 때만 썸네일 스트립 표시.</summary>
+    public bool CanBrowseFiles => !_navigatorScanning && _navigator.Count > 1;
+    /// <summary>썸네일 스트립 탐색 순서. 스캔 중에는 비어 있음.</summary>
+    public IReadOnlyList<string> NavigationFiles => _navigatorScanning ? [] : _navigator.Files;
+    public int NavigationIndex => _navigatorScanning ? -1 : _navigator.CurrentIndex;
     public bool IsBusy => Session.State == SessionState.Loading;
 
-    /// <summary>Blocks edits while either a source replacement or a page/editor transaction is
-    /// pending; neither transition may accept mutations into the state it captured before await.</summary>
+    /// <summary>원본 교체·페이지 편집 트랜잭션 중 편집 차단.</summary>
     public bool IsMutationBlocked => _gate.IsReplacementPending || _pageSwitchPending;
 
-    /// <summary>Compatibility admission gate used by the current window mutation funnels.</summary>
+    /// <summary>현재 창 변경 경로가 공유하는 호환성 입장 게이트.</summary>
     public bool IsReplacementPending => IsMutationBlocked;
 
     public void SetIncludeSubfolders(bool includeSubfolders)
@@ -116,7 +112,7 @@ public sealed class ViewerViewModel : INotifyPropertyChanged, IDisposable
             return;
         if (ProjectStore.IsProjectPath(paths[0]))
         {
-            // Projects live outside folder navigation; the anchor stays where it was.
+            // 프로젝트는 폴더 탐색 밖이므로 기존 기준점 유지.
             OpenProject(paths[0]);
             return;
         }
@@ -130,8 +126,7 @@ public sealed class ViewerViewModel : INotifyPropertyChanged, IDisposable
         Load(paths[0]);
     }
 
-    /// <summary>Opens an .ezyimg project (FR-OUT-009): the embedded source decodes as the background
-    /// and the saved state/active layer are seeded when the editor rebinds.</summary>
+    /// <summary>.ezyimg의 내장 원본을 배경으로 열고 저장 상태·활성 레이어 복원.</summary>
     public void OpenProject(string path) => RequestLoad(async ct =>
     {
         var data = await Task.Run(() => ProjectStore.Read(path), ct).ConfigureAwait(true);
@@ -213,13 +208,22 @@ public sealed class ViewerViewModel : INotifyPropertyChanged, IDisposable
             Load(path);
     }
 
+    /// <summary>썸네일 색인으로 파일 열기. 탐색기 변경이 끝난 뒤 UI 스레드에서만 읽음.</summary>
+    public void OpenAt(int index)
+    {
+        if (_navigatorScanning)
+            return;
+        if (_navigator.MoveTo(index) is { } path)
+            Load(path);
+    }
+
     public void OpenClipboardBytes(ReadOnlyMemory<byte> bytes, string sourceFormat)
     {
-        _ = sourceFormat; // format is re-sniffed from the bytes
+        _ = sourceFormat; // 실제 형식은 바이트에서 다시 판별.
         RequestLoad(ct => _documentLoader.LoadMemoryAsync(bytes, DocumentSource.FromClipboard(), ct));
     }
 
-    /// <summary>In-app generated pixels (whiteboard); routed through the same hardened memory load.</summary>
+    /// <summary>앱 생성 픽셀도 같은 메모리 로드 경계로 전달.</summary>
     public void OpenGeneratedBytes(ReadOnlyMemory<byte> bytes) =>
         RequestLoad(ct => _documentLoader.LoadMemoryAsync(bytes, DocumentSource.FromGenerated(), ct));
 
@@ -233,10 +237,7 @@ public sealed class ViewerViewModel : INotifyPropertyChanged, IDisposable
         RequestLoad(ct => _documentLoader.LoadFileAsync(path, ct));
     }
 
-    /// <summary>
-    /// Fire-and-forget by contract: the activation router must never await a load, and the gate's
-    /// prompt is asynchronous. Exceptions surface as session state, not as an unobserved task.
-    /// </summary>
+    /// <summary>활성화 라우터를 막지 않는 비대기 로드. 예외는 세션 상태로 노출.</summary>
     private void RequestLoad(Func<CancellationToken, Task<ImageDocument>> loader)
     {
         LoadStarted?.Invoke();
@@ -245,10 +246,7 @@ public sealed class ViewerViewModel : INotifyPropertyChanged, IDisposable
 
     public bool CanCloseWithoutPrompt() => _gate.CanCloseWithoutPrompt();
 
-    /// <summary>
-    /// Rebinds the editor when a *new source* document arrives. An edit never reaches here, so the
-    /// history survives everything except an actual replacement. Call on the UI thread.
-    /// </summary>
+    /// <summary>새 원본 문서가 왔을 때만 편집기 재결합. UI 스레드 전용.</summary>
     public void SyncEditor()
     {
         var document = Session.Current;
@@ -265,7 +263,7 @@ public sealed class ViewerViewModel : INotifyPropertyChanged, IDisposable
         {
             var recovered = _pendingRecoveries.Remove(document);
             _pendingProjects.Remove(document);
-            // Project open: the saved state seeds the editor clean (no history, not modified).
+            // 프로젝트 열기는 저장 상태로 깨끗하게 시작. 기록·수정 표식 없음.
             Editor.Reset(document, pending.State);
             for (var pageIndex = 0; pageIndex < pending.Document.Pages.Count; pageIndex++)
             {
@@ -307,8 +305,7 @@ public sealed class ViewerViewModel : INotifyPropertyChanged, IDisposable
             if (!changed || !ReferenceEquals(Editor.Document, document))
                 return false;
 
-            // Mutation is blocked across the await; recapture defensively before committing the
-            // page/editor transaction so a future non-UI caller cannot persist a stale snapshot.
+            // 대기 뒤 상태를 다시 잡아 미래의 비 UI 호출자도 묵은 스냅샷을 확정하지 못하게 함.
             previousSnapshot = Editor.CaptureSnapshot();
             StoreInactivePage(previousIndex, previousSnapshot);
             if (TakeInactivePage(pageIndex) is { } target)
@@ -376,8 +373,7 @@ public sealed class ViewerViewModel : INotifyPropertyChanged, IDisposable
         }
         catch (ObjectDisposedException) when (!ReferenceEquals(document, Session.Current))
         {
-            // A latest-wins replacement owns and disposes the predecessor; its stale frame result
-            // is expected cancellation, while an ODE from the live document remains visible.
+            // 최신 교체가 이전 문서를 해제하므로 묵은 프레임의 해제 예외는 예상 취소.
             return false;
         }
     }
@@ -473,7 +469,7 @@ public sealed class ViewerViewModel : INotifyPropertyChanged, IDisposable
         }
     }
 
-    /// <summary>Recomputes status texts; call on the UI thread.</summary>
+    /// <summary>상태 문구 재계산. UI 스레드 전용.</summary>
     public void RefreshStatus()
     {
         var document = Session.Current;
@@ -490,7 +486,7 @@ public sealed class ViewerViewModel : INotifyPropertyChanged, IDisposable
         {
             SessionState.Loading => AppStrings.StateLoading,
             SessionState.Failed => $"{AppStrings.StateFailed}: {Session.LastError?.Message}",
-            // Non-destructive failure: the previous document stayed, but the error must be visible.
+            // 이전 문서는 살았어도 오류는 사용자에게 보여 줌.
             SessionState.Ready when Session.LastError is { } error =>
                 $"{AppStrings.StateReady} · {AppStrings.StateFailed}: {error.Message}",
             SessionState.Ready => AppStrings.StateReady,
@@ -501,9 +497,7 @@ public sealed class ViewerViewModel : INotifyPropertyChanged, IDisposable
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(string.Empty));
     }
 
-    /// <summary>Version in the title identifies the installed build at a glance — stale-payload
-    /// upgrades (2026-07-22) were invisible without it. FileVersion carries the installer-stamped
-    /// value; the short commit comes from the SourceLink informational version.</summary>
+    /// <summary>설치 빌드를 구분하는 제목 버전. 파일 버전과 짧은 commit 조합.</summary>
     private static readonly string ProductTitle = BuildProductTitle();
 
     private static string BuildProductTitle()
@@ -522,7 +516,7 @@ public sealed class ViewerViewModel : INotifyPropertyChanged, IDisposable
         return commit is null ? $"{product} {file}" : $"{product} {file} ({commit})";
     }
 
-    /// <summary>Window title with the FR-HIST-004 modified marker.</summary>
+    /// <summary>수정 표식을 포함한 창 제목.</summary>
     public string BuildTitle()
     {
         var name = Session.Current?.Source.Path is { } path ? Path.GetFileName(path) : null;
@@ -530,11 +524,7 @@ public sealed class ViewerViewModel : INotifyPropertyChanged, IDisposable
         return name is null ? $"{marker}{ProductTitle}" : $"{marker}{name} - {ProductTitle}";
     }
 
-    /// <summary>
-    /// Status bar shows the transform *output* dimensions — what the edited document is, not what
-    /// the decoded frame happens to be. Reads the editor (not the session) so the size and the
-    /// transform always belong to the same document.
-    /// </summary>
+    /// <summary>상태바에 디코드 프레임이 아닌 편집 문서의 변환 출력 크기 표시.</summary>
     private string FormatDimensions()
     {
         if (Editor.Document is not { } document)

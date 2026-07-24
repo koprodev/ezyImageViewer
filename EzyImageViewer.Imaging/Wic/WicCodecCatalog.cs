@@ -9,7 +9,7 @@ internal interface IWicCodecCatalog
     bool TryGetRenderer(ImageFormat format, out DocumentRendererInfo renderer);
 }
 
-/// <summary>Runtime view of installed WIC decoders; conditional formats fail closed.</summary>
+/// <summary>설치된 WIC 디코더의 런타임 목록. 조건부 형식은 확인 실패 시 닫음.</summary>
 internal sealed class WicCodecCatalog : IWicCodecCatalog
 {
     private static readonly Lazy<IReadOnlyList<CodecEntry>> Decoders = new(EnumerateDecoders);
@@ -49,7 +49,7 @@ internal sealed class WicCodecCatalog : IWicCodecCatalog
         }
         catch
         {
-            // Codec enumeration is an availability probe. Any platform failure is unavailable.
+            // 코덱 열거 자체가 가용성 확인. 플랫폼 오류가 나면 미지원으로 처리.
             return [];
         }
     }

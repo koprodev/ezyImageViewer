@@ -7,26 +7,20 @@ namespace EzyImageViewer.Core.Documents;
 public sealed record ProjectManifest(string Format, int SchemaVersion, string AppVersion, DateTimeOffset CreatedUtc)
 {
     public const string FormatId = "ezyimg";
-    // v3 (M8-A): document.json carries page-scoped v2 document fragments.
+    // v3: document.json에 페이지별 v2 문서 조각 보관.
     public const int CurrentSchemaVersion = 3;
 
     public static ProjectManifest Create(string appVersion) =>
         new(FormatId, CurrentSchemaVersion, appVersion, DateTimeOffset.UtcNow);
 }
 
-/// <summary>
-/// Container hardening limits, symmetric by contract: <see cref="EzyProjectArchive.Write"/>
-/// pre-validates against the same limits <see cref="EzyProjectArchive.Read"/> enforces, so the
-/// writer can never produce a project its own reader refuses. ZipArchive itself enforces none
-/// (dotnet zip best practices).
-/// </summary>
+/// <summary>컨테이너 양방향 상한. 쓰기와 읽기가 같은 제한을 적용해 자가 거절 파일 생성 방지.</summary>
 public sealed record EzyProjectLimits
 {
     public static EzyProjectLimits Default { get; } = new();
 
     public int MaxEntryCount { get; init; } = 1024;
-    /// <summary>Sized to the largest source file the loader admits (InputLimits.MaxFileBytes),
-    /// since a project embeds the original bytes (§7.10 embedded-source).</summary>
+    /// <summary>프로젝트가 원본 바이트를 내장하므로 로더 최대 파일 크기와 맞춘 상한.</summary>
     public long MaxEntryBytes { get; init; } = Imaging.InputLimits.Default.MaxFileBytes;
     public long MaxTotalBytes { get; init; } = 1024L * 1024 * 1024;
 }
@@ -36,18 +30,15 @@ public sealed class EzyProject
     public required ProjectManifest Manifest { get; init; }
     public required string DocumentJson { get; init; }
     public byte[]? PreviewPng { get; init; }
-    /// <summary>Embedded background (§7.10 embedded-source): the original file bytes for a file
-    /// source, or the rendered background for clipboard/capture. Name keeps the real extension so
-    /// the open path can re-sniff. External source links are a later option.</summary>
+    /// <summary>내장 배경 원본. 실제 확장자를 이름에 남겨 열 때 다시 형식 판별.</summary>
     public string? SourceName { get; init; }
     public byte[]? SourceBytes { get; init; }
     public IReadOnlyDictionary<string, byte[]> Assets { get; init; } = new Dictionary<string, byte[]>();
 }
 
 /// <summary>
-/// .ezyimg container: ZIP with a leading uncompressed "mimetype" entry (EPUB/ODF convention)
-/// so the format is detectable from the first bytes without full extraction.
-/// Layout: mimetype, manifest.json, document.json, preview.png?, assets/*.
+/// .ezyimg는 맨 앞 비압축 mimetype으로 전체 해제 없이 판별하는 ZIP 컨테이너.
+/// 구성: mimetype, manifest.json, document.json, preview.png?, assets/*.
 /// </summary>
 public static class EzyProjectArchive
 {
@@ -68,11 +59,10 @@ public static class EzyProjectArchive
         ArgumentNullException.ThrowIfNull(project);
         limits ??= EzyProjectLimits.Default;
 
-        // Materialize every entry first: an unreadable project must be refused before any byte
-        // lands on the stream, not detected on the next open.
+        // 모든 항목을 먼저 생성해 못 읽을 프로젝트는 스트림에 한 바이트도 쓰기 전에 거절.
         var entries = new List<(string Name, byte[] Data, CompressionLevel Level)>
         {
-            // Stored (not deflated) and first, so the mimetype sits at a fixed offset for sniffing.
+            // mimetype은 판별 위치를 고정하려고 첫 항목·비압축 저장.
             (MimeTypeEntryName, Encoding.ASCII.GetBytes(MimeType), CompressionLevel.NoCompression),
             (ManifestEntryName, JsonSerializer.SerializeToUtf8Bytes(project.Manifest, JsonOptions), CompressionLevel.Optimal),
             (DocumentEntryName, Encoding.UTF8.GetBytes(project.DocumentJson), CompressionLevel.Optimal),
@@ -124,7 +114,7 @@ public static class EzyProjectArchive
         if (entries.Count > options.MaxEntryCount)
             throw new InvalidDataException($"Archive exceeds the entry limit of {options.MaxEntryCount}.");
 
-        // Duplicate names make required-entry lookups ambiguous across zip parsers.
+        // 중복 이름은 ZIP 파서마다 필수 항목 해석을 흐림.
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         long declaredTotal = 0;
         foreach (var entry in entries)
@@ -192,7 +182,7 @@ public static class EzyProjectArchive
         };
     }
 
-    /// <summary>Rejects path traversal and absolute/odd names before they touch the archive or disk.</summary>
+    /// <summary>아카이브·디스크 접근 전에 경로 순회와 절대·이상 이름 거절.</summary>
     private static void ValidateAssetName(string name)
     {
         if (string.IsNullOrWhiteSpace(name)
@@ -213,7 +203,7 @@ public static class EzyProjectArchive
         stream.Write(data);
     }
 
-    /// <summary>Decompresses at most the declared entry length; lying headers abort the read.</summary>
+    /// <summary>선언 길이까지만 압축 해제. 거짓 헤더면 읽기 중단.</summary>
     private static byte[] ReadEntry(ZipArchiveEntry entry, EzyProjectLimits options)
     {
         var declared = Math.Min(entry.Length, options.MaxEntryBytes);

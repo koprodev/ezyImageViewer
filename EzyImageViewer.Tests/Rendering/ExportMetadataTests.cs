@@ -6,13 +6,7 @@ using Xunit;
 
 namespace EzyImageViewer.Tests.Rendering;
 
-/// <summary>
-/// FR-OUT-008 keep option (Q6 = b): the scrub rebuilds EXIF through a per-IFD allowlist — GPS,
-/// MakerNote, serials, free-text/author tags and the thumbnail IFD never survive; structure tags
-/// are normalized to the exported raster (Orientation=1, pixel dimensions = output). Aliased or
-/// duplicate structures fail closed. Container embed/extract round-trips byte-exactly through
-/// JPEG APP1, PNG eXIf (CRC-verified) and WebP VP8X+EXIF, and an independent reader agrees.
-/// </summary>
+/// <summary>EXIF 허용 목록 정리·구조 정규화·JPEG/PNG/WebP 왕복과 독립 리더 검증.</summary>
 public sealed class ExportMetadataTests
 {
     private static readonly byte[] GpsLatitude =
@@ -26,8 +20,7 @@ public sealed class ExportMetadataTests
 
     private sealed record Spec(ushort Tag, ushort Type, uint Count, byte[] Value);
 
-    /// <summary>Little-endian TIFF writer for tests: IFD0 [+ Exif IFD, + GPS IFD] + data area.
-    /// Sub-IFD pointer entries are appended automatically when the sub-IFD exists.</summary>
+    /// <summary>테스트용 little-endian TIFF 작성기. 하위 IFD 포인터는 자동 추가.</summary>
     private static byte[] BuildExif(
         IReadOnlyList<Spec> ifd0Entries,
         IReadOnlyList<Spec>? exifEntries = null,
@@ -115,8 +108,7 @@ public sealed class ExportMetadataTests
         return blob;
     }
 
-    /// <summary>Realistic hostile-ish input: keepers + GPS + MakerNote + serial + free text +
-    /// Orientation 6 + stale pixel dimensions.</summary>
+    /// <summary>보존값과 민감값·묵은 구조값이 뒤섞인 현실적인 적대 입력.</summary>
     private static byte[] BuildFullExif() => BuildExif(
         ifd0Entries:
         [
@@ -129,11 +121,11 @@ public sealed class ExportMetadataTests
         ],
         exifEntries:
         [
-            new Spec(0x8827, 3, 1, [144, 1]), // ISO 400
+                new Spec(0x8827, 3, 1, [144, 1]), // 감도 ISO 400.
             new Spec(0x9286, 7, (uint)UserComment.Length, UserComment),
             new Spec(0x927C, 7, (uint)MakerNote.Length, MakerNote),
-            new Spec(0xA002, 3, 1, [0x40, 6]), // stale 1600
-            new Spec(0xA003, 3, 1, [0x84, 3]), // stale 900
+            new Spec(0xA002, 3, 1, [0x40, 6]), // 묵은 너비 1600.
+            new Spec(0xA003, 3, 1, [0x84, 3]), // 묵은 높이 900.
         ],
         gpsEntries:
         [
@@ -160,7 +152,7 @@ public sealed class ExportMetadataTests
         Assert.NotNull(scrubbed);
         Assert.True(Contains(scrubbed, CameraMake), "camera make must survive the scrub");
         Assert.True(Contains(scrubbed, new byte[] { 0x27, 0x88, 3, 0 }), "ISO entry must survive");
-        // The allowlist rebuild never copies dropped data — nothing can hide as padding.
+        // 허용 목록 재작성은 폐기 데이터를 복사하지 않아 여백에 숨을 곳도 없음.
         Assert.False(Contains(scrubbed, GpsLatitude), "GPS coordinates leaked");
         Assert.False(Contains(scrubbed, MakerNote), "MakerNote leaked");
         Assert.False(Contains(scrubbed, "SN9"u8), "serial number leaked");
@@ -168,33 +160,33 @@ public sealed class ExportMetadataTests
         Assert.False(Contains(scrubbed, "who took this"u8), "UserComment leaked");
         Assert.False(Contains(scrubbed, "secret"u8), "XPComment leaked");
         Assert.False(Contains(scrubbed, "AB\0"u8), "Artist leaked");
-        // Structure normalization: Orientation → 1, pixel dimensions → the exported raster.
+        // 구조 정규화: 방향 1, 픽셀 크기는 출력 래스터.
         Assert.True(Contains(scrubbed, new byte[] { 0x12, 0x01, 3, 0, 1, 0, 0, 0, 1, 0 }),
             "orientation must be normalized to 1");
         Assert.True(Contains(scrubbed, new byte[] { 0x02, 0xA0, 4, 0, 1, 0, 0, 0, 16, 0, 0, 0 }),
             "PixelXDimension must be rewritten to the output width");
         Assert.True(Contains(scrubbed, new byte[] { 0x03, 0xA0, 4, 0, 1, 0, 0, 0, 8, 0, 0, 0 }),
             "PixelYDimension must be rewritten to the output height");
-        // Still a valid TIFF for a second pass.
+        // 두 번째 순회에도 유효한 TIFF.
         Assert.NotNull(ExportMetadata.ScrubSensitive(scrubbed, 16, 8));
     }
 
     [Fact]
     public void Scrub_FailsClosed_OnAliasedDuplicateOrMalformedStructures()
     {
-        // Alias: the kept Make points at the same bytes a dropped XPComment owns.
+        // 별칭: 보존 Make가 폐기 XPComment와 같은 바이트를 가리킴.
         var alias = BuildExif(
         [
             new Spec(0x010F, 2, (uint)CameraMake.Length, CameraMake),
             new Spec(0x9C9C, 1, 6, "secret"u8.ToArray()),
         ]);
-        // Entry value-offset fields sit at +8 inside each 12-byte entry (IFD0 at 8, count at 8..10).
+        // 12바이트 항목의 값 오프셋은 +8. IFD0은 8, 개수는 8..10.
         var makeOffsetAt = 8 + 2 + 0 * 12 + 8;
         var xpOffsetAt = 8 + 2 + 1 * 12 + 8;
         Array.Copy(alias, xpOffsetAt, alias, makeOffsetAt, 4);
         Assert.Null(ExportMetadata.ScrubSensitive(alias));
 
-        // Duplicate tags make keep/drop ambiguous.
+        // 중복 태그는 보존·폐기 판정을 흐림.
         var duplicate = BuildExif(
         [
             new Spec(0x010F, 2, (uint)CameraMake.Length, CameraMake),
@@ -202,7 +194,7 @@ public sealed class ExportMetadataTests
         ]);
         Assert.Null(ExportMetadata.ScrubSensitive(duplicate));
 
-        // A sub-IFD pointer that is not LONG/count=1 is hostile shape.
+        // LONG 한 개가 아닌 하위 IFD 포인터는 적대 모양.
         var badPointer = BuildExif(
         [
             new Spec(0x010F, 2, (uint)CameraMake.Length, CameraMake),
@@ -226,7 +218,7 @@ public sealed class ExportMetadataTests
         using var decoded = SKBitmap.Decode(embedded);
         Assert.Equal(8, decoded.Width);
 
-        // 65,527 bytes is the largest Exif payload one APP1 can carry; one more skips by contract.
+        // APP1 최대 Exif 65,527바이트. 한 바이트 더면 계약대로 생략.
         var atLimit = ExportMetadata.Embed(plain, ExportFormat.Jpeg, new byte[65_527]);
         Assert.Equal(65_527, ExportMetadata.TryExtractExif(atLimit)!.Length);
         var overLimit = ExportMetadata.Embed(plain, ExportFormat.Jpeg, new byte[65_528]);
@@ -245,8 +237,7 @@ public sealed class ExportMetadataTests
         using var decoded = SKBitmap.Decode(embedded);
         Assert.Equal(8, decoded.Width);
 
-        // The eXIf chunk sits right after IHDR; verify its CRC with an independent table-driven
-        // CRC-32, then corrupt one payload byte — extraction must refuse it.
+        // IHDR 바로 뒤 eXIf의 CRC를 독립 계산한 뒤 데이터 한 바이트를 망가뜨려 거절 확인.
         const int chunkAt = 33;
         var span = embedded.AsSpan();
         Assert.True(span.Slice(chunkAt + 4, 4).SequenceEqual("eXIf"u8));
@@ -276,7 +267,7 @@ public sealed class ExportMetadataTests
         Assert.Equal(16, decoded.Width);
         Assert.Equal(16, decoded.Height);
 
-        // An EXIF chunk appended after the declared RIFF size is trailing garbage, not metadata.
+        // 선언 RIFF 크기 뒤 EXIF 청크는 메타데이터가 아니라 꼬리 쓰레기.
         var trailing = new byte[plain.Length + 8 + scrubbed.Length];
         plain.CopyTo(trailing, 0);
         "EXIF"u8.CopyTo(trailing.AsSpan(plain.Length));
@@ -312,7 +303,7 @@ public sealed class ExportMetadataTests
     [Fact]
     public void BigEndianExif_NormalizesOrientation_InTheSameByteOrder()
     {
-        // Minimal MM blob: IFD0 with one inline SHORT (Orientation = 6).
+        // 최소 MM 원문: 인라인 SHORT 하나인 IFD0, 방향 6.
         var blob = new byte[] {
             (byte)'M', (byte)'M', 0, 42, 0, 0, 0, 8,
             0, 1,
@@ -349,7 +340,7 @@ public sealed class ExportMetadataTests
     [Fact]
     public async Task ProductLoader_ReopensAllThreeExports_WithoutASecondRotation()
     {
-        // A 16x8 JPEG carrying Orientation=6 opens as 8x16 (the loader applies EXIF once).
+        // 방향 6인 16x8 JPEG는 로더가 EXIF를 한 번 적용해 8x16으로 열림.
         var orientationSix = BuildExif([new Spec(0x0112, 3, 1, [6, 0])]);
         using var landscape = SolidImage(16, 8);
         var sourceJpeg = ExportMetadata.Embed(
@@ -361,8 +352,7 @@ public sealed class ExportMetadataTests
             Assert.Equal(new PixelSize(8, 16), opened.NativeSize);
         }
 
-        // The export writes the upright 8x16 raster; the kept metadata must say Orientation=1,
-        // so reopening any of the three formats must NOT rotate again ([18차] 필수 1 계약).
+        // 출력은 똑바른 8x16이라 보존 메타데이터 방향은 1. 다시 열어도 재회전 금지.
         var scrubbed = ExportMetadata.ScrubSensitive(orientationSix, 8, 16)!;
         using var upright = SolidImage(8, 16);
         foreach (var format in new[] { ExportFormat.Jpeg, ExportFormat.Png, ExportFormat.WebP })

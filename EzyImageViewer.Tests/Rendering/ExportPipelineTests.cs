@@ -7,9 +7,9 @@ using Xunit;
 namespace EzyImageViewer.Tests.Rendering;
 
 /// <summary>
-/// M6 export contracts (FR-OUT-003~005): the flattener keeps document coordinates stable across
-/// reduced-preview and full-resolution frames, and each encoder honors its alpha/quality contract.
-/// Re-encoding through Skia carries no source metadata (FR-OUT-008 strip default).
+/// M6 내보내기 계약(FR-OUT-003~005).
+/// 평탄화기는 축소 미리보기와 원본 해상도에서 문서 좌표를 유지하고 인코더는 알파·품질 계약 준수.
+/// Skia 재인코딩은 원본 메타데이터를 옮기지 않음(FR-OUT-008 기본 제거).
 /// </summary>
 public sealed class ExportPipelineTests
 {
@@ -31,8 +31,8 @@ public sealed class ExportPipelineTests
     [Fact]
     public void Flatten_KeepsDocumentCoordinates_AcrossReducedAndFullFrames()
     {
-        // Same 16x16 native document, once from a full frame and once from an 8x8 reduced preview:
-        // the mask annotation must land on identical output pixels either way (M6 정렬 계약).
+        // 같은 16×16 원본 문서를 전체 프레임과 8×8 축소 미리보기로 각각 처리.
+        // 어느 쪽이든 가리기 주석이 같은 출력 픽셀에 놓여야 함(M6 정렬 계약).
         var native = new PixelSize(16, 16);
         var state = DocumentState.Empty.AddAnnotation(new ProtectionAnnotation
         {
@@ -104,8 +104,8 @@ public sealed class ExportPipelineTests
     [Fact]
     public void Preflight_RefusesAnOutputBeyondTheByteBudget_BeforeAnyAllocation()
     {
-        // A resize can legally demand more output than any source has pixels ([15차] 보완 4):
-        // 40000x20000 × 4B/px ≈ 3.2GB exceeds the 2GiB flatten budget and must fail up front.
+        // 크기 변경은 원본 픽셀 수보다 큰 출력을 합법적으로 요구할 수 있음.
+        // 40000×20000 × 4B/px ≈ 3.2GB로 2GiB 평탄화 예산 초과. 시작 전에 실패해야 함.
         var native = new PixelSize(16, 16);
         var huge = new DocumentState
         {
@@ -119,7 +119,7 @@ public sealed class ExportPipelineTests
         Assert.Throws<InvalidOperationException>(
             () => DocumentFlattener.Flatten(frame, native, huge));
 
-        // The identity pipeline passes and reports the real output size.
+        // 항등 파이프라인은 통과하고 실제 출력 크기를 보고.
         Assert.Equal(native, DocumentFlattener.PreflightOutputSize(DocumentState.Empty, native));
     }
 

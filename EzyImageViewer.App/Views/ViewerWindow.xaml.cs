@@ -64,8 +64,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         long Revision,
         bool SpeechBubble = false);
 
-    // Fixed dash, cached: SKPaint.Dispose does not dispose an assigned path effect, so building one
-    // per repaint would strand a native effect on the finalizer queue every rubber-band frame.
+    // 고정 점선을 재사용. 매 프레임 만들면 네이티브 효과가 finalizer 줄에 차곡차곡 쌓임.
     private static readonly SKPathEffect RubberBandDash = SKPathEffect.CreateDash([6f, 4f], 0f);
 
     private readonly ViewerViewModel _viewModel;
@@ -74,9 +73,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
     private readonly WinRtClipboardBackend _clipboard = new();
     private readonly RasterAssetImageCache _assetCache = new();
 
-    /// <summary>Where quick save writes (FR-OUT-002): a picked export file or the open project.
-    /// Null image format means .ezyimg. Reset whenever the document is replaced. Options are
-    /// asked once per target and ride along, so quick saves never re-prompt.</summary>
+    /// <summary>빠른 저장 대상. 이미지 형식이 null이면 .ezyimg. 문서 교체 때 초기화.</summary>
     private sealed record SaveTarget(string Path, ExportFormat? ImageFormat, ExportOptions? Options = null);
     private SaveTarget? _saveTarget;
     private Guid _saveTargetDocumentId;
@@ -90,7 +87,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
     private DateTimeOffset? _recoveryCreatedAtUtc;
     private bool _recoveryRestoreInProgress;
     private TaskCompletionSource<bool>? _recoveryOpenCompletion;
-    /// <summary>Cancels worker-side save/copy stages when the window goes down (§11.2).</summary>
+    /// <summary>창 종료 시 작업자 쪽 저장·복사도 함께 취소.</summary>
     private readonly CancellationTokenSource _shutdownCts = new();
     private readonly HashSet<Guid> _assetWarmPending = [];
     private CancellationTokenSource _assetWarmCancellation = new();
@@ -107,16 +104,20 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
     private SKPoint? _lastPointer;
     private uint? _activePointerId;
     private bool _fitPending = true;
-    /// <summary>The first image a window shows sizes that window (once, restored state only).</summary>
+    /// <summary>복원 상태 창은 첫 이미지에 한 번만 크기 맞춤.</summary>
     private bool _initialSizePending = true;
-    // FR-VIEW-004: Space+drag and right-button drag are the pan gestures in every tool.
+    /// <summary>늦게 끝난 비동기 작업이 닫힌 창 XAML을 건드리지 못하게 함.</summary>
+    private bool _windowClosed;
+    /// <summary>파일 크기 계산 전까지 화면 밖에서 기다리는 창.</summary>
+    private bool _presentationDeferred;
+    private Microsoft.UI.Dispatching.DispatcherQueueTimer? _presentationDeadline;
+    // 모든 도구에서 Space+드래그와 오른쪽 드래그는 팬 동작.
     private bool _spaceHeld;
     private bool _rightPanActive;
 
-    // ---- edit tools ----
-    // Authoring drafts live in document space (annotations: native px, crop: output px) so they stay
-    // glued to the image under zoom/pan and preview exactly what the commit creates; _lastPointer
-    // stays in DIPs because the pan path scales its deltas itself.
+    // ---- 편집 도구 --------------------------------------------------------------------------
+    // 작성 초안은 문서 좌표에 둬 줌·팬에도 이미지와 붙어 있게 함.
+    // 팬 델타를 직접 배율 보정하는 마지막 포인터만 DIP 사용.
     private CanvasTool _tool = CanvasTool.Select;
     private CanvasTool _draftTool = CanvasTool.Select;
     private Guid _selectedAnnotation;
@@ -136,7 +137,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
     private bool _fillEnabled;
     private float _mosaicBlockSize = 12f;
     private float _blurSigma = 8f;
-    // FR-ANNO-010: the mask's own color, black by default, independent of the stroke palette.
+    // 마스크 전용 색. 기본 검정이며 선 팔레트와 별개.
     private uint _maskColor = 0xFF00_0000;
     private float _drawBlockSize = 12f;
     private float _drawBlurSigma = 8f;
@@ -198,12 +199,11 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
     private long _animationFirstEditStateId;
     private readonly Dictionary<int, Guid> _pageActiveLayers = [];
 
-    // Crop tool (FR-EDIT-001): the draft rectangle lives in output-canvas pixels, so it stays glued
-    // to the image under pan/zoom while being dragged.
+    // 자르기 초안은 출력 캔버스 픽셀에 둬 드래그 중에도 이미지에 붙어 있음.
     private static readonly float?[] CropRatios = [null, 1f, 4f / 3f, 16f / 9f];
     private int _cropRatioIndex;
     private readonly CropInteraction _cropInteraction = new();
-    // UR-009 box-select shares the crop drag/review machine but never enters the crop commit path.
+    // 영역 선택은 자르기 드래그·검토 상태만 빌리고 자르기 확정에는 들어가지 않음.
     private readonly CropInteraction _regionInteraction = new();
     private bool _regionSelectMode;
     private bool _openGroupEnabled = true;
@@ -213,26 +213,25 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
     private bool _zoomGroupEnabled = true;
     private bool _protectGroupEnabled = true;
 
-    // Every gesture is bound to the document and editor binding it started on; the mutation funnel
-    // re-validates, so an interaction straddling a replacement dies instead of editing the successor.
+    // 모든 제스처는 시작한 문서·편집기에 귀속. 문서 교체를 걸치면 후임 대신 제스처 종료.
     private long _gestureCounter;
     private long _gestureId;
     private Guid _gestureDocumentId;
     private long _gestureRevision;
 
-    // Derived-transform cache; invalidated by reference identity of the state's transform.
+    // 파생 변환 캐시. 상태 변환의 참조가 바뀌면 무효화.
     private TransformEvaluation? _evaluation;
     private BackgroundTransform? _evaluationTransform;
     private PixelSize _evaluationNativeSize;
 
-    /// <summary>Set after edits and background stores are safely resolved so Closing can re-close.</summary>
+    /// <summary>편집·배경 저장을 안전하게 끝낸 뒤 재닫기를 허용하는 표식.</summary>
     private bool _closeApproved;
     private bool _closePromptOpen;
-    /// <summary>The single ContentDialog WinUI allows; see <see cref="ShowDialogAsync"/>.</summary>
+    /// <summary>WinUI가 허용하는 단 하나의 대화상자.</summary>
     private ContentDialog? _activeDialog;
     private bool _activeDialogEditScoped;
 
-    // Unattended run hooks (--smoke-open / --bench-open24mp).
+    // 무인 실행 진입점(--smoke-open / --bench-open24mp).
     private string? _resultPath;
     private Stopwatch? _firstPaintWatch;
     private bool _unattendedFlowStarted;
@@ -245,24 +244,26 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
     private bool _recoverySmokeSeedPending;
     private int _recoverySmokeResultWritten;
 
-    // Authoring target (UR-007). Window state, not document state: selecting a layer is not undoable.
+    // 작성 대상. 레이어 선택은 실행 취소 대상이 아니라 창 상태.
     private Guid _activeLayerId = AnnotationLayer.InitialLayerId;
     private bool _layerPanelCollapsed;
     private Guid _renamingLayerId;
 
     internal Guid RecoveryWindowId { get; } = Guid.NewGuid();
 
-    public ViewerWindow(DocumentLoader? documentLoader = null)
+    public ViewerWindow()
     {
-        _documentLoader = documentLoader ?? AppServices.Loader;
+        StartupTimeline.Mark("windowCtor");
+        _documentLoader = AppServices.Loader;
         InitializeComponent();
+        StartupTimeline.Mark("windowXaml");
         PreviousPageButton.Content = new IconSourceElement { IconSource = IconSourceFor("Icon.View.Previous") };
         NextPageButton.Content = new IconSourceElement { IconSource = IconSourceFor("Icon.View.Next") };
         AnimationPlaybackIcon.IconSource = IconSourceFor("Icon.View.Pause");
         _animationsEnabled = _uiSettings.AnimationsEnabled;
         _uiSettings.AnimationsEnabledChanged += OnAnimationsEnabledChanged;
         ConfigureToolRailOverflowHints();
-        // handledEventsToo: the ScrollViewer marks wheel input handled before it would bubble here.
+        // ScrollViewer가 먼저 처리한 휠도 여기까지 받음.
         ContextBarScroll.AddHandler(
             UIElement.PointerWheelChangedEvent,
             new PointerEventHandler(OnContextBarPointerWheel),
@@ -278,8 +279,15 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         _scaleRenderTimer.Interval = TimeSpan.FromMilliseconds(150);
         _scaleRenderTimer.IsRepeating = false;
         _scaleRenderTimer.Tick += OnScaleDependentRenderTimerTick;
-        AppWindow.SetIcon(Path.Combine(AppContext.BaseDirectory, "Assets", "ezyImageViewer.ico"));
+        // .ico 로드는 첫 프레임에 급하지 않음. 그동안 작업 표시줄은 EXE 내장 아이콘 사용.
+        _ = DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () =>
+        {
+            if (!_windowClosed)
+                AppWindow.SetIcon(Path.Combine(AppContext.BaseDirectory, "Assets", "ezyImageViewer.ico"));
+            StartupTimeline.Mark("windowIcon");
+        });
         _viewModel = new ViewerViewModel(ConfirmDiscardAsync, _documentLoader);
+        StartupTimeline.Mark("viewModel");
         _viewModel.PropertyChanged += OnViewModelPropertyChanged;
         _viewModel.LoadStarted += OnDocumentLoadStarted;
         ApplyToolDefaults(AppServices.RuntimeToolDefaults);
@@ -288,10 +296,12 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         ColorFlyout.Opened += (_, _) => _colorFlyoutOpen = true;
         ColorFlyout.Closed += (_, _) => _colorFlyoutOpen = false;
         PopulateStyleOptions();
+        StartupTimeline.Mark("palettes");
         _toolRailDock = AppServices.Settings.ToolRailDock;
         ApplyToolRailDock();
         ApplyTooltips();
         ApplySettings(AppServices.RuntimeSettings);
+        StartupTimeline.Mark("applySettings");
         AppServices.RecoveryAvailabilityChanged += OnRecoveryAvailabilityChanged;
         ApplyRecoveryAvailability(AppServices.RecoveryAvailability);
         ApplyDataProtectionStatus();
@@ -303,15 +313,14 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         RegisterAccelerators();
         Root.KeyDown += (_, e) => { if (e.Key == VirtualKey.Space) _spaceHeld = true; };
         Root.KeyUp += (_, e) => { if (e.Key == VirtualKey.Space) _spaceHeld = false; };
-        // The KeyUp above never fires when Space is released while focus is elsewhere (Ctrl+O
-        // picker, another window): a latched pan override would disable every edit press.
+        // 다른 창에서 Space를 떼면 KeyUp이 안 오므로 포커스 이탈 때 팬 고착 해제.
         Activated += (_, e) =>
         {
             if (e.WindowActivationState == WindowActivationState.Deactivated)
                 _spaceHeld = false;
         };
 
-        // FR-CAP-004: a lost hotkey (another app owns Ctrl+Shift+E) must not fail silently.
+        // 다른 앱이 단축키를 선점했으면 조용히 실패하지 말고 알림.
         if (AppServices.Capture is { HotkeyRegistered: false })
             SetStatusState(string.Format(
                 AppStrings.CaptureHotkeyUnavailable,
@@ -324,6 +333,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         Canvas.Unloaded += OnCanvasUnloaded;
         Closed += (_, _) =>
         {
+            _windowClosed = true;
             var recoveryCompletion = _recoveryOpenCompletion;
             _recoveryOpenCompletion = null;
             _recoveryRestoreInProgress = false;
@@ -333,6 +343,8 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
             DetachXamlRoot();
             _canvasResizeGeneration++;
             _canvasResizeSettleTimer?.Stop();
+            // 보이기도 전에 닫힌 창을 마감 타이머가 되살리면 공포물.
+            StopPresentationDeadline();
             _animationTimer.Stop();
             _scaleRenderTimer.Stop();
             _scaleRenderCancellation?.Cancel();
@@ -353,6 +365,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
             _shutdownCts.Cancel();
             _shutdownCts.Dispose();
         };
+        StartupTimeline.Mark("windowCtorDone");
     }
 
     private void OnRecoveryAvailabilityChanged(RecoveryAvailability availability)
@@ -909,6 +922,8 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         SetTip(ZoomInButton, AppStrings.ToolZoomIn, AppStrings.TipZoomIn);
         SetTip(FullScreenButton, AppStrings.ToolFullScreen, AppStrings.TipFullScreen);
         SetTip(SettingsButton, AppStrings.ToolSettings, AppStrings.TipSettings);
+        // 툴팁은 필름 스트립 상태에 맞추고 자동화 이름은 실시간 n/n을 가진 상태바가 담당.
+        UpdateFilmstripToggleState();
         SetTip(LayerAddButton, AppStrings.LayerAdd, AppStrings.TipLayerAdd);
         SetTip(LayerDeleteButton, AppStrings.LayerDelete, AppStrings.TipLayerDelete);
         SetTip(LayerUpButton, AppStrings.LayerMoveUp, AppStrings.TipLayerMoveUp);
@@ -1046,15 +1061,10 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
 
     private void PopulateStyleOptions()
     {
-        // Users pick fonts from the installed list (SkiaSharp resolves them for rendering, so
-        // every listed family is renderable); typed free-form names were unusable in practice.
-        foreach (var family in SKFontManager.Default.FontFamilies
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .OrderBy(name => name, StringComparer.CurrentCulture))
-        {
-            _fontFamilies.Add(family);
-        }
+        // 설치 글꼴만 고르게 해 렌더 불가 이름 차단.
+        // 열기 전엔 안 보이는 목록이라 작업자에서 늦게 불러오고 저장된 글꼴은 맨 위에 유지.
         FontFamilyBox.ItemsSource = _fontFamilies;
+        LoadFontFamiliesAsync();
 
         ArrowheadBox.Items.Add(new ComboBoxItem
         {
@@ -1084,6 +1094,30 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
             Tag = AnnotationTextAlignment.Right,
         });
         TextAlignmentBox.SelectedIndex = 0;
+    }
+
+    private async void LoadFontFamiliesAsync()
+    {
+        string[] families;
+        try
+        {
+            families = await Task.Run(static () => SKFontManager.Default.FontFamilies
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(name => name, StringComparer.CurrentCulture)
+                .ToArray());
+        }
+        catch (Exception)
+        {
+            // 열거 실패 시 저장된 글꼴 하나만 제공. 문서 이름 렌더는 그대로 가능.
+            return;
+        }
+        if (_windowClosed)
+            return;
+        foreach (var family in families)
+        {
+            if (!_fontFamilies.Contains(family, StringComparer.OrdinalIgnoreCase))
+                _fontFamilies.Add(family);
+        }
     }
 
     private void PopulateColorPalette()
@@ -1165,8 +1199,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         if (sender is not Button { Tag: ToolColor color })
             return;
 
-        // In mask context the palette edits ONLY the mask color: the stroke color and any non-mask
-        // selection stay untouched, and vice versa (FR-ANNO-010 independent mask color).
+        // 마스크 문맥에서는 마스크 색만 변경. 선 색과 다른 선택은 서로 영역 침범 금지.
         if (IsMaskColorContext())
         {
             _maskColor = color.Argb;
@@ -1222,7 +1255,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
 
     private void UpdateColorSelection()
     {
-        // The palette reflects the color it would edit: mask color in mask context, stroke otherwise.
+        // 팔레트는 지금 바꿀 색을 표시. 마스크 문맥이면 마스크, 아니면 선.
         var effective = IsMaskColorContext() ? _maskColor : _strokeColor;
         CurrentColorSwatch.Background = new SolidColorBrush(ToUiColor(effective | 0xFF00_0000));
         var selectedBrush = ResourceBrush(
@@ -1259,8 +1292,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
 
     private IconSource IconSourceFor(string key, double size = 20)
     {
-        // Clone into a per-window source: dynamic icons are glyph strings, while static resources
-        // are FontIconSource instances that cannot be assigned to two visual owners directly.
+        // 정적 아이콘 원본은 두 시각 소유자에 못 붙이므로 창별 원본으로 복제.
         var resource = Root.Resources[key];
         var glyph = resource switch
         {
@@ -1306,8 +1338,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         Add(VirtualKey.S, VirtualKeyModifiers.Control, async (_, _) => await SaveAsync(quick: true));
         Add(VirtualKey.S, VirtualKeyModifiers.Control | VirtualKeyModifiers.Shift,
             async (_, _) => await SaveAsync(quick: false));
-        // Yields while a text control has focus (layer rename, dialogs): standard text copy must
-        // work there, and the image copy would silently replace the user's clipboard.
+        // 텍스트 입력에 포커스가 있으면 양보. 이미지 복사가 사용자 글 복사를 덮으면 안 됨.
         AddConditional(VirtualKey.C, VirtualKeyModifiers.Control, () =>
         {
             if (IsTextInputFocused())
@@ -1315,7 +1346,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
             _ = CopyToClipboardAsync();
             return true;
         });
-        // UR-009: cut is meaningful only on a reviewed box selection; otherwise the key stays free.
+        // 잘라내기는 검토된 영역 선택에서만 사용. 그 외에는 키 양보.
         AddConditional(VirtualKey.X, VirtualKeyModifiers.Control, () =>
         {
             if (IsTextInputFocused()
@@ -1327,7 +1358,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         });
         Add(VirtualKey.F11, default, (_, _) => ToggleFullScreen());
         Add(VirtualKey.Escape, default, (_, _) => OnEscape());
-        // FR-HIST-001: Ctrl+Y and Ctrl+Shift+Z both redo (Windows and cross-platform conventions).
+        // Windows·타 플랫폼 관례를 모두 받아 Ctrl+Y와 Ctrl+Shift+Z는 다시 실행.
         Add(VirtualKey.Z, VirtualKeyModifiers.Control, (_, _) => Undo());
         Add(VirtualKey.Y, VirtualKeyModifiers.Control, (_, _) => Redo());
         Add(VirtualKey.Z, VirtualKeyModifiers.Control | VirtualKeyModifiers.Shift, (_, _) => Redo());
@@ -1365,7 +1396,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         && Microsoft.UI.Xaml.Input.FocusManager.GetFocusedElement(xamlRoot)
             is TextBox or RichEditBox or PasswordBox or AutoSuggestBox;
 
-    // ---- session → render snapshot (UI thread only; swap and dispose are serialized here) ----
+    // ---- 세션 → 렌더 스냅샷(UI 스레드 전용) -----------------------------------------------
 
     private void OnSessionChanged()
     {
@@ -1377,10 +1408,10 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         _animationConfirmationPending = false;
         _pageActiveLayers.Clear();
         _pasteCancellation?.Cancel();
-        // Editor rebind first: the status bar and title read IsModified from it.
+        // 상태바와 제목이 수정 상태를 읽으니 편집기부터 재결합.
         _viewModel.SyncEditor();
         RecordSessionOutcome();
-        // A replaced document gets a fresh save target; a project brings its own (FR-OUT-009).
+        // 교체 문서는 새 저장 대상, 프로젝트는 자기 저장 대상 사용.
         var sessionDocumentId = _viewModel.Session.Current?.Id ?? Guid.Empty;
         if (sessionDocumentId != _saveTargetDocumentId)
         {
@@ -1391,20 +1422,17 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
             if (_viewModel.TakePendingActiveLayerId() is { } projectLayer
                 && _viewModel.Editor.State.FindLayer(projectLayer) is not null)
             {
-                // The editor rebind already drew the panel with the default (top) layer; the
-                // restored authoring target must win in the row highlight and footer too.
+                // 편집기 재결합이 기본 최상단 레이어를 그렸어도 복원된 작성 대상이 최종 승자.
                 _activeLayerId = projectLayer;
                 UpdateLayerPanel();
                 UpdateToolUi();
             }
         }
-        // A replacement — its start AND its completion — kills any straddling interaction: a gesture
-        // begun on the predecessor must never commit into the successor (the identity check in the
-        // mutation funnel would refuse anyway; this also clears the visual draft), and an open edit
-        // dialog now targets a canvas that no longer exists.
+        // 문서 교체 시작·완료는 걸쳐 있던 제스처와 대화상자를 종료. 후임 문서는 무죄.
         CancelActiveGesture();
         CancelEditDialog();
         RebuildSnapshot(_viewModel.Session.Current);
+        PresentDeferredWindow();
         MaybeApplyInitialWindowSize();
         _viewModel.RefreshStatus();
         UpdateStatusBar();
@@ -1504,7 +1532,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         return string.IsNullOrWhiteSpace(sanitized) ? "unknown" : sanitized;
     }
 
-    /// <summary>Edits never touch the session, so they repaint through the editor's own event.</summary>
+    /// <summary>편집은 세션을 건드리지 않으므로 편집기 이벤트로 다시 그림.</summary>
     private void OnEditorChanged()
     {
         if (_viewModel.Editor.Document is
@@ -1520,9 +1548,8 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
             CancelActiveGesture();
             _ = ConfirmAnimationFlattenAsync(animationDocument);
         }
-        // An edit may have moved the transform output size; the view keeps its rotation and mode
-        // (UpdateContentSize, not SetContent). Skipped while the snapshot lags the editor — the
-        // rebuild path sizes the content itself.
+        // 편집으로 출력 크기가 바뀌어도 보기 회전·모드는 유지.
+        // 스냅샷이 늦으면 재생성 경로가 크기를 잡으니 여기서는 건너뜀.
         if (_viewModel.Editor.Document is { } document && document.Id == _snapshotDocumentId)
         {
             var output = Evaluation(document).OutputSize;
@@ -1534,8 +1561,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         if (_selectedAnnotation != default
             && _viewModel.Editor.State.Find(_selectedAnnotation) is null)
             _selectedAnnotation = default;
-        // The authoring layer must always exist; a hidden or locked layer also drops the canvas
-        // selection so context-bar edits cannot bypass the layer state (UR-007).
+        // 작성 레이어는 항상 존재해야 함. 숨김·잠금이면 캔버스 선택도 해제해 우회 편집 차단.
         if (_viewModel.Editor.State.FindLayer(_activeLayerId) is null)
             _activeLayerId = _viewModel.Editor.State.Layers[^1].Id;
         if (_selectedAnnotation != default
@@ -1696,8 +1722,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         Title = BuildWindowTitle();
     }
 
-    /// <summary>Cached pipeline evaluation; recomputed only when the transform or source changes.
-    /// Inputs were validated when the command was admitted, so this never throws at paint time.</summary>
+    /// <summary>변환·원본이 바뀔 때만 다시 계산하는 파이프라인 캐시.</summary>
     private TransformEvaluation Evaluation(Core.Documents.ImageDocument document)
     {
         var transform = _viewModel.Editor.State.Transform;
@@ -1713,11 +1738,8 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
     }
 
     /// <summary>
-    /// Single owner of the background render snapshot: pixel-copy + UI-thread-only swap/dispose is
-    /// the safety contract (see ADR-0007). A frame superseded between the Changed event and this
-    /// callback is skipped — the follow-up event rebuilds.
-    /// Keyed on the document id alone: annotations composite at paint time and never invalidate
-    /// the background, so an edit costs a redraw, not a re-upload (ADR-0008).
+    /// 배경 렌더 스냅샷의 단일 소유자. 픽셀 복사 후 UI 스레드에서 교체·해제.
+    /// 늦은 프레임은 건너뛰고 주석 편집은 재업로드 없이 다시 그리기만 수행.
     /// </summary>
     private void RebuildSnapshot(Core.Documents.ImageDocument? document, bool preserveView = false)
     {
@@ -1744,9 +1766,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
             SetSnapshot(image);
             _snapshotDocumentId = document.Id;
             _snapshotSurfaceRevision = document.SurfaceRevision;
-            // Content space is the transform *output* canvas (identity on a fresh source = native
-            // size, not the possibly-reduced frame): Fit/ActualSize work on the document's real
-            // dimensions, and edit coordinates are decode-resolution-independent.
+            // 콘텐츠 좌표는 변환 출력 캔버스. 맞춤·실제 크기와 편집 좌표는 축소 디코드와 무관.
             if (preserveView)
             {
                 _transform.UpdateContentSize(document.NativeSize.Width, document.NativeSize.Height);
@@ -1762,7 +1782,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         }
         catch (ObjectDisposedException)
         {
-            // Superseded mid-copy; next Changed event carries the live document.
+            // 복사 중 교체됨. 다음 변경 이벤트가 현재 문서를 가져옴.
         }
     }
 
@@ -1786,13 +1806,26 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         StatusZoom.Text = $"{_transform.Scale * 100:0}%";
         PreviousButton.IsEnabled = _viewModel.CanOpenPrevious;
         NextButton.IsEnabled = _viewModel.CanOpenNext;
+        StatusPageGroup.Visibility = _viewModel.HasMultipleFrames
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+        // 폴더에 바꿔 볼 다른 파일이 있을 때만 필름 스트립 노출.
+        StatusPositionButton.IsEnabled = _viewModel.CanBrowseFiles;
+        if (_viewModel.CanBrowseFiles)
+            SyncFilmstripSelection();
+        else
+            CloseFilmstrip();
         PreviousPageButton.IsEnabled = _viewModel.CanOpenPreviousPage;
         NextPageButton.IsEnabled = _viewModel.CanOpenNextPage;
         StatusProgress.IsActive = _viewModel.IsBusy;
         _updatingZoomSlider = true;
         ZoomSlider.Value = Math.Clamp(_transform.Scale * 100f, ZoomSlider.Minimum, ZoomSlider.Maximum);
         _updatingZoomSlider = false;
-        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(StatusPosition, StatusPosition.Text);
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(
+            StatusPositionButton,
+            _viewModel.CanBrowseFiles
+                ? $"{StatusPosition.Text} — {AppStrings.FilmstripLabel}"
+                : StatusPosition.Text);
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(StatusPage, StatusPage.Text);
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(
             StatusColorMode, $"{AppStrings.StatusColorMode}: {StatusColorMode.Text}");
@@ -1828,7 +1861,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         OverlayMessage.Visibility = failed ? Visibility.Visible : Visibility.Collapsed;
     }
 
-    // ---- painting ----
+    // ---- 그리기 ------------------------------------------------------------------------------
 
     private void OnPaintSurface(object sender, SKPaintGLSurfaceEventArgs e)
     {
@@ -1838,9 +1871,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
 
         if (_snapshot is null)
             return;
-        // The composite needs the editor's transform for this exact document; between a session
-        // Changed event and the UI-thread callback they can lag one another — skip, the follow-up
-        // event repaints.
+        // 합성은 이 문서의 편집기 변환이 필요. 세션과 UI 콜백이 엇갈리면 다음 이벤트에 맡김.
         if (_viewModel.Editor.Document is not { } document || document.Id != _snapshotDocumentId)
             return;
 
@@ -1868,7 +1899,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         }
     }
 
-    /// <summary>Paints the native-space authoring draft without entering document history.</summary>
+    /// <summary>기록에 넣지 않고 원본 좌표 작성 초안 그리기.</summary>
     private void DrawPendingAnnotation(SKCanvas canvas, SKMatrix viewMatrix)
     {
         if (_viewModel.Editor.Document is not { } document)
@@ -1938,7 +1969,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         };
         if (draft is not null)
         {
-            // The snapshot rides along so a protection draft previews its real effect.
+            // 보호 초안도 실제 효과를 보여 주도록 스냅샷 동행.
             var frameToNative = _snapshot is null
                 ? SKMatrix.Identity
                 : SKMatrix.CreateScale(
@@ -2004,9 +2035,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         canvas.DrawPath(path, paint);
     }
 
-    /// <summary>Crop draft: a select-style dashed box, no dim (user decision 2026-07-22). The
-    /// constrained review bounds are stored unchanged for commit, so the box exactly matches
-    /// the CropOp.</summary>
+    /// <summary>자르기 초안은 어둡게 가리지 않는 점선 상자. 검토 경계를 그대로 확정.</summary>
     private void DrawCropOverlay(SKCanvas canvas, SKMatrix viewMatrix)
     {
         if (_viewModel.Editor.Document is not { } document)
@@ -2092,11 +2121,11 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         _assetWarmPending.Clear();
     }
 
-    // ---- input ----
+    // ---- 입력 --------------------------------------------------------------------------------
 
     private void OnCanvasSizeChanged(object sender, SizeChangedEventArgs e)
     {
-        // Also the retry for a document that arrived before the canvas had a layout size.
+        // 캔버스 배치 크기보다 먼저 도착한 문서의 재시도 경로이기도 함.
         MaybeApplyInitialWindowSize();
         QueueCanvasResize();
     }
@@ -2159,55 +2188,172 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         QueueScaleDependentRerender();
     }
 
-    // ---- initial window size ----
+    // ---- 초기 창 크기 ------------------------------------------------------------------------
 
-    /// <summary>Breathing room between the image and the canvas edge, per side.</summary>
+    /// <summary>이미지와 캔버스 가장자리 사이 한쪽 여백.</summary>
     private const double CanvasMarginDip = 24d;
-    /// <summary>Fallback rail thickness plus its margin, used before the rail is measured.</summary>
+    /// <summary>도구 막대 측정 전 사용하는 두께와 여백 기본값.</summary>
     private const double ToolRailReserveDip = 56d;
     private const double MinimumWindowWidthDip = 800d;
     private const double MinimumWindowHeightDip = 600d;
+    /// <summary>XAML 상태바 행 높이. 클라이언트 영역에서 캔버스를 뺀 값.</summary>
+    private const double StatusBarHeightDip = 44d;
+
+    /// <summary>사용자가 보는 창은 정해진 위치·크기로 딱 한 번 표시.</summary>
+    internal bool IsPresentationDeferred => _presentationDeferred;
+
+    /// <summary>첫 이미지 크기 계산까지 화면 밖에서 대기. 마감까지 실패하면 현재 크기로 표시.</summary>
+    internal void DeferFirstPresentation(TimeSpan deadline)
+    {
+        if (!_initialSizePending)
+        {
+            Activate();
+            return;
+        }
+        _presentationDeferred = true;
+        _presentationDeadline = DispatcherQueue.CreateTimer();
+        _presentationDeadline.Interval = deadline;
+        _presentationDeadline.IsRepeating = false;
+        _presentationDeadline.Tick += (_, _) => PresentNow();
+        _presentationDeadline.Start();
+    }
+
+    /// <summary>현재 위치·크기로 즉시 표시. 한 번 보인 뒤에는 자동 크기 변경 금지.</summary>
+    internal void PresentNow()
+    {
+        if (_presentationDeferred)
+        {
+            _presentationDeferred = false;
+            _initialSizePending = false;
+        }
+        StopPresentationDeadline();
+        Activate();
+    }
+
+    private void StopPresentationDeadline()
+    {
+        _presentationDeadline?.Stop();
+        _presentationDeadline = null;
+    }
+
+    /// <summary>아직 표시 대기 중인 창의 세션 결과 처리.</summary>
+    private void PresentDeferredWindow()
+    {
+        if (!_presentationDeferred)
+            return;
+        switch (_viewModel.Session.State)
+        {
+            case SessionState.Ready when TryPresentSizedForFirstDocument():
+                return;
+            case SessionState.Ready:
+            case SessionState.Failed:
+                // 측정값도 이미지도 없으면 현재 모습으로 한 번 표시.
+                PresentNow();
+                return;
+        }
+    }
 
     /// <summary>
-    /// Opens the window around its first image (the Explorer double-click case): the canvas takes
-    /// the picture at up to 100% with a margin that also keeps the floating tool rail off it, and
-    /// the window is centered on its monitor without outgrowing the work area. Runs once per
-    /// window, never against a maximized or full-screen presenter, and re-arms nothing afterwards
-    /// so file navigation and edits keep the size the user is left with.
+    /// 첫 프레임 전에 이미지에 맞춰 창 크기 결정.
+    /// 배치 전 DPI는 창 핸들에서 읽고 실제 외곽 크기로 비클라이언트 영역 측정.
+    /// </summary>
+    private bool TryPresentSizedForFirstDocument()
+    {
+        if (_viewModel.Session.Current is not { NativeSize: { IsEmpty: false } native })
+            return false;
+        if (AppWindow.Presenter is not OverlappedPresenter { State: OverlappedPresenterState.Restored })
+            return false;
+        if (DisplayArea.GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Nearest) is not { } display)
+            return false;
+        // 잘못된 핸들이면 문서화된 실패값 반환. DPI 추측은 창 크기를 틀리게 함.
+        var dpi = GetDpiForWindow(WinRT.Interop.WindowNative.GetWindowHandle(this));
+        if (dpi == 0)
+            return false;
+
+        var rasterScale = dpi / 96d;
+        var statusBar = (int)Math.Round(StatusBarHeightDip * rasterScale);
+        // 배치 전 도구 막대 실제 너비가 없으므로 설계 너비 사용.
+        var railReserve = (int)Math.Round(ToolRailReserveDip * rasterScale);
+        var canvasMargin = (int)Math.Round(CanvasMarginDip * rasterScale);
+        var margin = new PixelSize(
+            canvasMargin + (_toolRailDock == ToolRailDock.Vertical ? railReserve : 0),
+            canvasMargin + (_toolRailDock == ToolRailDock.Horizontal ? railReserve : 0));
+        var workArea = new PixelSize(display.WorkArea.Width, display.WorkArea.Height);
+        var minimumWindow = new PixelSize(
+            (int)Math.Round(MinimumWindowWidthDip * rasterScale),
+            (int)Math.Round(MinimumWindowHeightDip * rasterScale));
+
+        var client = InitialWindowGeometry.Measure(
+            native, new PixelSize(0, statusBar), margin, workArea, minimumWindow);
+        AppWindow.ResizeClient(new Windows.Graphics.SizeInt32(
+            client.WindowSize.Width, client.WindowSize.Height));
+        var frame = new PixelSize(
+            Math.Max(0, AppWindow.Size.Width - AppWindow.ClientSize.Width),
+            Math.Max(0, AppWindow.Size.Height - AppWindow.ClientSize.Height));
+
+        // 외곽 프레임을 알았으니 창 좌표에서 다시 측정. 작업 영역 상한은 실제 창 기준.
+        var layout = InitialWindowGeometry.Measure(
+            native,
+            new PixelSize(frame.Width, frame.Height + statusBar),
+            margin,
+            workArea,
+            minimumWindow);
+        var (x, y) = InitialWindowGeometry.Center(
+            layout.WindowSize, workArea, display.WorkArea.X, display.WorkArea.Y);
+
+        _transform.SetViewport(
+            (float)Math.Max(1, layout.WindowSize.Width - frame.Width),
+            (float)Math.Max(1, layout.WindowSize.Height - frame.Height - statusBar));
+        _transform.OpenAtScale(layout.ContentScale);
+        _fitPending = false;
+        _initialSizePending = false;
+        _presentationDeferred = false;
+        StopPresentationDeadline();
+        AppWindow.MoveAndResize(new Windows.Graphics.RectInt32(
+            x, y, layout.WindowSize.Width, layout.WindowSize.Height));
+        Activate();
+        UpdateStatusBar();
+        return true;
+    }
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern uint GetDpiForWindow(nint hWnd);
+
+    /// <summary>
+    /// 첫 이미지를 최대 100%로 여백과 함께 담고 모니터 작업 영역 중앙에 배치.
+    /// 창당 한 번만 실행하며 최대화·전체 화면과 사용자가 정한 후속 크기는 존중.
     /// </summary>
     private void MaybeApplyInitialWindowSize()
     {
-        if (!_initialSizePending)
+        // 표시 대기 창의 크기는 지연 경로가 단독 소유. 여기서 재면 배치 전 캔버스와 경합.
+        if (!_initialSizePending || _presentationDeferred)
             return;
-        // The snapshot check is the ordering guard: the session goes Ready before its UI-thread
-        // callback runs, and that callback re-arms the pending fit. Waiting for the snapshot to
-        // carry this document means the fit this method cancels is the one already queued for it.
+        // 세션 Ready보다 UI 콜백이 늦으므로 스냅샷이 이 문서를 담을 때까지 기다려 순서 보장.
         if (_viewModel.Session.State != SessionState.Ready
             || _viewModel.Session.Current is not { NativeSize: { IsEmpty: false } native } document
             || document.Id != _snapshotDocumentId)
             return;
         if (AppWindow.Presenter is not OverlappedPresenter { State: OverlappedPresenterState.Restored })
         {
-            // A maximized or full-screen window is the user's own choice; leave it alone for good.
+            // 최대화·전체 화면은 사용자 선택. 손대지 않음.
             _initialSizePending = false;
             return;
         }
         var rasterScale = Canvas.XamlRoot?.RasterizationScale ?? 0d;
         if (rasterScale <= 0d || Canvas.ActualWidth <= 0d || Canvas.ActualHeight <= 0d)
-            return; // Pre-layout: the canvas SizeChanged/Loaded path retries.
+            return; // 배치 전이면 캔버스 크기 변경·로드 경로가 재시도.
         if (DisplayArea.GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Nearest) is not { } display)
             return;
         _initialSizePending = false;
 
         var canvasWidth = Canvas.ActualWidth * rasterScale;
         var canvasHeight = Canvas.ActualHeight * rasterScale;
-        // Everything outside the canvas — title bar, borders, status bar — measured, not assumed.
+        // 제목 표시줄·테두리·상태바는 추측 말고 실측.
         var chrome = new PixelSize(
             Math.Max(0, AppWindow.Size.Width - (int)Math.Round(canvasWidth)),
             Math.Max(0, AppWindow.Size.Height - (int)Math.Round(canvasHeight)));
         var railReserve = ToolRailReserve();
-        // The rail reserve counts on both sides because the view centers the image: half of it on
-        // the docked side is what actually keeps the picture out from under the rail.
+        // 이미지가 중앙에 오므로 막대 여백은 양쪽 계산. 그래야 이미지가 막대 밑에 안 숨음.
         var margin = new PixelSize(
             (int)Math.Round((CanvasMarginDip
                 + (_toolRailDock == ToolRailDock.Vertical ? railReserve : 0d)) * rasterScale),
@@ -2225,8 +2371,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         var (x, y) = InitialWindowGeometry.Center(
             layout.WindowSize, workArea, display.WorkArea.X, display.WorkArea.Y);
 
-        // Adopt the scale before the resize lands: the viewport change then only re-centers
-        // (Custom mode keeps the centered content centered), so no fit ever overwrites the margin.
+        // 크기 변경 전에 배율 적용. 이후 뷰포트 변경은 중앙 정렬만 해 여백을 덮지 않음.
         _transform.SetViewport(
             (float)Math.Max(1, layout.WindowSize.Width - chrome.Width),
             (float)Math.Max(1, layout.WindowSize.Height - chrome.Height));
@@ -2237,7 +2382,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         UpdateStatusBar();
     }
 
-    /// <summary>Rail thickness plus its outer margin on the docked axis, in DIPs.</summary>
+    /// <summary>도킹 축의 도구 막대 두께와 바깥 여백 합계(DIP).</summary>
     private double ToolRailReserve()
     {
         var thickness = _toolRailDock == ToolRailDock.Horizontal
@@ -2252,8 +2397,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
     private void OnPointerPressed(object sender, PointerRoutedEventArgs e)
     {
         var currentPoint = e.GetCurrentPoint(Canvas);
-        // FR-VIEW-004: a right-button (or pen barrel) drag pans like Space+drag; the canvas has no
-        // context menu, so the button is free and never reaches the edit paths below.
+        // 오른쪽 버튼·펜 배럴 드래그는 Space+드래그처럼 팬. 캔버스 메뉴가 없어 키 충돌 없음.
         var rightPan = !currentPoint.Properties.IsLeftButtonPressed
             && currentPoint.Properties.IsRightButtonPressed;
         if ((!currentPoint.Properties.IsLeftButtonPressed && !rightPan) || _activePointerId is not null)
@@ -2270,8 +2414,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
             return;
         }
 
-        // Space is the pan override even mid-tool (FR-VIEW-004), so it wins over any edit gesture.
-        // A replacement in flight also blocks editing: the pending swap would discard the edit unasked.
+        // Space 팬은 도구 사용 중에도 최우선. 문서 교체 중 편집도 묻지 않고 사라지므로 차단.
         if (_spaceHeld || _viewModel.Editor.Document is not { } document || _viewModel.IsReplacementPending)
             return;
 
@@ -2328,10 +2471,10 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
 
         if (_tool != CanvasTool.Select)
         {
-            // Blocked-layer feedback happens at press: no phantom draft that vanishes on commit.
+            // 막힌 레이어는 누를 때 알림. 확정 순간 사라지는 유령 초안 금지.
             if (!CanEditActiveLayer())
                 return;
-            // Authoring starts on visible content only; the stroke may extend past the edge later.
+            // 작성 시작점은 보이는 내용 위만 허용. 시작 뒤 선이 밖으로 나가는 건 허용.
             if (ToNativeVisible(device) is not { } drawStart)
                 return;
             BeginGesture(document);
@@ -2359,7 +2502,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
             var offset = NativeDistanceForDevicePixels(device, 24f);
             var handle = SelectionGeometry.HitTest(
                 selected, new AnnotationPoint(handlePoint.X, handlePoint.Y), radius, offset);
-            // Protection regions never rotate (ADR-0015); the rotate affordance is inert for them.
+            // 보호 영역은 회전하지 않으므로 회전 손잡이 비활성.
             if (handle == SelectionHandle.Rotate && selected is ProtectionAnnotation)
                 handle = SelectionHandle.None;
             if (handle != SelectionHandle.None)
@@ -2409,8 +2552,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         _gestureRevision = _viewModel.Editor.Revision;
     }
 
-    /// <summary>The mutation funnel's identity check: the gesture may only touch the exact document
-    /// and editor binding it started on, and never while a replacement is pending.</summary>
+    /// <summary>제스처가 시작한 정확한 문서·편집기만 수정하도록 확인.</summary>
     private bool GestureStillValid() =>
         !_viewModel.IsReplacementPending
         && _viewModel.Editor.Document is { } document
@@ -2424,13 +2566,10 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
 
         var point = e.GetCurrentPoint(Canvas).Position;
         var current = new SKPoint((float)point.X, (float)point.Y);
-        // Track the latest position on every path: a pan that follows a draw/drag move must measure
-        // its delta from the previous frame, not from the press point, or the first pan frame jumps.
+        // 모든 경로에서 최신 위치 기록. 그리다 팬으로 바뀌어도 첫 프레임이 튀지 않게 함.
         _lastPointer = current;
 
-        // FR-VIEW-004: Space+drag (or a right-button drag) ALWAYS pans, even over an in-progress
-        // draft — the draft lives in document space, so it survives the pan untouched and resumes
-        // when the pan modifier is released.
+        // Space·오른쪽 드래그는 초안 중에도 항상 팬. 초안은 문서 좌표라 팬 뒤 그대로 재개.
         if (!_spaceHeld && !_rightPanActive)
         {
             if (_draftTool is CanvasTool.Pen or CanvasTool.Highlighter
@@ -2506,15 +2645,10 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         Canvas.Invalidate();
     }
 
-    /// <summary>
-    /// One drag = one history entry: the first move stacks a command, the rest rewrite it, so undo
-    /// jumps back to where the object started rather than replaying every intermediate pixel (§7.8).
-    /// </summary>
+    /// <summary>드래그 하나는 기록 하나. 첫 이동만 쌓고 나머지는 갱신.</summary>
     private void DragSelection(PointerRoutedEventArgs e)
     {
-        // Re-checked at the mutation, not just at press: a replacement can start — or complete —
-        // mid-drag (e.g. an activation redirect), and a gesture begun on the predecessor must not
-        // edit the successor.
+        // 누를 때뿐 아니라 실제 변경 때도 확인. 드래그 중 교체된 후임 문서는 건드리지 않음.
         if (!GestureStillValid())
         {
             CancelActiveGesture();
@@ -2595,11 +2729,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
             _ = ShowTextDialogAndCommitAsync(text);
     }
 
-    /// <summary>
-    /// Capture loss (touch cancel, window deactivation, a modal opened mid-gesture) means Released
-    /// may never fire: abandon the gesture, or bare hover moves keep mutating and a stale draft
-    /// would be committed by an unrelated later release.
-    /// </summary>
+    /// <summary>포인터 캡처를 잃으면 제스처 폐기. 늦은 해제가 묵은 초안을 확정하지 못하게 함.</summary>
     private void OnPointerLost(object sender, PointerRoutedEventArgs e)
     {
         if (_activePointerId != e.Pointer.PointerId)
@@ -2625,8 +2755,8 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         UpdateStatusBar();
     }
 
-    /// <summary>Turns one native-space draft into one history entry.</summary>
-    /// <summary>Live drag draft only (Id = empty, no text yet): never enters the document.</summary>
+    /// <summary>원본 좌표 초안 하나를 기록 항목 하나로 확정.</summary>
+    /// <summary>드래그 중 초안 전용. 빈 ID·빈 텍스트라 문서에는 안 들어감.</summary>
     private SpeechBubbleAnnotation MakeBubbleDraft(RectF bounds) => new()
     {
         Id = Guid.Empty,
@@ -2789,8 +2919,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         return null;
     }
 
-    /// <summary>A degenerate click on an annotation of the tool's own text-bearing kind selects it
-    /// instead of stacking a new default draft, so double-click-to-edit works under that tool.</summary>
+    /// <summary>같은 텍스트 도구의 기존 주석을 짧게 누르면 새 초안 대신 선택.</summary>
     private bool TrySelectTextTargetAt(SKPoint nativePoint, bool bubble)
     {
         var hit = _viewModel.Editor.State.HitTest(nativePoint.X, nativePoint.Y);
@@ -2805,8 +2934,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         return true;
     }
 
-    /// <summary>One dialog for every text-bearing annotation (text and speech bubble): the create
-    /// and edit paths must never drift apart in limits or cancel semantics.</summary>
+    /// <summary>텍스트·말풍선 생성과 편집이 공유하는 단일 대화상자.</summary>
     private async Task<string?> PromptAnnotationTextAsync(string title, string? initial = null)
     {
         if (Content?.XamlRoot is null)
@@ -2833,7 +2961,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         if (await ShowDialogAsync(dialog, editScoped: true) != ContentDialogResult.Primary
             || string.IsNullOrWhiteSpace(textBox.Text))
             return null;
-        // WinUI TextBox reports line breaks as bare '\r'; the document model stores '\n'.
+        // WinUI TextBox 줄바꿈 '\r'을 문서 모델의 '\n'으로 통일.
         return textBox.Text
             .Replace("\r\n", "\n", StringComparison.Ordinal)
             .Replace('\r', '\n');
@@ -3015,7 +3143,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         return (dx * dx) + (dy * dy);
     }
 
-    /// <summary>A release produces a review draft; only an explicit confirmation mutates history.</summary>
+    /// <summary>포인터 해제는 검토 초안만 생성. 명시적 확인 때 기록 변경.</summary>
     private void CompleteCropDrag()
     {
         if (_cropInteraction.Phase != CropInteractionPhase.Dragging)
@@ -3054,9 +3182,8 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
     }
 
     /// <summary>
-    /// UR-009 lift: the reviewed rect becomes a raster-asset annotation and the same rect is
-    /// erased from the background — one history entry — then the current press continues as a
-    /// normal selection drag so the patch follows the pointer without re-pressing.
+    /// 검토 영역을 래스터 주석으로 띄우고 배경의 같은 영역은 지움.
+    /// 한 기록으로 묶은 뒤 현재 누름을 선택 드래그로 이어 재클릭 없이 이동.
     /// </summary>
     private void LiftRegionAndBeginDrag(
         Core.Documents.ImageDocument document, CropReview review, SKPoint device)
@@ -3072,8 +3199,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         var evaluation = Evaluation(document);
         if (!evaluation.TryGetOutputToNative(out var inverse))
             return;
-        // Native-space bbox of the review rect; axis-aligned exactly for the quarter-turn/flip
-        // pipelines the UI produces, snapped outward to the pixel grid like a crop.
+        // 검토 영역의 원본 좌표 경계 상자. 자르기처럼 픽셀 격자 바깥쪽으로 맞춤.
         var min = new Vector2(float.PositiveInfinity);
         var max = new Vector2(float.NegativeInfinity);
         foreach (var corner in (ReadOnlySpan<Vector2>)
@@ -3120,8 +3246,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
                 Bounds = new RectF(x0, y0, x1 - x0, y1 - y0),
             };
 
-            // The erase bounds are the native rect mapped forward, so the punch and the patch
-            // cover the same pixels even after the outward snap above.
+            // 지우기 경계는 원본 영역을 순방향 변환해 투명 구멍과 조각 픽셀을 일치시킴.
             var outMin = new Vector2(float.PositiveInfinity);
             var outMax = new Vector2(float.NegativeInfinity);
             foreach (var corner in (ReadOnlySpan<Vector2>)
@@ -3144,7 +3269,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
             _selectedAnnotation = annotation.Id;
             _tool = CanvasTool.Select;
 
-            // Continue this press as the annotation drag (fields the Select press path would set).
+            // 현재 누름을 선택 주석 드래그로 이어감.
             BeginGesture(document);
             _dragAnnotation = annotation.Id;
             _dragOrigin = annotation.Bounds;
@@ -3163,8 +3288,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         }
     }
 
-    /// <summary>Ctrl+X on a reviewed region: region PNG to the clipboard, then the erase op —
-    /// erase only after the copy actually succeeded, so a failed copy never destroys pixels.</summary>
+    /// <summary>검토 영역을 PNG로 복사한 뒤 지움. 복사 실패면 픽셀도 보존.</summary>
     private async Task CutRegionToClipboardAsync()
     {
         if (_viewModel.Editor.Document is not { } document
@@ -3202,7 +3326,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
             return;
         }
 
-        // Photoshop parity: double-click on the empty workspace opens the file picker.
+        // 빈 작업 공간 더블클릭은 파일 선택기 열기.
         if (_viewModel.Editor.Document is null || ToNativeVisible(device) is not { } native)
         {
             e.Handled = true;
@@ -3210,7 +3334,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
             return;
         }
 
-        // FR-ANNO-005/007: double-click on a text-bearing annotation opens its content editor.
+        // 텍스트가 있는 주석을 더블클릭하면 내용 편집기 열기.
         if (_tool != CanvasTool.Select)
             return;
         var hit = _viewModel.Editor.State.HitTest(native.X, native.Y);
@@ -3254,11 +3378,10 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         return new SKPoint((float)point.X * scale, (float)point.Y * scale);
     }
 
-    /// <summary>Device pixels → output-canvas pixels (the view's content space).</summary>
+    /// <summary>장치 픽셀 → 출력 캔버스 픽셀.</summary>
     private SKPoint ToOutput(SKPoint devicePoint) => _transform.ViewToContent(devicePoint);
 
-    /// <summary>Device pixels → native source pixels, unbounded: drag deltas keep working when the
-    /// pointer leaves the canvas, and an authored stroke may extend past the visible edge.</summary>
+    /// <summary>장치 픽셀 → 원본 픽셀. 캔버스 밖 드래그도 이어지도록 범위 제한 없음.</summary>
     private SKPoint? ToNative(SKPoint devicePoint)
     {
         if (_viewModel.Editor.Document is not { } document)
@@ -3271,10 +3394,8 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
     }
 
     /// <summary>
-    /// Device pixels → native pixels only when the point lands on visible content: inside the
-    /// output canvas AND inside the source clip. Cheap rejection happens before the inverse
-    /// hit-test, so the transparent corners of a rotated canvas and cropped-away regions hit
-    /// nothing (ADR-0009).
+    /// 보이는 내용 위의 장치 픽셀만 원본 픽셀로 변환.
+    /// 출력 캔버스와 원본 클립 밖은 역변환 전에 빠르게 거절.
     /// </summary>
     private SKPoint? ToNativeVisible(SKPoint devicePoint)
     {
@@ -3309,7 +3430,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         UpdateStatusBar();
     }
 
-    // ---- commands ----
+    // ---- 명령 --------------------------------------------------------------------------------
 
     private async void OnOpenClicked(object sender, RoutedEventArgs e) => await OpenPickerAsync();
     private async void OnClipboardClicked(object sender, RoutedEventArgs e) => await OpenFromClipboardAsync();
@@ -3327,8 +3448,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
     {
         try
         {
-            // Rendered off the UI thread (8.3MP fill + PNG encode); the load gate then owns
-            // replacement prompts exactly as for any other in-memory source.
+            // 8.3MP 채우기·PNG 인코딩은 UI 밖에서 수행. 교체 질문은 일반 메모리 원본과 동일.
             var bytes = await Task.Run(() => WhiteboardFactory.CreatePng(style));
             _viewModel.OpenGeneratedBytes(bytes);
         }
@@ -3338,11 +3458,11 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         }
     }
 
-    // ---- capture notification (FR-CAP-003; payload captured at detection time) ----
+    // ---- 캡처 알림(감지 시점 데이터 보존) --------------------------------------------------
 
     private Capture.Clipboard.ClipboardImagePayload? _pendingCaptureNotice;
 
-    /// <summary>Called by the coordinator on the UI thread for unsolicited captures.</summary>
+    /// <summary>요청하지 않은 캡처를 UI 스레드에서 알림.</summary>
     public void ShowCaptureNotice(Capture.Clipboard.ClipboardImagePayload payload)
     {
         ArgumentNullException.ThrowIfNull(payload);
@@ -3352,22 +3472,20 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         CaptureBar.IsOpen = true;
     }
 
-    /// <summary>Transient status text from outside the window (capture failures).</summary>
+    /// <summary>캡처 실패 등 창 밖에서 온 일시 상태 문구.</summary>
     public void ShowTransientStatus(string text) => SetStatusState(text);
 
-    /// <summary>Out of the shot while the snip overlay is up; every completion path restores
-    /// through <see cref="Capture.Snipping.ICaptureTarget.Activate"/>.</summary>
+    /// <summary>캡처 오버레이 동안 창을 숨김. 완료 경로는 모두 Activate로 복원.</summary>
     public void PrepareForCapture()
     {
         if (AppWindow?.Presenter is Microsoft.UI.Windowing.OverlappedPresenter presenter)
             presenter.Minimize();
     }
 
-    /// <summary>Coordinator activation must also restore a window it minimized for capture —
-    /// Window.Activate alone does not un-minimize. After a capture the foreground belongs to
-    /// the overlay/another app, so plain activation is denied. The window goes TOPMOST and
-    /// stays there until the overlay teardown re-activates the previous app (which would
-    /// otherwise jump back above a non-topmost window), then drops out of the topmost band.</summary>
+    /// <summary>
+    /// 캡처로 최소화한 창을 복원하고 잠깐 최상단으로 올림.
+    /// 오버레이 정리가 끝나 이전 앱이 다시 활성화된 뒤 최상단 상태 해제.
+    /// </summary>
     void Capture.Snipping.ICaptureTarget.Activate()
     {
         if (AppWindow?.Presenter is Microsoft.UI.Windowing.OverlappedPresenter
@@ -3383,7 +3501,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
     }
 
     private Microsoft.UI.Dispatching.DispatcherQueueTimer? _topmostReleaseTimer;
-    // Long enough for the snip overlay teardown to finish re-activating the previous app.
+    // 오버레이 정리가 이전 앱을 다시 활성화하기에 충분한 시간.
     private static readonly TimeSpan TopmostHold = TimeSpan.FromMilliseconds(600);
 
     private void ScheduleTopmostRelease()
@@ -3405,8 +3523,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         _topmostReleaseTimer.Start();
     }
 
-    /// <summary>SetForegroundWindow is denied to a process that lost foreground during capture;
-    /// briefly attaching to the current foreground thread's input queue lifts that lock.</summary>
+    /// <summary>캡처 중 전경 권한을 잃은 프로세스가 창을 복원하도록 입력 큐를 잠깐 연결.</summary>
     private static void StealForeground(nint hwnd)
     {
         var foreground = GetForegroundWindow();
@@ -3423,7 +3540,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
 
     private static readonly nint HwndTopmost = -1;
     private static readonly nint HwndNoTopmost = -2;
-    private const uint SwpNoMoveNoSizeShow = 0x0001 | 0x0002 | 0x0040; // NOSIZE | NOMOVE | SHOWWINDOW
+    private const uint SwpNoMoveNoSizeShow = 0x0001 | 0x0002 | 0x0040; // 크기·위치 유지, 창 표시.
 
     [System.Runtime.InteropServices.DllImport("user32.dll")]
     private static extern bool SetWindowPos(nint hWnd, nint hWndInsertAfter, int x, int y, int cx, int cy, uint flags);
@@ -3452,7 +3569,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
     {
         if (_pendingCaptureNotice is { } payload)
         {
-            // The replacement still walks the unsaved-edit gate; the notice never bypasses it.
+            // 알림으로 열어도 저장 안 한 편집 보호 게이트는 꼬박 통과.
             _viewModel.OpenClipboardBytes(payload.Bytes, payload.Format);
         }
         _pendingCaptureNotice = null;
@@ -3795,16 +3912,13 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         if (sender is not ToggleButton { Tag: string name } button
             || !Enum.TryParse<CanvasTool>(name, out var tool))
             return;
-        // The split select button activates whichever select mode is latched (UR-009); in the
-        // flat rail the region tool has its own button, so Select stays plain object select.
+        // 분할 선택 버튼은 기억한 선택 모드 사용. 평면 막대에서는 영역 버튼이 따로 있어 객체 선택 유지.
         if (tool == CanvasTool.Select && _selectGroupEnabled && _regionSelectMode)
             tool = CanvasTool.RegionSelect;
         SetTool(button.IsChecked == true ? tool : CanvasTool.Select);
     }
 
-    /// <summary>UR-010 dropdown menus: every item shows its rail icon in front of the text. Font
-    /// glyphs are cloned from the shared FontIconSource resources; the two path-based icons
-    /// (whiteboard, marquee) are declared inline in XAML per the icon-system contract.</summary>
+    /// <summary>드롭다운 항목 앞에 도구 막대 아이콘 표시. 공유 글리프는 복제해 사용.</summary>
     private void ConfigureGroupedMenus()
     {
         SetMenuItem(OpenMenuItem, AppStrings.ToolOpen, "Icon.File.Open");
@@ -3819,7 +3933,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         SetMenuItem(CropRatioMenuItem, AppStrings.MenuCropRatio, "Icon.Image.CropRatio");
         SetMenuItem(ResizeMenuItem, AppStrings.MenuResize, "Icon.Image.Resize");
         SetMenuItem(FitMenuItem, AppStrings.ToolFit, "Icon.View.Fit");
-        // The 1:1 icon is a custom path declared inline in XAML (same constraint as whiteboard).
+        // 1:1 아이콘은 화이트보드처럼 XAML 인라인 사용자 경로.
         ActualSizeMenuItem.Text = AppStrings.ToolActualSize;
         SetMenuItem(MosaicMenuItem, AppStrings.ToolMosaic, "Icon.Protect.Mosaic");
         SetMenuItem(BlurMenuItem, AppStrings.ToolBlur, "Icon.Protect.Blur");
@@ -3841,8 +3955,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
             FontSize = 16,
             Glyph = ((FontIconSource)Root.Resources[iconKey]).Glyph,
         };
-        // Mirror = counter-clockwise variant of the rotate glyph; rotate = the shared flip glyph
-        // turned vertical, same trick as the rail button.
+        // 대칭은 회전 글리프의 반시계 변형, 회전은 공유 뒤집기 글리프를 세로로 돌려 재사용.
         if (mirrored || rotated)
         {
             icon.RenderTransformOrigin = new Point(0.5, 0.5);
@@ -3853,8 +3966,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         item.Icon = icon;
     }
 
-    /// <summary>UR-010: each group toggles independently between its dropdown/split button and
-    /// the original flat buttons (open, select split, rotate/flip, crop/size, zoom).</summary>
+    /// <summary>각 도구 그룹을 드롭다운·분할 버튼과 평면 버튼 사이에서 독립 전환.</summary>
     private void ApplyToolbarGrouping()
     {
         ApplyGroup(_openGroupEnabled, OpenGroupButton,
@@ -3870,7 +3982,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
             ? Visibility.Visible : Visibility.Collapsed;
         RegionSelectButton.Visibility = _selectGroupEnabled
             ? Visibility.Collapsed : Visibility.Visible;
-        // Re-grouping latches the split button onto whichever select mode is currently active.
+        // 다시 묶을 때 현재 선택 모드를 분할 버튼에 기억.
         if (_selectGroupEnabled)
             _regionSelectMode = _tool == CanvasTool.RegionSelect;
         UpdateSelectButtonIcon();
@@ -3885,8 +3997,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         }
     }
 
-    /// <summary>Dropdown twin of the flat toggle buttons: activate the tagged tool, or drop back
-    /// to object select when it is already active.</summary>
+    /// <summary>평면 토글 버튼의 드롭다운 짝. 같은 도구를 다시 누르면 객체 선택으로 복귀.</summary>
     private void OnToolMenuItemClicked(object sender, RoutedEventArgs e)
     {
         if (sender is not MenuFlyoutItem { Tag: string name }
@@ -3909,9 +4020,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         SetTool(regionMode ? CanvasTool.RegionSelect : CanvasTool.Select);
     }
 
-    /// <summary>Visibility swap, never IconSource reassignment: sharing one IconSource instance
-    /// across reassignments intermittently dropped the rendered glyph (user bug report 2026-07-23).
-    /// The flat rail always shows the object-select glyph; the split button reflects the mode.</summary>
+    /// <summary>아이콘 원본 재할당 대신 표시만 교환. 원본 공유 재할당 시 글리프가 가끔 사라짐.</summary>
     private void UpdateSelectButtonIcon()
     {
         var showRegion = _selectGroupEnabled && _regionSelectMode;
@@ -3922,7 +4031,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
     private void OnCropClicked(object sender, RoutedEventArgs e) =>
         SetTool(CropButton.IsChecked == true ? CanvasTool.Crop : CanvasTool.Select);
 
-    /// <summary>Edit tools are mutually exclusive; switching abandons any in-progress draft.</summary>
+    /// <summary>편집 도구는 하나만 활성화. 바꾸면 진행 중 초안 폐기.</summary>
     private void SetTool(CanvasTool tool)
     {
         SaveCurrentToolStyle();
@@ -4059,8 +4168,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         PublishCurrentToolDefaults();
     }
 
-    /// <summary>Selects the family in the installed-font dropdown; a persisted family that is no
-    /// longer installed is prepended so the current value stays visible and re-savable.</summary>
+    /// <summary>설치 글꼴 선택. 사라진 저장 글꼴도 맨 앞에 붙여 현재 값 표시·재저장 허용.</summary>
     private void SelectFontFamily(string family)
     {
         var index = -1;
@@ -4169,7 +4277,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         var hasFont = selectedMode
             ? selected is TextAnnotation or NumberMarkerAnnotation or SpeechBubbleAnnotation
             : _tool is CanvasTool.Text or CanvasTool.Number or CanvasTool.SpeechBubble;
-        // Protection is always fully opaque (FR-ANNO-008~010) — no opacity dial.
+        // 보호 효과는 항상 완전 불투명. 투명도 조절 없음.
         var hasOpacity = selectedMode
             ? selected is not ProtectionAnnotation
             : _tool is not CanvasTool.Mosaic and not CanvasTool.Blur and not CanvasTool.Mask;
@@ -4203,8 +4311,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         var isTextLike = selectedMode
             ? selected is TextAnnotation or SpeechBubbleAnnotation
             : _tool is CanvasTool.Text or CanvasTool.SpeechBubble;
-        // The bubble's background is its required FillArgb, not the optional text backdrop —
-        // exposing both would create two competing background states (PEER [17차]).
+        // 말풍선 배경은 필수 채우기 색 하나만 사용. 선택 텍스트 배경까지 열면 상태가 둘로 갈림.
         var isPlainText = selectedMode ? selected is TextAnnotation : _tool == CanvasTool.Text;
         FontFamilyGroup.Visibility = isTextLike ? Visibility.Visible : Visibility.Collapsed;
         BoldButton.Visibility = isTextLike ? Visibility.Visible : Visibility.Collapsed;
@@ -4302,7 +4409,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         {
             _updatingToolControls = false;
         }
-        // Tool/selection changes can flip the mask-color context the palette reflects.
+        // 도구·선택 변경에 따라 팔레트의 마스크 색 문맥도 바뀔 수 있음.
         UpdateColorSelection();
     }
 
@@ -4401,7 +4508,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         }
     }
 
-    /// <summary>Row = whole layer (UR-007): eye, name (or rename box), lock. Objects are not rows.</summary>
+    /// <summary>행 하나가 레이어 전체. 표시·이름·잠금만 두며 객체는 행이 아님.</summary>
     private Grid BuildLayerRow(AnnotationLayer layer, int index)
     {
         var name = LayerDisplayName(layer, index);
@@ -4494,7 +4601,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         return row;
     }
 
-    /// <summary>Positional fallback for unnamed layers; index is bottom-based like Photoshop numbering.</summary>
+    /// <summary>이름 없는 레이어의 위치 기반 이름. 아래부터 번호 부여.</summary>
     private static string LayerDisplayName(AnnotationLayer layer, int index) =>
         layer.Name.Length == 0 ? $"{AppStrings.LayerDefaultName} {index + 1}" : layer.Name;
 
@@ -4547,13 +4654,13 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         ApplyLayerPanelCollapse();
     }
 
-    /// <summary>Photoshop-style panel fold: the header stays, list and actions collapse away.</summary>
+    /// <summary>헤더는 남기고 목록·동작만 접는 레이어 패널.</summary>
     private void ApplyLayerPanelCollapse()
     {
         var body = _layerPanelCollapsed ? Visibility.Collapsed : Visibility.Visible;
         LayerList.Visibility = body;
         LayerFooterButtons.Visibility = body;
-        // The panel is bottom-anchored, so the chevron points where the body will go.
+        // 패널이 아래 고정이라 화살표도 본문이 펼쳐질 방향을 가리킴.
         LayerCollapseIcon.IconSource = IconSourceFor(
             _layerPanelCollapsed ? "Icon.Layer.Up" : "Icon.Layer.Down");
         SetTip(LayerCollapseButton,
@@ -4678,7 +4785,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
             _viewModel.Editor.Apply(command);
     }
 
-    /// <summary>Gate for authoring commands: the active layer must be visible and unlocked.</summary>
+    /// <summary>작성 명령 게이트. 활성 레이어가 보이고 잠금 해제돼야 함.</summary>
     private bool CanEditActiveLayer()
     {
         if (_viewModel.Editor.State.FindLayer(_activeLayerId) is not { } layer)
@@ -4774,7 +4881,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         if (delta == 0)
             return;
 
-        // Mouse wheel up moves toward the rail start; down moves toward the end.
+        // 휠 위는 막대 시작, 아래는 끝 방향.
         var targetOffset = Math.Clamp(
             ToolRailScroll.HorizontalOffset - (delta * 0.6),
             0d,
@@ -4862,8 +4969,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
             hint.VerticalAlignment = horizontal
                 ? VerticalAlignment.Stretch
                 : (start ? VerticalAlignment.Top : VerticalAlignment.Bottom);
-            // Bleed across the rail padding so the hint sits flush with the rail edge; the end
-            // hint rounds the same 12px corners as the rail border, the start edge is mid-rail.
+            // 막대 여백까지 덮어 힌트를 가장자리에 밀착. 끝쪽 모서리는 막대와 같은 12px.
             hint.Margin = horizontal
                 ? new Thickness(0, -4, start ? 0 : -8, -4)
                 : new Thickness(-4, 0, -4, start ? 0 : -8);
@@ -4893,7 +4999,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
     private void ApplyToolRailDock()
     {
         var horizontal = _toolRailDock == ToolRailDock.Horizontal;
-        // Same 44px rail thickness in both docks: 36px buttons + 4px padding on the thickness axis.
+        // 어느 도킹이든 막대 두께 44px: 버튼 36px + 두께 축 여백 4px씩.
         ToolRail.Padding = horizontal ? new Thickness(8, 4, 8, 4) : new Thickness(4, 8, 4, 8);
         ToolRailItems.Orientation = horizontal ? Orientation.Horizontal : Orientation.Vertical;
         foreach (var group in new[]
@@ -4919,8 +5025,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         }
         SelectModeButton.Width = horizontal ? 14 : 36;
         SelectModeButton.Height = horizontal ? 36 : 14;
-        // Rail flyouts must open away from the rail (below when docked top, right when docked
-        // left) — the default placement clips against the window edge behind the rail.
+        // 막대 플라이아웃은 막대 반대쪽으로 열기. 기본 위치는 창 가장자리에 잘림.
         foreach (var flyout in new[]
         {
             OpenGroupButton.Flyout, TransformGroupButton.Flyout,
@@ -4994,7 +5099,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
             CloseButtonText = AppStrings.DialogCancel,
             DefaultButton = ContentDialogButton.Primary,
         };
-        // The paged hub is wider than ContentDialog's default 548px ceiling.
+        // 페이지 허브가 기본 대화상자 너비 상한 548px보다 넓음.
         dialog.Resources["ContentDialogMaxWidth"] = 800d;
         dialog.PrimaryButtonClick += (_, args) =>
         {
@@ -5039,7 +5144,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         }
     }
 
-    /// <summary>The context bar scrolls horizontally only, so the vertical wheel maps to it.</summary>
+    /// <summary>가로 전용 컨텍스트 막대에 세로 휠 입력을 연결.</summary>
     private void OnContextBarPointerWheel(object sender, PointerRoutedEventArgs e)
     {
         if (ContextBarScroll.ScrollableWidth <= 0)
@@ -5253,11 +5358,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
     private async void OnResizeClicked(object sender, RoutedEventArgs e) =>
         await ShowResizeDialogAsync();
 
-    /// <summary>
-    /// The one admission point for pipeline edits: the candidate is evaluated against this source
-    /// before it enters the history, so an op the evaluator rejects (crop misses the canvas, output
-    /// over the caps) reports on the status bar instead of poisoning paint.
-    /// </summary>
+    /// <summary>파이프라인 편집 단일 입구. 기록 전 평가해 잘못된 작업은 상태바에서 차단.</summary>
     private bool ApplyTransformOp(TransformEditKind kind, TransformOp op)
     {
         if (_viewModel.IsReplacementPending || _viewModel.Editor.Document is not { } document)
@@ -5316,10 +5417,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         _selectedAnnotation = default;
     }
 
-    /// <summary>
-    /// Abandons drafts and crop review before a command mutates history. It also releases an active
-    /// pointer before clearing visual state, so a later capture-lost event is harmless.
-    /// </summary>
+    /// <summary>명령 적용 전 초안·자르기 검토·포인터 캡처 정리.</summary>
     private void CancelActiveGesture()
     {
         var releasePointers = _activePointerId is not null;
@@ -5344,8 +5442,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         UpdateStatusBar();
     }
 
-    /// <summary>Esc abandons the in-progress authoring draft (SSOT §16.3) before it means
-    /// "leave full screen". A selection drag is finalized by release, not canceled here.</summary>
+    /// <summary>Esc는 전체 화면 해제보다 진행 중 작성 초안을 먼저 취소.</summary>
     private void OnEscape()
     {
         if (_drawAnchor is not null || _inkPoints.Count > 0
@@ -5360,9 +5457,9 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         ExitFullScreen();
     }
 
-    // ---- M6 save / export / copy (FR-OUT-001~005, 008 strip default, 009; §10 원본 보호) ----
+    // ---- 저장·내보내기·복사 ---------------------------------------------------------------
 
-    /// <summary>The frame an export flattens from, owning the full re-decode when one was needed.</summary>
+    /// <summary>내보내기 평면화 원본과 필요 시 전체 해상도 재디코드 수명 소유.</summary>
     private readonly record struct ExportFrame(SKImage Frame, bool OwnsFrame) : IDisposable
     {
         public void Dispose()
@@ -5372,8 +5469,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         }
     }
 
-    /// <summary>Quick save writes to the tracked target; without one (or on Ctrl+Shift+S) the
-    /// picker chooses. Returns true when bytes actually landed on disk.</summary>
+    /// <summary>빠른 저장은 추적 대상 사용. 대상이 없거나 다른 이름 저장이면 선택기 표시.</summary>
     private async Task<bool> SaveAsync(bool quick)
     {
         if (_savingInProgress || _viewModel.IsReplacementPending
@@ -5417,7 +5513,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         };
         WinRT.Interop.InitializeWithWindow.Initialize(
             picker, WinRT.Interop.WindowNative.GetWindowHandle(this));
-        // First entry is the picker default: projects re-save as projects, images as PNG.
+        // 선택기 기본값은 프로젝트면 프로젝트, 이미지면 PNG.
         if (document.Source.Kind == DocumentSourceKind.Project)
             picker.FileTypeChoices.Add(AppStrings.ProjectTypeName, [ProjectStore.Extension]);
         picker.FileTypeChoices.Add("PNG", [".png"]);
@@ -5431,7 +5527,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
             return false;
         var path = file.Path;
 
-        // §10: the original is overwritten only on an explicit confirmation, never as a default.
+        // 원본 덮어쓰기는 명시적 확인 때만. 기본값으로 슬쩍 밀어 넣지 않음.
         if (document.Source is { Kind: DocumentSourceKind.File, Path: { } original }
             && string.Equals(Path.GetFullPath(path), Path.GetFullPath(original), StringComparison.OrdinalIgnoreCase)
             && !await ConfirmOverwriteOriginalAsync())
@@ -5454,7 +5550,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
             var options = target.Options ?? ExportOptions.Default;
             if (target.Options is null && target.ImageFormat is { } imageFormat)
             {
-                // FR-OUT-008: only File/Project sources have metadata to offer keeping.
+                // 파일·프로젝트 원본에만 보존할 메타데이터가 있음.
                 var offerMetadata = document.Source.Kind
                     is DocumentSourceKind.File or DocumentSourceKind.Project;
                 if (imageFormat is ExportFormat.Jpeg or ExportFormat.WebP || offerMetadata)
@@ -5466,8 +5562,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
                 target = target with { Options = options };
             }
             var token = _shutdownCts.Token;
-            // Transaction token: the write persists exactly this state. MarkSaved applies only if
-            // the editor still sits at it afterwards — an edit landing mid-write stays modified.
+            // 실제 쓴 상태 토큰만 저장 완료 처리. 쓰는 중 편집이 끼면 수정 상태 유지.
             var state = _viewModel.Editor.State;
             var stateId = _viewModel.Editor.CurrentStateId;
             SetStatusState(AppStrings.SaveInProgress);
@@ -5498,7 +5593,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
                     }
                     return (encoded, applied);
                 }, token);
-                // The user asked to keep metadata; a silent no-op would misreport what was saved.
+                // 메타데이터 보존 요청을 조용히 무시하면 저장 결과를 거짓말하게 됨.
                 metadataSkipped = options.KeepMetadata && !metadataApplied;
             }
             else
@@ -5518,8 +5613,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
                     return ProjectStore.Build(pages, activePageIndex, sourceName, sourceBytes, preview);
                 }, token);
             }
-            // The picker or the write may have straddled a replacement; never retarget or mark a
-            // different document (checked again after the write for the same reason).
+            // 선택기·쓰기가 문서 교체를 걸쳤어도 다른 문서를 대상으로 바꾸거나 저장 표시 금지.
             if (_viewModel.Editor.Document?.Id != document.Id)
                 return false;
             await Task.Run(() => AtomicFileWriter.Write(target.Path, bytes), token);
@@ -5547,10 +5641,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         }
     }
 
-    /// <summary>FR-OUT-001: the flattened edit result goes to the clipboard with transparency.
-    /// FR-EDIT-007: a valid crop review copies only that region; a stale review closes without
-    /// touching the clipboard, mirroring the commit-path gate. A reviewed box selection (UR-009)
-    /// copies its region the same way. Returns true only when the clipboard actually changed.</summary>
+    /// <summary>평면화한 편집 결과를 투명도 포함 복사. 검토 중인 자르기·영역 선택은 해당 부분만 복사.</summary>
     private async Task<bool> CopyToClipboardAsync()
     {
         if (_savingInProgress || _viewModel.Editor.Document is not { } document || _snapshot is null)
@@ -5603,7 +5694,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
             if (_viewModel.Editor.Document?.Id != document.Id)
                 return false;
             await _clipboard.SetImagePngAsync(png, token);
-            // FR-CAP-005: the capture watcher must not mistake this copy for a new capture.
+            // 캡처 감시가 내부 복사를 새 캡처로 착각하지 않게 기록.
             AppServices.Capture?.NoteInternalCopy(png);
             SetStatusState(region is null ? AppStrings.CopyDone : AppStrings.CopyRegionDone);
             return true;
@@ -5621,10 +5712,10 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         }
     }
 
-    /// <summary>The frame an export flattens from — always an owned copy, since a replacement
-    /// disposes the UI snapshot mid-flight. A reduced-preview document re-decodes its source at
-    /// full resolution so the export carries real pixels (§10); when that is impossible the export
-    /// fails explicitly rather than silently upscaling preview pixels to the native output size.</summary>
+    /// <summary>
+    /// 내보내기용 소유 프레임. 축소 미리보기는 원본을 전체 해상도로 다시 디코드.
+    /// 불가능하면 저해상도 확대 대신 명시적으로 실패.
+    /// </summary>
     private async Task<ExportFrame> GetExportFrameAsync(Core.Documents.ImageDocument document)
     {
         if (document.WasAnimationFlattened && document.IsReducedPreview)
@@ -5676,7 +5767,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         }
     }
 
-    /// <summary>Owned raster copy of the UI snapshot, safe to hand to a worker flatten.</summary>
+    /// <summary>작업자 평면화에 넘겨도 안전한 UI 스냅샷 소유 복사본.</summary>
     private SKImage CopySnapshot()
     {
         var frame = _snapshot ?? throw new InvalidOperationException("No frame to export.");
@@ -5763,9 +5854,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         }, cancellationToken);
     }
 
-    /// <summary>§10: a save must re-read the same file the user is looking at. Length + last-write
-    /// identity is captured at load time; an externally changed or missing original refuses the
-    /// save instead of silently combining on-screen edits with different pixels.</summary>
+    /// <summary>로드 때 잡은 길이·수정 시각과 원본을 대조. 바뀌거나 사라졌으면 저장 거절.</summary>
     private static void EnsureSourceUnchanged(Core.Documents.ImageDocument document, string path)
     {
         if (!SourceIsUnchanged(document, path))
@@ -5782,14 +5871,10 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
             && info.LastWriteTimeUtc == document.SourceLastWriteUtc;
     }
 
-    /// <summary>Reading a 512MiB original for a few KB of EXIF is a memory hazard, not a
-    /// throughput concern; files above this contribute no metadata (status says so).</summary>
+    /// <summary>몇 KB EXIF 때문에 거대 원본을 읽지 않도록 둔 메타데이터 원본 상한.</summary>
     private const long MetadataReadBudget = 64L * 1024 * 1024;
 
-    /// <summary>Source bytes for the FR-OUT-008 keep option. Best-effort by contract: metadata is
-    /// auxiliary, so a changed/missing/oversized original contributes nothing rather than failing
-    /// the save (unlike the pixel path, which refuses — <see cref="EnsureSourceUnchanged"/>);
-    /// the saved-without-metadata status keeps the user informed.</summary>
+    /// <summary>메타데이터 보존용 원본 바이트. 보조 정보라 실패하면 메타데이터 없이 저장하고 알림.</summary>
     private async Task<byte[]?> TryGetMetadataSourceAsync(Core.Documents.ImageDocument document)
     {
         switch (document.Source)
@@ -5810,8 +5895,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         }
     }
 
-    /// <summary>Fresh per-export cache: the UI-owned cache is pruned and cleared on the UI thread
-    /// and must never be shared with a worker flatten.</summary>
+    /// <summary>내보내기별 새 캐시. UI 소유 캐시와 작업자 사이 공유 금지.</summary>
     private static async Task<RasterAssetImageCache> WarmExportAssetsAsync(
         DocumentState state, CancellationToken token)
     {
@@ -5829,9 +5913,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         }
     }
 
-    /// <summary>What a project embeds as its background (§7.10 embedded-source): the original file
-    /// bytes when they are still there, the project's own embedded source on re-save, and the
-    /// rendered background for clipboard/capture documents.</summary>
+    /// <summary>프로젝트에 넣을 배경 원본. 파일·기존 내장 원본·렌더 배경 중 출처에 맞게 선택.</summary>
     private async Task<(string Name, byte[] Bytes)> GetProjectSourceAsync(
         Core.Documents.ImageDocument document,
         CancellationToken cancellationToken)
@@ -5847,8 +5929,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         switch (document.Source)
         {
             case { Kind: DocumentSourceKind.File, Path: { } path }:
-                // Identity-checked: a changed/missing original refuses the save — never a silent
-                // switch to different pixels or a rendered stand-in (§10).
+                // 원본이 바뀌거나 사라지면 저장 거절. 다른 픽셀로 몰래 갈아타지 않음.
                 EnsureSourceUnchanged(document, path);
                 return (Path.GetFileName(path), await File.ReadAllBytesAsync(path, cancellationToken));
             case { Kind: DocumentSourceKind.Project } when _viewModel.OpenedProject is { } project:
@@ -5876,8 +5957,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
             if (SourceIsUnchanged(document, path))
             {
                 var bytes = await File.ReadAllBytesAsync(path, cancellationToken);
-                // Recheck after the read so an external replacement cannot race the first identity
-                // check and become the embedded recovery background.
+                // 읽은 뒤 다시 확인해 외부 교체 파일이 복구 배경으로 끼어드는 경합 차단.
                 if (SourceIsUnchanged(document, path))
                     return (Path.GetFileName(path), bytes);
             }
@@ -5885,7 +5965,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         catch (Exception ex) when (
             ex is FileNotFoundException or DirectoryNotFoundException)
         {
-            // The bounded rendered snapshot below is the fidelity-safe recovery source.
+            // 아래 제한된 렌더 스냅샷이 충실도를 지키는 복구 원본.
         }
 
         return ("recovered-background.png",
@@ -5900,9 +5980,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
             document.NativeSize,
             new Core.Imaging.PixelSize(document.Frame.Width, document.Frame.Height));
 
-    /// <summary>Small preview for the container gallery view, rendered directly at the preview
-    /// scale on the caller's (worker) thread — no native-size intermediate, and never the UI
-    /// thread (NFR-PERF-006). View-quality is fine here.</summary>
+    /// <summary>갤러리용 작은 미리보기. 작업자에서 바로 목표 크기로 렌더.</summary>
     private static byte[]? BuildPreviewPng(
         SKImage frame, Core.Imaging.PixelSize nativeSize, DocumentState state,
         RasterAssetImageCache assets)
@@ -5949,8 +6027,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
             Content = AppStrings.ExportLosslessLabel,
             Visibility = format == ExportFormat.WebP ? Visibility.Visible : Visibility.Collapsed,
         };
-        // FR-OUT-008 (Q6 = b): unchecked default = full strip; keeping still scrubs GPS,
-        // MakerNote, serials and the pre-edit thumbnail (ExportMetadata).
+        // 기본은 전체 제거. 보존을 골라도 GPS·MakerNote·일련번호·편집 전 썸네일은 제거.
         var keepMetadata = new CheckBox
         {
             Content = AppStrings.ExportKeepMetadataLabel,
@@ -5991,14 +6068,9 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         return await ShowDialogAsync(dialog, editScoped: false) == ContentDialogResult.Primary;
     }
 
-    // ---- unsaved-change confirmation (FR-HIST-005) ----
+    // ---- 저장하지 않은 변경 확인 ----------------------------------------------------------
 
-    /// <summary>
-    /// The close path cannot await, so it cancels the close, resolves edits and background stores,
-    /// then re-closes on approval.
-    /// The prompt is three-way (저장/저장 안 함/취소, FR-HIST-005); Save is resolved inside
-    /// <see cref="ConfirmDiscardAsync"/> before the decision reaches the gate or this path.
-    /// </summary>
+    /// <summary>닫기를 먼저 취소하고 편집·저장을 비동기로 정리한 뒤 승인되면 다시 닫음.</summary>
     private void OnAppWindowClosing(AppWindow sender, AppWindowClosingEventArgs args)
     {
         if (_closeApproved)
@@ -6035,10 +6107,9 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
     private async Task<DiscardDecision> ConfirmDiscardAsync()
     {
         if (Content?.XamlRoot is null)
-            return DiscardDecision.Discard; // No UI to ask through (unattended runs).
+            return DiscardDecision.Discard; // 물어볼 UI가 없는 무인 실행.
 
-        // Three-way since M6 (FR-HIST-005): 저장 / 저장 안 함 / 취소. Save resolves here — a
-        // successful save means the edits are persisted and the replacement may proceed.
+        // 저장 / 저장 안 함 / 취소. 저장 성공을 여기서 해석한 뒤 교체 허용.
         var dialog = new ContentDialog
         {
             XamlRoot = Content.XamlRoot,
@@ -6049,22 +6120,18 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
             CloseButtonText = AppStrings.DiscardCancel,
             DefaultButton = ContentDialogButton.Primary,
         };
-        // Refused-while-busy comes back as None → Cancel: never a second dialog, never data loss.
+        // 대화상자 사용 중 거절은 취소로 처리. 두 번째 창도, 데이터 손실도 없음.
         var result = await ShowDialogAsync(dialog, editScoped: false);
         if (result == ContentDialogResult.Primary)
             return await SaveAsync(quick: true) ? DiscardDecision.Discard : DiscardDecision.Cancel;
         return result == ContentDialogResult.Secondary ? DiscardDecision.Discard : DiscardDecision.Cancel;
     }
 
-    // ---- dialog coordination ----
+    // ---- 대화상자 조정 ---------------------------------------------------------------------
 
     /// <summary>
-    /// WinUI allows one ContentDialog per root (a second ShowAsync throws), and the discard guard,
-    /// the close path and the M3 edit dialogs can all ask — every dialog goes through here. A
-    /// request while one is open is refused with None rather than queued: for a discard prompt
-    /// None means Cancel (fail-closed), for an edit dialog it means nothing happens.
-    /// Edit-scoped dialogs are torn down on document replacement — their canvas is gone; the
-    /// discard prompt must survive it, being the replacement flow itself.
+    /// 루트당 하나뿐인 대화상자 단일 입구. 이미 열렸으면 대기열 대신 None 반환.
+    /// 문서 교체 시 편집 대화상자는 닫되 교체 흐름인 저장 확인은 유지.
     /// </summary>
     private async Task<ContentDialogResult> ShowDialogAsync(ContentDialog dialog, bool editScoped)
     {
@@ -6085,7 +6152,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
     private void CancelEditDialog()
     {
         if (_activeDialog is { } dialog && _activeDialogEditScoped)
-            dialog.Hide(); // its ShowAsync completes with None
+            dialog.Hide(); // ShowAsync는 None으로 완료.
     }
 
     private async Task ShowResizeDialogAsync()
@@ -6122,7 +6189,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         };
         var keepAspect = new CheckBox { Content = AppStrings.ResizeKeepAspect, IsChecked = true };
 
-        // FR-EDIT-002: px and % stay in sync; the aspect lock drives the passive axis.
+        // px와 %는 함께 갱신. 비율 잠금이 반대 축을 따라오게 함.
         var syncing = false;
         widthBox.ValueChanged += (_, _) => Sync(() =>
         {
@@ -6213,7 +6280,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
     {
         var picker = new Windows.Storage.Pickers.FileOpenPicker();
         WinRT.Interop.InitializeWithWindow.Initialize(picker, WinRT.Interop.WindowNative.GetWindowHandle(this));
-        foreach (var extension in Core.Imaging.ImageFormatCatalog.ViewableExtensions)
+        foreach (var extension in AppServices.ViewableExtensions)
             picker.FileTypeFilter.Add(extension);
         picker.FileTypeFilter.Add(ProjectStore.Extension);
         var files = await picker.PickMultipleFilesAsync();
@@ -6337,7 +6404,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
             AppWindow.SetPresenter(AppWindowPresenterKind.Default);
     }
 
-    // ---- drag & drop (FR-APP-003: files and folders) ----
+    // ---- 파일·폴더 끌어놓기 ---------------------------------------------------------------
 
     private void OnDragOver(object sender, DragEventArgs e)
     {
@@ -6347,7 +6414,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
 
     private async void OnDrop(object sender, DragEventArgs e)
     {
-        // async void event handler: any escaping exception kills the process — contain everything.
+        // async void 이벤트라 예외가 빠져나가면 프로세스 종료. 여기서 전부 회수.
         try
         {
             if (!e.DataView.Contains(StandardDataFormats.StorageItems))
@@ -6358,13 +6425,15 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
             {
                 switch (item)
                 {
-                    case StorageFile file when Core.Imaging.ImageFormatCatalog.IsViewable(file.Path):
+                    case StorageFile file when AppServices.ViewableExtensions.Contains(
+                        Path.GetExtension(file.Path)):
                         paths.Add(file.Path);
                         break;
                     case StorageFolder folder:
                         {
                             var first = Directory.EnumerateFiles(folder.Path)
-                                .Where(Core.Imaging.ImageFormatCatalog.IsViewable)
+                                .Where(path => AppServices.ViewableExtensions.Contains(
+                                    Path.GetExtension(path)))
                                 .OrderBy(Path.GetFileName, Core.Navigation.NaturalStringComparer.Instance)
                                 .FirstOrDefault();
                             if (first is not null)
@@ -6376,8 +6445,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
             if (paths.Count > 0)
                 _viewModel.OpenFiles(paths);
         }
-        // COMException included: GetStorageItemsAsync is a WinRT call, and an escape here kills the
-        // process (async void) — exactly what the containment above promises against.
+        // 저장 항목 조회의 COM 예외도 async void 밖으로 나가면 치명적이므로 함께 회수.
         catch (Exception ex) when (ex is UnauthorizedAccessException or IOException or ArgumentException
             or System.Runtime.InteropServices.COMException)
         {
@@ -6385,28 +6453,24 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         }
     }
 
-    // ---- unattended verification hooks ----
+    // ---- 무인 검증 진입점 -------------------------------------------------------------------
 
-    /// <summary>--smoke-open: load a file, report the session outcome as JSON, exit.</summary>
+    /// <summary>--smoke-open: 파일 로드 후 세션 결과를 JSON으로 남기고 종료.</summary>
     public void ConfigureSmoke(
         string path,
         string? resultPath,
         string? projectPath = null,
-        bool captureExercise = false,
-        bool isolatedCodecExercise = false)
+        bool captureExercise = false)
     {
         _resultPath = resultPath ?? Path.Combine(Path.GetTempPath(), "ezy-smoke.json");
         _smokeProjectPath = projectPath;
         _smokeCaptureExercise = captureExercise;
-        _isolatedCodecExercise = isolatedCodecExercise;
         OpenFiles([path]);
     }
 
     private bool _smokeCaptureExercise;
-    private bool _isolatedCodecExercise;
 
-    /// <summary>--smoke-hold: open, apply one edit, stay open — an external UIA gate then drives
-    /// the real close prompt's 저장 branch against the document's own save target.</summary>
+    /// <summary>--smoke-hold: 열고 한 번 편집한 채 유지해 외부 UIA가 실제 저장 닫기 경로 검증.</summary>
     public void ConfigureEditHold(string path)
     {
         _holdEditPending = true;
@@ -6533,15 +6597,13 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         bool DupIgnored, bool HashDupIgnored, bool NoticeShown, bool NoticeOpened, bool AutoOpened,
         bool OfficialOpened);
 
-    /// <summary>Drives the capture policy through a listener-less coordinator: marker/hash dedup,
-    /// the passive notice (shown + opened), and the armed auto-open — with synthetic payloads,
-    /// never the user's clipboard (FR-CAP-001~005 minus the real overlay, which is manual).</summary>
+    /// <summary>가짜 데이터로 중복 억제·알림·자동 열기를 검증. 실제 클립보드는 손대지 않음.</summary>
     private async Task<CaptureExerciseResult> ExerciseCaptureAsync()
     {
         using var coordinator = new Capture.Snipping.CaptureCoordinator(
             new Capture.Snipping.CaptureCoordinatorOptions { ResolveTarget = () => this },
             listen: false);
-        // Replacement prompts would block an unattended run; captures land on clean documents.
+        // 교체 질문이 무인 실행을 막지 않도록 깨끗한 문서에 캡처 적용.
         _viewModel.Editor.MarkSaved();
 
         static Capture.Clipboard.ClipboardImagePayload Png(int width, int height)
@@ -6574,8 +6636,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         coordinator.HandlePayload(Png(9, 4), hasMarker: false);
         var autoOpened = await WaitForDocumentSizeAsync(9, 4);
 
-        // Official redirect path (Q7=b): request → callback with the captured correlation id →
-        // injected token redeem → auto-open. The real Snipping Tool is never launched.
+        // 공식 경로: 요청 → 상관관계 콜백 → 주입 토큰 교환 → 자동 열기. 실제 도구는 실행 안 함.
         _viewModel.Editor.MarkSaved();
         var officialPayload = Png(11, 6);
         string? correlationId = null;
@@ -6613,7 +6674,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         return false;
     }
 
-    /// <summary>One deterministic annotation, so an unattended dirty save writes real bytes.</summary>
+    /// <summary>무인 수정 저장이 실제 바이트를 쓰게 하는 결정적 주석 하나.</summary>
     private void ApplySmokeQuickEdit()
     {
         if (_viewModel.Editor.Document is not { NativeSize: { IsEmpty: false } native })
@@ -6628,7 +6689,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         }, _activeLayerId));
     }
 
-    /// <summary>--bench-open24mp: measure load-start → first Ready paint (NFR-PERF-002).</summary>
+    /// <summary>--bench-open24mp: 로드 시작부터 첫 Ready 그리기까지 측정.</summary>
     public void ConfigureFirstPaintBench(string path, string? resultPath)
     {
         _resultPath = resultPath ?? Path.Combine(Path.GetTempPath(), "ezy-first-paint.json");
@@ -6636,7 +6697,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         OpenFiles([path]);
     }
 
-    /// <summary>--bench-startup: measure process entry to the first default-window frame.</summary>
+    /// <summary>--bench-startup: 프로세스 진입부터 기본 창 첫 프레임까지 측정.</summary>
     public void ConfigureStartupBench(
         string resultPath,
         long processStartTimestamp,
@@ -6673,6 +6734,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
                             targetMs = 1500,
                             passed = elapsed <= 1500,
                             measurement = "main-entry-to-first-composition-frame",
+                            phases = StartupTimeline.Snapshot(processStartTimestamp),
                             normalStartupPipeline = true,
                             packaged = Capture.Snipping.PackageIdentity.HasIdentity,
                             packageVersion,
@@ -6716,17 +6778,17 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
             if (state is not (SessionState.Ready or SessionState.Failed))
                 return;
             if (_firstPaintWatch is { IsRunning: true })
-                return; // wait for the first painted frame
+                return; // 첫 프레임이 실제로 그려질 때까지 대기.
             _unattendedFlowStarted = true;
 
-            // Smoke mode also exercises resize + fullscreen round-trip on the GL surface.
+            // 스모크 모드에서 GL 표면 크기 변경과 전체 화면 왕복도 확인.
             if (_firstPaintWatch is null && state == SessionState.Ready)
             {
                 await ExerciseWindowAsync();
                 _windowExercised = true;
             }
 
-            // --smoke-project: drive the real save path (picker excluded) end to end (FR-OUT-002/009).
+            // --smoke-project: 선택기를 뺀 실제 저장 경로 종단 검증.
             var projectSaved = false;
             var quickResaved = false;
             if (_smokeProjectPath is { } smokeProject && state == SessionState.Ready
@@ -6736,8 +6798,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
                     smokeDocument, new SaveTarget(smokeProject, null));
                 if (projectSaved)
                 {
-                    // Quick re-save must be a real dirty write, not the clean short-circuit:
-                    // one deterministic edit, then the product Ctrl+S path, proven by new bytes.
+                    // 빠른 재저장은 깨끗한 지름길 말고 편집 후 Ctrl+S로 실제 새 바이트 작성.
                     var before = System.Security.Cryptography.SHA256.HashData(
                         await File.ReadAllBytesAsync(smokeProject));
                     ApplySmokeQuickEdit();
@@ -6749,19 +6810,18 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
                 }
             }
 
-            // --smoke-capture: exercise the capture policy end to end without touching the real
-            // clipboard or the real snipping overlay (both are user-owned surfaces).
+            // --smoke-capture: 사용자 소유 클립보드·오버레이 없이 캡처 정책 종단 검증.
             var capture = new CaptureExerciseResult(false, false, false, false, false, false);
             bool? launcherSupported = null;
             if (_smokeCaptureExercise && state == SessionState.Ready)
             {
                 capture = await ExerciseCaptureAsync();
-                // Non-intrusive real-OS probe of the legacy launch contract ([21차] 필수 1).
+                // 구형 실행 계약을 실제 OS에서 비침습 확인.
                 launcherSupported = await Capture.Snipping.CaptureLauncher.IsSnippingAvailableAsync();
             }
 
             var document = _viewModel.Session.Current;
-            // Transform output dimensions (the document's real size), beside the raw frame size.
+            // 원시 프레임 크기와 함께 문서 실제 크기인 변환 출력 크기 기록.
             var output = _viewModel.Editor.Document is { } edited
                 ? Evaluation(edited).OutputSize
                 : default;
@@ -6798,7 +6858,6 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
                 captureLauncherSupported = launcherSupported,
                 captureHotkeyRegistered = AppServices.Capture?.HotkeyRegistered,
                 packageIdentity = Capture.Snipping.PackageIdentity.HasIdentity,
-                isolatedCodecExercise = _isolatedCodecExercise,
                 isModified = _viewModel.Editor.IsModified,
                 timestampUtc = DateTimeOffset.UtcNow,
             };
@@ -6813,7 +6872,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
             }
             catch
             {
-                // Nothing left to report to; the non-zero information is the missing/error JSON.
+                // 보고할 대상이 없으면 누락·오류 JSON 자체가 실패 정보.
             }
         }
         _canvasResizeSettleTimer?.Stop();
@@ -6821,7 +6880,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         DispatcherQueue.TryEnqueue(() => Application.Current.Exit());
     }
 
-    /// <summary>Resize twice, fullscreen round-trip, then repaint — GL surface smoke (ADR-0007 follow-up).</summary>
+    /// <summary>두 번 크기 변경, 전체 화면 왕복, 다시 그리기로 GL 표면 스모크.</summary>
     private async Task ExerciseWindowAsync()
     {
         ExerciseAnnotations();
@@ -6908,7 +6967,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
             && LayerList.Items.Count == 1
             && LayerList.SelectedItem is ListViewItem { Tag: Guid selectedId }
             && selectedId == _activeLayerId;
-        // Layer container exercise (UR-007): add a second layer, move an object into it.
+        // 레이어 컨테이너 검증: 두 번째 레이어 추가 후 객체 이동.
         var addedLayer = new AnnotationLayer
         {
             Id = Guid.NewGuid(),

@@ -6,10 +6,7 @@ using Xunit;
 
 namespace EzyImageViewer.Tests.Rendering;
 
-/// <summary>
-/// M5 export-flatten contract (FR-ANNO-008~010, §10): protection effects render through the one
-/// composition path with real background pixels, so what the preview shows IS what an export bakes.
-/// </summary>
+/// <summary>실제 배경 픽셀을 쓰는 보호 효과의 미리보기·내보내기 동일 합성 계약.</summary>
 public sealed class ProtectionCompositeTests
 {
     private static readonly SKColor TL = new(0xFF, 0x00, 0x00, 0xFF);
@@ -81,7 +78,7 @@ public sealed class ProtectionCompositeTests
                 with { MaskArgb = 0x8011_2233 });
         using var bitmap = Render(frame, new PixelSize(16, 16), state);
 
-        // The alpha byte is forced opaque: a translucent mask would defeat the protection.
+        // 알파는 강제 불투명. 반투명 마스크면 보호가 아니라 힌트가 됨.
         var expected = new SKColor(0x11, 0x22, 0x33, 0xFF);
         Assert.Equal(expected, bitmap.GetPixel(1, 1));
         Assert.Equal(expected, bitmap.GetPixel(8, 8));
@@ -96,8 +93,7 @@ public sealed class ProtectionCompositeTests
             Protection(ProtectionKind.Mosaic, new RectF(0, 0, 16, 16)) with { BlockSize = 16f });
         using var bitmap = Render(frame, new PixelSize(16, 16), state);
 
-        // One block spans all four quadrants: every pixel is the same mixed color and none of the
-        // original quadrant colors survives anywhere in the region.
+        // 블록 하나가 네 사분면을 덮어 모든 픽셀이 같은 혼합색, 원래 색은 남지 않음.
         var block = bitmap.GetPixel(2, 2);
         Assert.Equal(block, bitmap.GetPixel(13, 2));
         Assert.Equal(block, bitmap.GetPixel(2, 13));
@@ -127,13 +123,13 @@ public sealed class ProtectionCompositeTests
     [Fact]
     public void Mosaic_ClipsTheTrailingPartialBlock_OnUnalignedBounds()
     {
-        // 25px wide, block 12: the grid must be 12 / 12 / 1 — NOT three uniform ~8.33px cells.
+        // 너비 25px, 블록 12면 12 / 12 / 1. 균등 8.33px 세 칸 아님.
         using var frame = StripeImage(25, 10, (12, TL), (12, TR), (1, BL));
         var state = DocumentState.Empty.AddAnnotation(
             Protection(ProtectionKind.Mosaic, new RectF(0, 0, 25, 10)) with { BlockSize = 12f });
         using var bitmap = Render(frame, new PixelSize(25, 10), state);
 
-        // Each cell covers exactly one solid stripe, so its average IS that stripe's color.
+        // 각 칸이 단색 띠 하나만 덮으므로 평균도 그 띠 색.
         Assert.Equal(TL, bitmap.GetPixel(0, 0));
         Assert.Equal(TL, bitmap.GetPixel(11, 9));
         Assert.Equal(TR, bitmap.GetPixel(12, 0));
@@ -145,7 +141,7 @@ public sealed class ProtectionCompositeTests
     [Fact]
     public void Mosaic_CellColor_IsTheExactBoxAverageOfItsPixels()
     {
-        // One 8x8 block over half red / half blue: exact average is (127, 0, 127).
+        // 빨강·파랑 절반씩 덮은 8x8 한 블록의 정확한 평균은 (127, 0, 127).
         using var frame = StripeImage(8, 8, (4, TL), (4, BL));
         var state = DocumentState.Empty.AddAnnotation(
             Protection(ProtectionKind.Mosaic, new RectF(0, 0, 8, 8)) with { BlockSize = 8f });
@@ -181,13 +177,13 @@ public sealed class ProtectionCompositeTests
         using var first = Render(frame, new PixelSize(16, 16), state);
         using var second = Render(frame, new PixelSize(16, 16), state);
 
-        // The vertical quadrant boundary must no longer be a hard red|green edge.
+        // 세로 사분면 경계는 더 이상 딱딱한 빨강|초록 선이면 안 됨.
         var boundary = first.GetPixel(8, 3);
         Assert.NotEqual(TL, boundary);
         Assert.NotEqual(TR, boundary);
         Assert.Equal(0xFF, boundary.Alpha);
         Assert.Equal(0xFF, first.GetPixel(1, 1).Alpha);
-        // Same input, same output: the view at commit time is exactly what an export writes.
+        // 같은 입력은 같은 출력. 확정 때 본 모습 그대로 내보내기.
         Assert.Equal(boundary, second.GetPixel(8, 3));
         Assert.Equal(first.GetPixel(4, 12), second.GetPixel(4, 12));
     }
@@ -208,8 +204,7 @@ public sealed class ProtectionCompositeTests
             .AddAnnotation(Protection(ProtectionKind.Mosaic, new RectF(0, 0, 16, 16)));
         using var bitmap = Render(frame, new PixelSize(16, 16), state);
 
-        // A mosaic of a solid red frame is solid red: the green annotation beneath was neither
-        // sampled into the effect nor left visible.
+        // 단색 빨강 모자이크는 빨강. 아래 초록 주석은 샘플에도 표시에도 안 남음.
         Assert.Equal(TL, bitmap.GetPixel(8, 8));
         Assert.Equal(TL, bitmap.GetPixel(2, 14));
     }
@@ -223,7 +218,7 @@ public sealed class ProtectionCompositeTests
         state = state.ReplaceLayer(state.Layers[0] with { IsVisible = false });
         using var bitmap = Render(frame, new PixelSize(16, 16), state);
 
-        // Hiding the layer is explicit user intent; the original pixels come back.
+        // 레이어 숨김은 명시적 의도라 원본 픽셀 복귀.
         Assert.Equal(TL, bitmap.GetPixel(2, 2));
         Assert.Equal(BR, bitmap.GetPixel(13, 13));
     }

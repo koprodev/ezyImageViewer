@@ -13,24 +13,14 @@ internal static class DocumentFrameSourceFactory
         IEncodedSource source,
         IImageDecoder selectedDecoder,
         IImageDecoder animationDecoder,
-        DecodeResult initialResult,
         InputLimits limits,
         CancellationToken cancellationToken)
     {
-        if (format == ImageFormat.Pdf && selectedDecoder is IPageImageDecoder pdf)
-        {
-            return new PdfDocumentFrameSource(
-                source,
-                pdf,
-                initialResult.FrameCount,
-                limits);
-        }
-
         if (format == ImageFormat.Svg && selectedDecoder is SvgImageDecoder svg)
             return new SvgDocumentFrameSource(source, svg);
 
-        // WIC exposes optimized GIF sub-rectangles as independent frames. Skia reconstructs the
-        // required-frame chain, while the product's initial/static GIF decode remains on WIC.
+            // WIC는 최적화된 GIF 부분 사각형을 독립 프레임으로 노출.
+            // 필요한 프레임 연쇄는 Skia가 복원하고 최초·정적 GIF 해석은 WIC 유지.
         if (format == ImageFormat.Gif && animationDecoder is SkiaImageDecoder gifAnimation)
             return SkiaDocumentFrameSource.TryCreate(source, gifAnimation, limits);
 

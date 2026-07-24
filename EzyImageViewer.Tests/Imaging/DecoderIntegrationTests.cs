@@ -23,7 +23,7 @@ public class DecoderIntegrationTests
     [Fact]
     public async Task Wic_AppliesExifOrientation_SwappingDimensions()
     {
-        // Orientation 6 (RightTop): stored 40x20 must display as 20x40.
+        // 방향 6(RightTop): 저장 40×20은 표시 20×40이어야 함.
         var jpeg = MakeJpegWithOrientation(40, 20, 6);
 
         var decoder = new WicImageDecoder();
@@ -82,7 +82,7 @@ public class DecoderIntegrationTests
     [Fact]
     public async Task Loader_CorruptKnownFormat_IsCorruptImageException()
     {
-        // Valid PNG signature followed by garbage.
+        // 정상 PNG 시그니처 뒤에 쓰레기 데이터.
         var corrupt = new byte[64];
         new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A }.CopyTo(corrupt, 0);
 
@@ -135,7 +135,7 @@ public class DecoderIntegrationTests
 
         Assert.Equal(ImageFormat.WebP, document.Format);
         Assert.Equal(12, document.Frame.Width);
-        // Green-dominant pixel in BGRA layout.
+        // BGRA 배치의 초록 우세 픽셀.
         Assert.True(document.Frame.Pixels[1] > 0x80);
     }
 

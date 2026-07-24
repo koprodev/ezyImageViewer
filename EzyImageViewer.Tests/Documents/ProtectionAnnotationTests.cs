@@ -4,8 +4,7 @@ using Xunit;
 
 namespace EzyImageViewer.Tests.Documents;
 
-/// <summary>M5 acceptance: protection objects (FR-ANNO-008~010) survive serialization and reject
-/// dials that would not actually obscure.</summary>
+/// <summary>M5 인수: 보호 개체(FR-ANNO-008~010)는 직렬화 뒤에도 유지되고 가리지 못하는 강도는 거부.</summary>
 public sealed class ProtectionAnnotationTests
 {
     private static ProtectionAnnotation Protection(ProtectionKind kind) => new()
@@ -51,7 +50,7 @@ public sealed class ProtectionAnnotationTests
     [Fact]
     public void RotatedProtection_IsRejectedEverywhere()
     {
-        // A rotated region would sample axis-aligned pixels but cover a rotated area (ADR-0015).
+        // 회전 영역은 축 정렬 픽셀을 뽑고 비스듬한 곳을 덮으므로 금지(ADR-0015).
         Assert.Throws<ArgumentException>(() => AnnotationValidator.Validate(
             Protection(ProtectionKind.Mask) with { RotationDegrees = 15f }));
         Assert.Throws<InvalidDataException>(() => DocumentStateSerializer.Read($$"""
@@ -65,13 +64,13 @@ public sealed class ProtectionAnnotationTests
     public void HostileProtectionFragments_FailTheRead()
     {
         var id = Guid.NewGuid();
-        // Unknown protection kind.
+        // 모르는 보호 종류.
         Assert.Throws<InvalidDataException>(() => DocumentStateSerializer.Read($$"""
             {"transform":[],"layers":[{"id":"{{Guid.NewGuid()}}","annotations":[
             {"kind":"protection","id":"{{id}}","x":1,"y":2,"width":3,"height":4,
             "protectionKind":99,"blockSize":12,"blurSigma":8,"maskArgb":4278190080}]}]}
             """));
-        // Block size below the obscuring minimum.
+        // 실제로 가리지 못하는 최소값 미만 블록.
         Assert.Throws<InvalidDataException>(() => DocumentStateSerializer.Read($$"""
             {"transform":[],"layers":[{"id":"{{Guid.NewGuid()}}","annotations":[
             {"kind":"protection","id":"{{id}}","x":1,"y":2,"width":3,"height":4,

@@ -5,7 +5,7 @@ using Xunit;
 
 namespace EzyImageViewer.Tests.Documents;
 
-/// <summary>UR-009: one undo entry covers erase op + asset + annotation, atomically.</summary>
+/// <summary>UR-009: 지우기 연산 + 자산 + 주석을 실행 취소 항목 하나로 원자 처리.</summary>
 public class LiftRegionCommandTests
 {
     private static RasterAsset Asset(Guid id) => new()

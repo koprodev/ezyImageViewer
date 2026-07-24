@@ -89,8 +89,7 @@ public static class AnnotationGeometry
                     return true;
             }
         }
-        // The bubble tail extends beyond Bounds, so a band that only touches the tail must
-        // still select the object (FR-ANNO-007).
+        // 말풍선 꼬리는 Bounds 밖까지 뻗음. 선택 띠가 꼬리만 건드려도 개체 선택(FR-ANNO-007).
         if (annotation is SpeechBubbleAnnotation bubble
             && SpeechBubbleGeometry.TryGetTail(bubble, out var baseA, out var baseB, out var tip))
         {

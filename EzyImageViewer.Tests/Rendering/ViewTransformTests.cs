@@ -157,7 +157,7 @@ public class ViewTransformTests
         var transform = Make();
         transform.ActualSize();
 
-        // Adjacent image pixels must land exactly 1 device pixel apart at any DPI.
+        // 어떤 DPI에서도 이웃 이미지 픽셀은 정확히 장치 픽셀 1칸 간격이어야 함.
         var matrix = transform.ToViewMatrix();
         var p0 = matrix.MapPoint(new SKPoint(10, 10));
         var p1 = matrix.MapPoint(new SKPoint(11, 10));

@@ -12,7 +12,7 @@ public enum SelectionHandle
     SouthWest,
     West,
     Rotate,
-    /// <summary>Speech-bubble tail tip (FR-ANNO-007). Only bubbles expose it.</summary>
+/// <summary>말풍선 꼬리 끝(FR-ANNO-007). 말풍선만 제공.</summary>
     Tail,
 }
 
@@ -42,9 +42,8 @@ public static class SelectionGeometry
         return AnnotationGeometry.Rotate(point, bounds, annotation.RotationDegrees);
     }
 
-    /// <summary>True when <paramref name="handle"/> exists on this object at all — the tail
-    /// handle belongs to speech bubbles only, everything else would get a ghost handle at its
-    /// center (the HandlePoint fallback).</summary>
+    /// <summary><paramref name="handle"/>이 이 개체에 실제로 있으면 true.
+    /// 꼬리 핸들은 말풍선 전용. 다른 개체에 허용하면 중심에 유령 핸들이 생김.</summary>
     public static bool HandleApplies(Annotation annotation, SelectionHandle handle) =>
         handle != SelectionHandle.Tail || annotation is SpeechBubbleAnnotation;
 
@@ -102,8 +101,8 @@ public static class SelectionGeometry
         return annotation.WithBounds(next);
     }
 
-    /// <summary>Drags the bubble tail tip. The pointer arrives in rotated document space and is
-    /// stored back in pre-rotation local coordinates, mirroring how hit-testing unrotates.</summary>
+    /// <summary>말풍선 꼬리 끝 드래그.
+    /// 회전된 문서 공간의 포인터를 적중 검사와 같은 방식으로 역회전해 로컬 좌표에 저장.</summary>
     public static Annotation MoveTail(Annotation annotation, AnnotationPoint pointer)
     {
         ArgumentNullException.ThrowIfNull(annotation);

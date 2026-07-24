@@ -1,23 +1,20 @@
-# Builds the app and packs a signed MSIX with dotnet CLI + Windows SDK BuildTools only (no VS).
-# Dev identity/signing only — the distribution identity, channels and certificate are M9-B scope.
+# dotnet CLI와 Windows SDK BuildTools만으로 앱 빌드·서명 MSIX 패키징(VS 불필요).
+# 개발 identity·서명 전용. 배포 identity·채널·인증서는 별도 범위.
 #
-# Run (execution policy safe):
+# 실행 예:
 #   powershell -NoProfile -ExecutionPolicy Bypass -File packaging\pack-msix.ps1 `
-#       -Version 1.0.9.0 -CodecHostVersion 1.0.3.0
-#   ... -NoBuild       # reuse the existing PACKAGED x64 output (bin\packaged\x64)
-#   ... -SkipSign      # produce an unsigned .msix
-#   ... -CreateDevCertificate # explicitly create a missing development certificate
-# Install the main package with its isolated codec framework dependency:
-#   Add-AppxPackage packaging\out\ezyImageViewer.msix `
-#       -DependencyPath packaging\out\ezyImageViewer.CodecHost.msix
+#       -Version 1.0.9.0
+#   ... -NoBuild       # 기존 PACKAGED x64 출력 재사용(bin\packaged\x64)
+#   ... -SkipSign      # unsigned .msix 생성
+#   ... -CreateDevCertificate # 없는 개발 인증서를 명시적으로 생성
+# 패키지 설치:
+#   Add-AppxPackage packaging\out\ezyImageViewer.msix
 #
-# Signed development runs export the public certificate to out\ezyImageViewer-dev.cer; trust it once
-# (admin) with: certutil -addstore TrustedPeople packaging\out\ezyImageViewer-dev.cer
+# 개발 서명 실행은 공개 인증서를 out\ezyImageViewer-dev.cer로 내보냄.
+# 관리자에서 한 번 신뢰: certutil -addstore TrustedPeople packaging\out\ezyImageViewer-dev.cer
 param(
     [Parameter(Mandatory = $true)]
     [string]$Version,
-    [Parameter(Mandatory = $true)]
-    [string]$CodecHostVersion,
     [string]$Publisher = "CN=ezyImageViewer Dev",
     [string]$CertificateThumbprint,
     [switch]$CreateDevCertificate,
@@ -155,7 +152,6 @@ function Open-ExclusivePublishLock {
 }
 
 Assert-MsixVersion $Version 'Version'
-Assert-MsixVersion $CodecHostVersion 'CodecHostVersion'
 Assert-Publisher $Publisher
 if ($SkipSign -and ($CreateDevCertificate -or -not [string]::IsNullOrWhiteSpace($CertificateThumbprint))) {
     throw 'Certificate options cannot be combined with -SkipSign.'
@@ -163,7 +159,7 @@ if ($SkipSign -and ($CreateDevCertificate -or -not [string]::IsNullOrWhiteSpace(
 
 $repo = Split-Path $PSScriptRoot -Parent
 $appProj = Join-Path $repo 'EzyImageViewer.App\EzyImageViewer.App.csproj'
-# The packaged flavor builds into its own bin/obj so -NoBuild can never pack a dev-flavor output.
+# 패키지 빌드는 전용 bin/obj 사용. -NoBuild가 개발 출력을 잘못 담지 못하게 함.
 $buildOut = Join-Path $repo 'EzyImageViewer.App\bin\packaged\x64\Release\net10.0-windows10.0.26100.0\win-x64'
 $intermediateRoot = Join-Path $repo 'EzyImageViewer.App\obj\packaged\x64\Release\net10.0-windows10.0.26100.0\win-x64'
 $outDir = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot 'out'))
@@ -176,10 +172,8 @@ if (-not $outDirectoryItem.PSIsContainer -or
 $staging = Join-Path $outDir ('.staging-' + [Guid]::NewGuid().ToString('N'))
 $layout = Join-Path $staging 'layout'
 $msix = Join-Path $staging 'ezyImageViewer.msix'
-$codecMsix = Join-Path $staging 'ezyImageViewer.CodecHost.msix'
 $stagedCertificate = Join-Path $staging 'ezyImageViewer-dev.cer'
 $finalMsix = Join-Path $outDir 'ezyImageViewer.msix'
-$finalCodecMsix = Join-Path $outDir 'ezyImageViewer.CodecHost.msix'
 $finalCertificate = Join-Path $outDir 'ezyImageViewer-dev.cer'
 New-Item -ItemType Directory -Path $staging -Force | Out-Null
 $stagingItem = Get-Item -LiteralPath $staging -Force
@@ -189,25 +183,8 @@ if (-not $stagingItem.PSIsContainer -or
 }
 
 try {
-$codecPackArgs = @{
-    Version = $CodecHostVersion
-    Publisher = $Publisher
-    OutputDirectory = $staging
-}
-if ($NoBuild) { $codecPackArgs.NoBuild = $true }
-if ($SkipSign) { $codecPackArgs.SkipSign = $true }
-if ($CreateDevCertificate) { $codecPackArgs.CreateDevCertificate = $true }
-if (-not [string]::IsNullOrWhiteSpace($CertificateThumbprint)) {
-    $codecPackArgs.CertificateThumbprint = $CertificateThumbprint
-}
-& (Join-Path $PSScriptRoot 'pack-codec-host-msix.ps1') @codecPackArgs
-if ($LASTEXITCODE -ne 0 -or -not (Test-Path $codecMsix)) {
-    throw "CodecHost dependency packaging failed ($LASTEXITCODE)"
-}
-
 $btRoot = Get-EzyPinnedBuildToolsRoot -RepositoryRoot $repo -ProjectAssetsPaths @(
-    (Join-Path $repo 'EzyImageViewer.App\obj\packaged\project.assets.json'),
-    (Join-Path $repo 'EzyImageViewer.CodecHost\obj\project.assets.json'))
+    (Join-Path $repo 'EzyImageViewer.App\obj\packaged\project.assets.json'))
 $toolBins = @(Get-ChildItem (Join-Path $btRoot 'bin') -Directory |
     Where-Object {
         Test-Path -LiteralPath (Join-Path $_.FullName 'x64\makeappx.exe')
@@ -222,8 +199,7 @@ if (-not (Test-Path -LiteralPath $signtool)) {
 }
 
 if (-not $NoBuild) {
-    # Packaged=true drops WindowsPackageType=None (no unpackaged bootstrap module) and routes
-    # every project into bin/obj "packaged" trees (Directory.Build.props).
+    # Packaged=true면 비패키지 부트스트랩을 빼고 모든 프로젝트를 packaged bin/obj로 보냄.
     & dotnet build $appProj -c Release -p:Packaged=true -p:Platform=x64
     if ($LASTEXITCODE -ne 0) { throw "dotnet build failed ($LASTEXITCODE)" }
 }
@@ -235,9 +211,6 @@ if (Test-Path $layout) { Remove-Item $layout -Recurse -Force }
 New-Item -ItemType Directory -Force $layout | Out-Null
 & robocopy $buildOut $layout /E /NFL /NDL /NJH /NJS /XD ref NativeAotProbe /XF *.pdb | Out-Null
 if ($LASTEXITCODE -ge 8) { throw "robocopy failed ($LASTEXITCODE)" }
-# The native decoder runtime has a separate package identity and must not share app package data.
-$embeddedCodecHost = Join-Path $layout 'CodecHost'
-if (Test-Path $embeddedCodecHost) { Remove-Item $embeddedCodecHost -Recurse -Force }
 foreach ($assetName in @('Square44x44Logo.png', 'Square150x150Logo.png', 'StoreLogo.png')) {
     Copy-Item (Join-Path $PSScriptRoot "Assets\$assetName") (Join-Path $layout 'Assets') -Force
 }
@@ -245,15 +218,11 @@ foreach ($assetName in @('Square44x44Logo.png', 'Square150x150Logo.png', 'StoreL
 [xml]$manifest = Get-Content (Join-Path $PSScriptRoot 'AppxManifest.template.xml')
 $identity = $manifest.SelectSingleNode(
     "/*[local-name()='Package']/*[local-name()='Identity']")
-$dependency = $manifest.SelectSingleNode(
-    "/*[local-name()='Package']/*[local-name()='Dependencies']/*[local-name()='PackageDependency']")
-if ($null -eq $identity -or $null -eq $dependency) {
-    throw 'Main manifest Identity or CodecHost dependency is missing.'
+if ($null -eq $identity) {
+    throw 'Main manifest Identity is missing.'
 }
 $identity.SetAttribute('Version', $Version)
 $identity.SetAttribute('Publisher', $Publisher)
-$dependency.SetAttribute('Publisher', $Publisher)
-$dependency.SetAttribute('MinVersion', $CodecHostVersion)
 Save-Manifest $manifest (Join-Path $layout 'AppxManifest.xml')
 [void](Write-EzyPackageContentsManifest -Layout $layout)
 
@@ -290,7 +259,7 @@ if (-not $SkipSign) {
     if (-not $cert.HasPrivateKey -or $codeSigningEku.Count -eq 0) {
         throw 'The selected certificate lacks a private key or the code-signing EKU.'
     }
-    # The public key ships next to the package so a clean machine can run the trust step.
+    # 깨끗한 PC에서 신뢰 등록할 수 있게 공개 키를 패키지 옆에 둠.
     Export-Certificate -Cert $cert -FilePath $stagedCertificate -Force | Out-Null
     & $signtool sign /fd SHA256 /sha1 $cert.Thumbprint $msix
     if ($LASTEXITCODE -ne 0) { throw "signtool failed ($LASTEXITCODE)" }
@@ -299,9 +268,7 @@ if (-not $SkipSign) {
 
 $verifyArgs = @{
     MainPackage = $msix
-    CodecHostPackage = $codecMsix
     Version = $Version
-    CodecHostVersion = $CodecHostVersion
     Publisher = $Publisher
     BuildToolsRoot = $btRoot
     RequireBuildOutputMatch = $true
@@ -309,7 +276,6 @@ $verifyArgs = @{
 & (Join-Path $PSScriptRoot 'verify-msix-release.ps1') @verifyArgs
 
 $artifacts = @(
-    [pscustomobject]@{ Staged = $codecMsix; Final = $finalCodecMsix },
     [pscustomobject]@{ Staged = $msix; Final = $finalMsix },
     [pscustomobject]@{
         Staged = if ($SkipSign) { $null } else { $stagedCertificate }
@@ -325,7 +291,6 @@ finally {
 }
 
 Write-Output "packed: $finalMsix"
-Write-Output "dependency: $finalCodecMsix"
 if (-not $SkipSign) {
     Write-Output "exported: $finalCertificate"
 }

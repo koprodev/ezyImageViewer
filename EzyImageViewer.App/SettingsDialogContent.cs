@@ -8,9 +8,8 @@ using Microsoft.UI.Xaml.Controls;
 namespace EzyImageViewer.App;
 
 /// <summary>
-/// Paged 환경설정 hub: general (language/behavior), toolbar groups, file associations, about,
-/// update and developer support. Behavior settings keep the Save/Cancel three-way-merge contract;
-/// the file-association page applies directly to HKCU via its own button.
+/// 페이지형 환경설정 허브. 일반·도구 모음·파일 연결·정보·업데이트·개발 지원 제공.
+/// 동작 설정은 저장·취소 병합 계약, 파일 연결은 전용 버튼으로 즉시 적용.
 /// </summary>
 internal sealed class SettingsDialogContent : Grid
 {
@@ -385,11 +384,10 @@ internal sealed class SettingsDialogContent : Grid
         return button;
     }
 
-    /// <summary>Dialog-level save applies associations once the user has opened the file
-    /// association page, and never otherwise: the installer pre-registers candidates, so someone
-    /// who only changed a theme would silently hand over their default image app. Having opened
-    /// the page, the apply runs even when the ticked set is unchanged — those extensions may be
-    /// registered as candidates while the double-click default still is not this app.</summary>
+    /// <summary>
+    /// 파일 연결 페이지를 연 경우에만 대화상자 저장 때 적용.
+    /// 테마만 바꾼 사용자의 기본 앱을 슬쩍 가져오지 않게 함.
+    /// </summary>
     public void ApplyPendingAssociations()
     {
         if (!_associationsAvailable || !_associationPageVisited)
@@ -397,10 +395,10 @@ internal sealed class SettingsDialogContent : Grid
         ApplyAssociations();
     }
 
-    /// <summary>Registers the checked extensions as Open With candidates and, on the unpackaged
-    /// build, switches the double-click default to this app by writing UserChoice. The default
-    /// switch is unsupported by Microsoft, so each extension reports its own outcome and a fully
-    /// blocked OS falls back to the Windows default-apps page.</summary>
+    /// <summary>
+    /// 선택 확장자를 연결 프로그램 후보로 등록하고 비패키지 빌드에서는 기본 앱 전환 시도.
+    /// 확장자별 결과를 내며 OS가 완전히 막으면 Windows 기본 앱 페이지 안내.
+    /// </summary>
     private void ApplyAssociations()
     {
         var desired = _extensionBoxes
@@ -440,8 +438,7 @@ internal sealed class SettingsDialogContent : Grid
         }
         else
         {
-            // Partial failures keep the page open with guidance instead of launching Settings,
-            // which would otherwise pop up on every save that misses a single extension.
+            // 일부 실패는 페이지에 안내만 표시. 하나 놓칠 때마다 설정 창이 튀어나오지 않게 함.
             var message = string.Format(
                 CultureInfo.CurrentCulture,
                 AppStrings.FileAssocSetDefaultPartial,
@@ -459,8 +456,7 @@ internal sealed class SettingsDialogContent : Grid
 
     private void UpdateAssociationApplyState()
     {
-        // Always available: apply re-asserts the default even when the checked set is unchanged,
-        // which is how a user recovers a default another app has taken over.
+        // 선택이 같아도 다시 적용 가능. 다른 앱이 가져간 기본값을 되찾는 길.
         _applyAssociations.IsEnabled = _associationsAvailable;
     }
 
@@ -630,7 +626,7 @@ internal sealed class SettingsDialogContent : Grid
     {
         _validation.Text = text;
         _validation.Visibility = Visibility.Visible;
-        // The hotkey editor lives on the first page; surface it when validation fails.
+        // 단축키 편집기는 첫 페이지에 있으니 검증 실패 때 그쪽을 보여 줌.
         _navigation.SelectedIndex = 0;
     }
 }

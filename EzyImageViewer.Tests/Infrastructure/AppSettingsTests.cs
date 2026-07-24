@@ -168,7 +168,7 @@ public sealed class AppSettingsTests : IDisposable
         Assert.False(migrated.RecentFilesEnabled);
         Assert.Equal(SingleInstanceBehavior.OpenNewWindow, migrated.SingleInstanceBehavior);
         Assert.Equal(AppTheme.Light, migrated.Theme);
-        // The new preferences did not exist in v3: every dropdown group defaults on (UR-010).
+        // v3에는 새 설정이 없었으므로 모든 드롭다운 그룹은 기본 켜짐(UR-010).
         Assert.True(migrated.ToolbarOpenGroupEnabled);
         Assert.True(migrated.ToolbarSelectGroupEnabled);
         Assert.True(migrated.ToolbarTransformGroupEnabled);
@@ -380,7 +380,7 @@ public sealed class AppSettingsTests : IDisposable
     [Fact]
     public void EveryStyledViewerTool_IsAcceptedByValidation()
     {
-        // Mirrors the App CanvasTool styled set; a tool missing here crashes startup (E_INVALIDARG fail-fast).
+        // App의 CanvasTool 스타일 집합과 맞춤. 하나라도 빠지면 시작 때 E_INVALIDARG로 즉시 실패.
         string[] styledTools =
         [
             "Pen", "Highlighter", "Line", "Arrow", "Rectangle", "RoundedRectangle",

@@ -7,9 +7,6 @@ param(
     [string]$Version,
 
     [Parameter(Mandatory)]
-    [string]$CodecHostVersion,
-
-    [Parameter(Mandatory)]
     [string]$Publisher,
 
     [Parameter(Mandatory)]
@@ -28,7 +25,6 @@ $repositoryRoot = [IO.Path]::GetFullPath((Join-Path $scriptRoot '..'))
 . (Join-Path $scriptRoot 'msi-payload-helpers.ps1')
 
 Assert-EzyExternalFourPartVersion $Version 'Version'
-Assert-EzyExternalFourPartVersion $CodecHostVersion 'CodecHostVersion'
 Assert-EzyExternalPublisher $Publisher
 Assert-EzyExternalMinVersion $MinVersion
 
@@ -57,7 +53,6 @@ try {
         -ApplicationTemplatePath (Join-Path $scriptRoot 'ExternalLocation.App.manifest.template.xml') `
         -OutputDirectory $contractsRoot `
         -Version $Version `
-        -CodecHostVersion $CodecHostVersion `
         -Publisher $Publisher `
         -MinVersion $MinVersion
 
@@ -89,8 +84,8 @@ try {
         '-p:Platform=x64',
         '-p:Packaged=false',
         '-p:ExternalIdentity=true',
-        # Stamp the installer version into the assemblies: MSI file versioning skips files whose
-        # FileVersion is unchanged, so a constant version made major upgrades keep stale binaries.
+# 어셈블리에 설치 프로그램 버전 기록.
+# MSI는 FileVersion이 같으면 파일을 건너뛰므로 고정 버전이면 큰 업그레이드에도 묵은 바이너리가 남음.
         "-p:FileVersion=$Version",
         '-p:DebugSymbols=false',
         '-p:DebugType=None',
@@ -160,7 +155,6 @@ try {
     $metadata = [PSCustomObject][ordered]@{
         schemaVersion = 1
         version = $Version
-        codecHostVersion = $CodecHostVersion
         publisher = $Publisher
         minVersion = $MinVersion
         architecture = 'x64'

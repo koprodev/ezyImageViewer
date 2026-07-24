@@ -3,20 +3,18 @@ using EzyImageViewer.Core.Imaging;
 namespace EzyImageViewer.Core.Documents.Layers;
 
 /// <summary>
-/// One background edit in the transform pipeline (FR-EDIT-001~004). Ops are ordered and immutable;
-/// each is defined in the output space of the ops before it — the only representation closed under
-/// arbitrary edit order (resize-then-crop, straighten-then-crop). Matrix, output size and clip are
-/// derived by <see cref="TransformEvaluator"/>, never stored (ADR-0009).
+/// 불변 배경 변환 하나. 앞선 작업의 출력 좌표로 정의.
+/// 행렬·출력 크기·클립은 저장하지 않고 <see cref="TransformEvaluator"/>가 계산.
 /// </summary>
 public abstract record TransformOp
 {
     private protected TransformOp() { }
 
-    /// <summary>Bytes one op retains inside a history entry (FR-HIST-002 accounting).</summary>
+    /// <summary>기록 항목 안에서 작업 하나가 보유하는 바이트.</summary>
     public const long EstimatedRetainedBytes = 40;
 }
 
-/// <summary>Keeps <see cref="Bounds"/>, expressed in the output space of the preceding ops.</summary>
+/// <summary>앞선 작업의 출력 좌표에서 <see cref="Bounds"/>만 남김.</summary>
 public sealed record CropOp : TransformOp
 {
     public CropOp(RectF bounds)
@@ -32,11 +30,7 @@ public sealed record CropOp : TransformOp
     public RectF Bounds { get; }
 }
 
-/// <summary>
-/// Clears <see cref="Bounds"/> to transparency, expressed in the output space of the preceding ops
-/// (UR-009 region cut/lift). Geometry-neutral: the canvas keeps its size; the evaluator maps the
-/// region back to native space so the punch survives later rotations/crops like SourceClip does.
-/// </summary>
+/// <summary>앞선 출력 좌표의 영역을 투명하게 비움. 캔버스 크기는 유지.</summary>
 public sealed record EraseOp : TransformOp
 {
     public EraseOp(RectF bounds)
@@ -52,13 +46,10 @@ public sealed record EraseOp : TransformOp
     public RectF Bounds { get; }
 }
 
-/// <summary>Rotates clockwise about the canvas center at this point in the pipeline (FR-EDIT-003).</summary>
+/// <summary>현재 캔버스 중심을 기준으로 시계 방향 회전.</summary>
 public sealed record RotateOp : TransformOp
 {
-    /// <summary>
-    /// The user-input path: normalizes in double space FIRST, because a finite double like 1e300
-    /// overflows a float cast to Infinity and would turn a valid dialog entry into a throw.
-    /// </summary>
+    /// <summary>사용자 입력은 double에서 먼저 정규화해 float 변환 오버플로 방지.</summary>
     public static RotateOp FromDegrees(double degrees)
     {
         if (!double.IsFinite(degrees))
@@ -73,25 +64,23 @@ public sealed record RotateOp : TransformOp
         var normalized = degrees % 360f;
         if (normalized < 0f)
             normalized += 360f;
-        // A tiny negative remainder rounds up to exactly 360f (half-ULP at 360 ≈ 1.5e-05), which
-        // would masquerade as a quarter turn downstream — wrap it back to the documented [0, 360).
+        // 아주 작은 음수 나머지가 360f로 반올림되면 직각 회전 행세를 하니 0으로 되감음.
         if (normalized >= 360f)
             normalized -= 360f;
         Degrees = normalized;
     }
 
-    /// <summary>Normalized to [0, 360).</summary>
+    /// <summary>[0, 360) 범위로 정규화된 각도.</summary>
     public float Degrees { get; }
 
-    /// <summary>Quarter turns evaluate on the exact integer path — no trigonometry, no float drift.</summary>
+    /// <summary>직각 회전은 삼각함수 없이 정확한 정수 경로 사용.</summary>
     public bool IsQuarterTurn => Degrees % 90f == 0f;
 }
 
-/// <summary>Mirrors across the canvas center axis (FR-EDIT-004): left↔right when horizontal, else top↔bottom.</summary>
+/// <summary>캔버스 중심축 대칭. 가로면 좌우, 아니면 상하.</summary>
 public sealed record FlipOp(bool Horizontal) : TransformOp;
 
-/// <summary>Scales the canvas to an explicit output size (FR-EDIT-002). Non-uniform when the caller
-/// did not keep the aspect ratio; the op stores the user's stated intent, not a factor.</summary>
+/// <summary>캔버스를 지정 출력 크기로 조정. 배율보다 사용자가 정한 크기를 저장.</summary>
 public sealed record ResizeOp : TransformOp
 {
     public ResizeOp(PixelSize target)

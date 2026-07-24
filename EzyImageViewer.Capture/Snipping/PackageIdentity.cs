@@ -2,8 +2,8 @@ using System.Runtime.InteropServices;
 
 namespace EzyImageViewer.Capture.Snipping;
 
-/// <summary>Process package identity probe: the official capture path only functions when the
-/// process runs from an MSIX package (the OS routes the redirect callback by identity).</summary>
+/// <summary>프로세스 패키지 ID 확인.
+/// 공식 캡처는 MSIX 실행일 때만 동작하며 OS가 ID로 리디렉션 콜백을 전달.</summary>
 public static class PackageIdentity
 {
     private const int AppModelErrorNoPackage = 15700;

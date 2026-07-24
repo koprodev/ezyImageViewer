@@ -4,8 +4,8 @@ using Xunit;
 namespace EzyImageViewer.Tests.Spikes;
 
 /// <summary>
-/// M0-B follow-up to ADR-0001: exports must not depend on system-installed WebP codecs,
-/// so SkiaSharp's built-in WebP encoder is the fixed export path.
+/// ADR-0001 후속 M0-B.
+/// 내보내기가 시스템 WebP 코덱에 기대지 않도록 SkiaSharp 내장 인코더를 고정 경로로 사용.
 /// </summary>
 public class WebpEncodeSpikeTests
 {

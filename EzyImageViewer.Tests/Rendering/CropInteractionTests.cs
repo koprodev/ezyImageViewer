@@ -127,7 +127,7 @@ public class CropInteractionTests
 
         Assert.False(interaction.TryGetValidReview(Guid.NewGuid(), 7, out _));
         Assert.False(interaction.TryGetValidReview(DocumentId, 8, out _));
-        // The stale probe must not disturb the review draft itself.
+        // 오래된 상태 확인이 검토 초안 자체를 건드리면 안 됨.
         Assert.Equal(CropInteractionPhase.Reviewing, interaction.Phase);
         Assert.NotNull(interaction.Review);
     }

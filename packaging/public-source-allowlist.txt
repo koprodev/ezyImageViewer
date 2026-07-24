@@ -2,8 +2,6 @@
 .github/
 EzyImageViewer.App/
 EzyImageViewer.Capture/
-EzyImageViewer.CodecHost/
-EzyImageViewer.CodecProtocol/
 EzyImageViewer.Core/
 EzyImageViewer.Imaging/
 EzyImageViewer.Infrastructure/

@@ -5,8 +5,8 @@ using Xunit;
 namespace EzyImageViewer.Tests.Rendering;
 
 /// <summary>
-/// UpdateContentSize is the same-document edit path: unlike SetContent (a new source), it must
-/// preserve the view rotation and mode (D3 independence — a document rotation is not a view reset).
+/// UpdateContentSize는 같은 문서의 편집 경로.
+/// 새 원본인 SetContent와 달리 보기 회전·모드를 유지해야 함(D3 독립성).
 /// </summary>
 public class ViewTransformEditTests
 {
@@ -51,7 +51,7 @@ public class ViewTransformEditTests
         Assert.Equal(ViewMode.Fit, view.Mode);
         var before = view.Scale;
 
-        view.UpdateContentSize(200, 150); // half the content: fit scale doubles
+        view.UpdateContentSize(200, 150); // 내용이 절반이면 맞춤 배율은 두 배.
 
         Assert.Equal(ViewMode.Fit, view.Mode);
         Assert.Equal(before * 2f, view.Scale, 3);
@@ -100,8 +100,8 @@ public class ViewTransformEditTests
     [Fact]
     public void Fit_OnAMaxSideCanvas_ActuallyFits()
     {
-        // MinScale bounds manual zoom only: a 65,500px logical canvas in a 2,560×1,369 viewport
-        // needs scale ~0.021, below the interactive floor — Fit must still contain the content.
+        // MinScale은 수동 확대만 제한.
+        // 65,500px 캔버스를 2,560×1,369 뷰포트에 맞추는 약 0.021 배율도 Fit에서는 허용.
         var view = new ViewTransform();
         view.SetContent(65_500, 65_500);
         view.SetViewport(2_560, 1_369);

@@ -1,139 +1,101 @@
 # Code signing policy
 
 Status: **preparation only — SignPath Foundation has not accepted this project**
-Last reviewed: 2026-07-19
+Last reviewed: 2026-07-24
 
-This policy becomes an active public release policy only after the project has
-a public source repository, the required repository protections and MFA are
-verified, and SignPath Foundation accepts the application. Until then, no
-artifact may be described as production signed.
+This policy becomes active only after the public-source, licensing, account
+security, and SignPath approval gates pass. Until then, no artifact is a
+production-signed release.
 
-## Planned provider disclosure
+## Required disclosure
 
-If the application is accepted, the project home page and every signed download
-page will include the required disclosure:
+If the project is accepted, the project page and every signed download page
+will include:
 
 > Free code signing provided by SignPath.io, certificate by SignPath Foundation
 
-The expected Authenticode publisher would therefore be **SignPath Foundation**,
-not the project name or maintainer. No SignPath certificate, subscription, or
-production publisher is currently configured.
+The expected Authenticode publisher is SignPath Foundation. No SignPath
+certificate, project, subscription, token, or production publisher is
+configured today.
 
-## Signing scope
+## Artifact scope
 
-One approved release requires six ordered Authenticode operations:
+The current installer design needs these ordered Authenticode operations:
 
-1. CodecHost framework identity MSIX;
-2. main application identity MSIX;
-3. per-user-layout application MSI;
-4. per-machine-layout application MSI;
-5. detached WiX Burn engine executable;
-6. reattached final Burn setup executable.
+1. main application identity MSIX;
+2. per-user application MSI;
+3. per-machine application MSI;
+4. detached WiX Burn engine;
+5. reattached final Burn setup.
 
-The MSIX identity packages are installer payloads rather than standalone public
-downloads in the planned channel. The public release set is the two scope-specific layout
-MSI files, the Burn setup executable, checksums, the release manifest, the SBOM,
-and required license/source notices.
+The identity MSIX is an installer input, not a separate public download. The
+planned public set consists of the scope-selecting Setup, checksums, release
+manifest, SBOM, and required license/source notices.
 
-SignPath documents Authenticode support for PE, MSI, and MSIX formats, but the
-ordered WiX Burn detach/sign/reattach/final-sign workflow has not been confirmed
-for the free OSS service. Signing integration must not be implemented by
-weakening or bypassing that order.
+The SignPath service must explicitly support the WiX detach, remote engine
+sign, reattach, and final bundle sign sequence. The build must not bypass or
+weaken that sequence to fit a provider.
 
-## Source, build, and review requirements
+## Build and approval rules
 
-- Signed artifacts must be produced from the public source repository and its
-  versioned build scripts using locked dependencies.
-- CI actions must be pinned to full commit hashes and use read-only repository
-  permissions unless a narrower reviewed permission is required.
-- Pull requests from non-maintainers require review before merge.
-- Release source, dependency locks, signing configuration, and build workflow
-  changes receive the same review as product code.
-- Every signing request requires a manual approval after the unsigned artifact
-  passes the repository's build, test, package, checksum, SBOM, and static
-  verifier gates.
+- Build only from the reviewed public source commit with locked dependencies.
+- Pin CI actions to full commit hashes and grant the minimum permissions.
+- Review release workflow, dependency, signing configuration, and source changes.
+- Require manual approval after build, test, package, checksum, SBOM, and static
+  verification pass.
+- Keep signing credentials and provider tokens out of source and logs.
+- Verify exact signer, timestamp, Publisher, payload, and checksum after signing.
 - Unsigned or self-signed binaries are not public production releases.
 
-The public-source CI validates unsigned package structure but does not publish
-those binaries as GitHub Actions artifacts. A provider adapter and SignPath
-artifact configuration do not yet exist.
+The current public CI validates unsigned artifacts. No SignPath provider adapter
+or artifact configuration exists.
 
-## Unsigned Portable testing channel
+## Approved testing exceptions
 
-The user approved one narrow exception on 2026-07-19: an identity-free Basic
-Portable ZIP may be published as a GitHub prerelease for evaluation and testing.
-It is built from the public source commit with locked dependencies, includes the
-runtime license inventory and copied license files, publishes a SHA-256 file,
-and is verified as unsigned. It contains neither MSI/MSIX/Burn envelopes nor the
-isolated CodecHost payload.
+Two unsigned prerelease channels are approved for personal evaluation and
+testing:
 
-This exception does not activate the production signing policy, authorize live
-operating reliance, satisfy SignPath eligibility by itself, or weaken any
-production installer gate. The download page and archive must identify the
-Engineering Preview dependency terms, unsigned SmartScreen behavior, missing
-package identity, and manual removal/update behavior.
+- the folder-based Basic Portable ZIP;
+- the WiX Setup plus compressed single-file Portable set.
 
-## Unsigned installer and single-file Portable preview
+They must remain `NotSigned`, carry SHA-256 metadata, identify SmartScreen and
+Engineering Preview limits, and avoid production or trust claims. These
+exceptions do not satisfy SignPath eligibility, production signing, clean-VM
+lifecycle, timestamp, or legal-clearance gates.
 
-The user approved a second narrow exception on 2026-07-21 for personal
-evaluation and testing: one GitHub prerelease may publish an unsigned WiX Burn
-Setup EXE and an unsigned compressed single-file Portable EXE from the same
-public source commit. This exception does not describe either artifact as
-production, trusted, or generally supported.
-
-The Setup release asset is the verified Burn bundle only; its embedded fixed
-per-user and per-machine MSI packages are not duplicated as public downloads.
-The release also carries the modified WiX theme source and Microsoft Reciprocal
-License text. The Portable embeds the project license, third-party notices, and
-runtime license inventory and extracts its runtime to the current user's temp
-directory when launched.
-
-Both executables must remain `NotSigned`, be identified as unsigned in their
-file names or release notes, publish SHA-256 metadata, and pass their existing
-static package verifiers. This exception does not satisfy production signing,
-timestamp, legal clearance, clean-VM lifecycle, or SignPath acceptance gates.
-
-## Roles and access
-
-The planned single-maintainer mapping is:
+## Roles
 
 | Role | Member | Responsibility |
 |---|---|---|
-| Author | `koprodev` | Product source and build-script maintenance |
-| Reviewer | `koprodev` | Review of outside contributions and release-critical changes |
+| Author | `koprodev` | Source and build maintenance |
+| Reviewer | `koprodev` | Outside contribution and release-critical review |
 | Approver | `koprodev` | Manual approval of each signing request |
 
-The public repository is owned by `koprodev`; this table does not claim that a
-SignPath role assignment already exists. MFA for the source host and SignPath
-account must be verified before application. Signing credentials and provider
-tokens must never be committed to the repository or printed in build logs.
+This records the planned single-maintainer model only. SignPath must accept the
+role arrangement, and source-host plus SignPath MFA must be verified first.
 
 ## Release verification
 
-Before publication, every signed candidate must pass:
+Every signed candidate must pass:
 
-- Windows trust verification of the exact signer and RFC 3161 timestamp;
-- exact Publisher agreement across both identity MSIX manifests;
-- MSI database, Burn extraction, package inventory, and checksum verification;
-- a clean Windows VM lifecycle covering install, launch, repair, upgrade,
-  rollback, removal, and the separate CodecHost identity boundary;
-- final license, privacy, source-notice, and SBOM review.
+- Windows trust validation for the exact signer and RFC 3161 timestamp;
+- exact Publisher agreement between the executable and main identity package;
+- MSI database, Burn extraction, inventory, checksum, and SBOM verification;
+- clean Windows VM install, launch, repair, upgrade, rollback, and removal;
+- final source notice, license, and privacy review.
 
-The release process remains fail-closed if SignPath rejects, pauses, or revokes
-the project, or if any expected signer, timestamp, artifact, or verification
-evidence is missing.
+Missing signer, timestamp, approval, artifact, or evidence blocks the release.
+SignPath rejection, suspension, or revocation also blocks publication.
 
 ## Incident response
 
-A suspected signing compromise, unauthorized signing request, unexpected
-artifact, or policy violation blocks further releases. The maintainer must
-preserve the relevant source commit and CI evidence, notify SignPath through an
-approved channel, request revocation when warranted, and publish a clear
-security notice through the public source repository. A replacement release
-must use a newly approved build and signing request; an unsigned replacement is
-not an acceptable production fallback.
+A suspected signing compromise or unauthorized request stops releases. Preserve
+the source commit and CI evidence, contact SignPath through an approved channel,
+request revocation when warranted, and publish a clear notice. A replacement
+requires a new reviewed build and approval; an unsigned binary is not a
+production fallback.
 
-## Related policies
+## Related documents
 
 - [Privacy policy](privacy.md)
 - [SignPath readiness checklist](signpath-readiness.md)

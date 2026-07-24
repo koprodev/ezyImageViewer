@@ -38,7 +38,7 @@ public class InputLimitsTests
     [Fact]
     public void Dimensions_OverHardPixelLimit_AreRejected()
     {
-        // 8000 x 7000 = 56MP > 50MP hard limit (both sides within MaxDimension)
+        // 8000×7000 = 56MP로 50MP 절대 상한 초과. 양 변은 MaxDimension 안쪽.
         Assert.Equal(DecodeAction.Reject, Limits.PlanDimensions(8000, 7000).Action);
     }
 
@@ -62,7 +62,7 @@ public class InputLimitsTests
     {
         var plan = Limits.PlanDimensions(4000, 1000);
         Assert.Equal(DecodeAction.DecodeScaled, plan.Action);
-        // Target applies to the longer side; scaled pixel count stays within budget.
+        // 목표 크기는 긴 변에 적용. 축소 후 픽셀 수는 예산 안쪽.
         var scale = plan.TargetMaxDimension / 4000.0;
         var pixels = (long)(4000 * scale) * (long)(1000 * scale);
         Assert.True(pixels <= Limits.FullDecodePixelBudget);

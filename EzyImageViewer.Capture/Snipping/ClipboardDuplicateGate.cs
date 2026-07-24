@@ -3,12 +3,10 @@ using System.Security.Cryptography;
 namespace EzyImageViewer.Capture.Snipping;
 
 /// <summary>
-/// FR-CAP-005 duplicate detection (M0-B③ design, [21차] 보완 3): the custom clipboard marker is
-/// the primary signal; the hash backup covers only the IMMEDIATE byte-exact re-post of a recent
-/// internal copy (a consumer that drops foreign formats and re-posts the same PNG bytes).
-/// A ring of recent hashes absorbs multi-window copy bursts, and a short TTL prevents a stale
-/// hash from suppressing an unrelated future image that happens to match. Re-encoding consumers
-/// are out of contract — the bytes differ and only the marker (or the user) can tell.
+/// FR-CAP-005 중복 감지(M0-B③). 사용자 클립보드 표식이 1순위.
+/// 해시 보조 신호는 최근 내부 복사본을 바이트 그대로 즉시 다시 올린 경우만 담당.
+/// 최근 해시 고리는 여러 창의 연속 복사를 흡수하고 짧은 TTL은 먼 훗날의 우연한 일치를 방지.
+/// 재인코딩된 데이터는 바이트가 달라 표식이나 사용자만 구분 가능.
 /// </summary>
 public sealed class ClipboardDuplicateGate
 {

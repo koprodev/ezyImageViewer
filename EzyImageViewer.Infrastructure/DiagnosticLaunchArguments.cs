@@ -18,7 +18,7 @@ public readonly record struct DiagnosticLaunchPlan(DiagnosticLaunchMode Mode)
     public bool IsStandalone => IsDiagnostic && Mode != DiagnosticLaunchMode.StartupBenchmark;
 }
 
-/// <summary>Fail-closed parser for internal benchmark and smoke command-line surfaces.</summary>
+/// <summary>내부 벤치마크·스모크 명령줄을 닫힘 우선으로 해석.</summary>
 public static class DiagnosticLaunchArguments
 {
     [Flags]

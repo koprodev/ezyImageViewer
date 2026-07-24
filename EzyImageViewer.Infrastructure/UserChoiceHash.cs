@@ -10,17 +10,16 @@ using System.Text;
 namespace EzyImageViewer.Infrastructure;
 
 /// <summary>
-/// UserChoice hash core for the experimental in-app default-association writer. Windows Explorer
-/// only honors a UserChoice ProgId whose Hash value matches this computation.
+/// 실험적 앱 내 기본 연결 작성기의 UserChoice Hash 계산.
+/// Windows Explorer는 이 계산과 맞는 ProgId만 인정.
 /// </summary>
 public static class UserChoiceHash
 {
-    // Built into Windows as part of the UserChoice hash algorithm (shell32 resource string).
+    // UserChoice Hash 알고리즘에 포함된 Windows 내장 shell32 리소스 문자열.
     public const string UserExperience =
         "User Choice set via Windows User Experience {D18B6DD5-6124-4341-9318-804003BAFA0B}";
 
-    /// <summary>Hash input: lowercase(ext + sid + progId + minute-truncated FILETIME hex +
-    /// experience string). All components are ASCII, so invariant lowercasing is exact.</summary>
+    /// <summary>Hash 입력: 확장자 + SID + ProgId + 분 단위 FILETIME 16진수 + 경험 문자열의 소문자.</summary>
     public static string BuildInput(
         string extension, string userSid, string progId, DateTime timestamp)
     {
@@ -38,8 +37,7 @@ public static class UserChoiceHash
         string extension, string userSid, string progId, DateTime timestamp) =>
         HashInput(BuildInput(extension, userSid, progId, timestamp));
 
-    /// <summary>Seconds and milliseconds are zeroed; UTC-offset minutes are whole, so
-    /// truncating the local or UTC minute selects the same instant.</summary>
+    /// <summary>초·밀리초를 0으로 맞춤. 지역·UTC 어느 쪽에서 분을 잘라도 같은 시점.</summary>
     public static long ToMinuteFileTimeUtc(DateTime timestamp)
     {
         var utc = timestamp.Kind == DateTimeKind.Utc ? timestamp : timestamp.ToUniversalTime();
@@ -50,11 +48,11 @@ public static class UserChoiceHash
     public static string HashInput(string input)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(input);
-        // UTF-16LE including the terminating NUL; both references hash the terminator.
+        // 끝 NUL까지 UTF-16LE로 Hash. 두 참고 구현 모두 종결자 포함.
         var bytes = new byte[(input.Length + 1) * 2];
         Encoding.Unicode.GetBytes(input, 0, input.Length, bytes, 0);
 
-        // Two DWORDs per block; a trailing incomplete block is ignored.
+        // 블록당 DWORD 둘. 남는 불완전 블록은 무시.
         var blockCount = bytes.Length / 8;
         if (blockCount == 0)
             throw new ArgumentException("The hash input is too short.", nameof(input));
@@ -66,7 +64,7 @@ public static class UserChoiceHash
             BitConverter.ToUInt32(md5, 4) | 1,
         ];
 
-        // Constant multipliers per DWORD position within a block (Mozilla formulation).
+        // 블록 안 DWORD 위치별 고정 승수(Mozilla 구성).
         ReadOnlySpan<uint> c00 = [md5Words[0], 0xCF98_B111u, 0x8708_5B9Fu, 0x12CE_B96Du, 0x257E_1D83u];
         ReadOnlySpan<uint> c01 = [md5Words[1], 0xA274_16F5u, 0xD383_96FFu, 0x7C93_2B89u, 0xBFA4_9F69u];
         ReadOnlySpan<uint> c10 = [md5Words[0], 0xEF05_69FBu, 0x689B_6B9Fu, 0x79F8_A395u, 0xC3EF_EA97u];

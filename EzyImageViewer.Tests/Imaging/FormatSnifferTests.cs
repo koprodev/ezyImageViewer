@@ -59,10 +59,12 @@ public class FormatSnifferTests
         Assert.Equal(ImageFormat.Unknown, FormatSniffer.Sniff(header).Format);
     }
 
+    /// <summary>제품에서 제외한 뒤에도 PDF/PSD 판별은 유지(ADR-0005).
+    /// 손상으로 몰지 않고 실제 형식을 알려 줌.</summary>
     [Theory]
     [InlineData("%PDF-1.7 something", ImageFormat.Pdf)]
     [InlineData("8BPSxxxxxxxxxxxx", ImageFormat.Psd)]
-    public void Sniff_KnownButUnsupportedFormats(string text, ImageFormat expected)
+    public void Sniff_RecognizesUnsupportedDocumentFormats(string text, ImageFormat expected)
     {
         var result = FormatSniffer.Sniff(Encoding.UTF8.GetBytes(text));
         Assert.Equal(expected, result.Format);

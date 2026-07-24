@@ -104,9 +104,6 @@
           "Svg.Model": "5.1.1"
         }
       },
-      "ezyimageviewer.codecprotocol": {
-        "type": "Project"
-      },
       "ezyimageviewer.core": {
         "type": "Project"
       }

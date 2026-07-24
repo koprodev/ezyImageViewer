@@ -1,13 +1,10 @@
 #Requires -Version 5.1
 
-# Generates a deterministic App Installer file from the identities inside an actual MSIX pair.
+# 실제 MSIX 안의 ID로 결정적 App Installer 파일 생성.
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)]
     [string]$MainPackage,
-
-    [Parameter(Mandatory = $true)]
-    [string]$CodecHostPackage,
 
     [Parameter(Mandatory = $true)]
     [string]$OutputPath,
@@ -17,9 +14,6 @@ param(
 
     [Parameter(Mandatory = $true)]
     [string]$MainPackageUri,
-
-    [Parameter(Mandatory = $true)]
-    [string]$CodecHostPackageUri,
 
     [ValidateSet('None', 'OnLaunch')]
     [string]$UpdateMode = 'None',
@@ -37,8 +31,7 @@ if ($UpdateMode -eq 'None' -and
     throw '-HoursBetweenUpdateChecks requires -UpdateMode OnLaunch.'
 }
 
-$pair = Get-EzyReleasePairContract `
-    -MainPackage $MainPackage -CodecHostPackage $CodecHostPackage
+$pair = Get-EzyReleasePackageContract -MainPackage $MainPackage
 $outputFullPath = [IO.Path]::GetFullPath($OutputPath)
 $outputFileName = [IO.Path]::GetFileName($outputFullPath)
 if (-not [string]::Equals(
@@ -53,12 +46,9 @@ $appInstallerUriValue = Resolve-EzyAppInstallerHttpsUri `
     -Value $AppInstallerUri -ExpectedFileName $outputFileName -Label 'AppInstallerUri'
 $mainPackageUriValue = Resolve-EzyAppInstallerHttpsUri `
     -Value $MainPackageUri -ExpectedFileName $pair.Main.File.Name -Label 'MainPackageUri'
-$codecHostPackageUriValue = Resolve-EzyAppInstallerHttpsUri `
-    -Value $CodecHostPackageUri -ExpectedFileName $pair.CodecHost.File.Name `
-    -Label 'CodecHostPackageUri'
-$uriValues = @($appInstallerUriValue, $mainPackageUriValue, $codecHostPackageUriValue)
+$uriValues = @($appInstallerUriValue, $mainPackageUriValue)
 if (@($uriValues | Select-Object -Unique).Count -ne $uriValues.Count) {
-    throw 'AppInstallerUri, MainPackageUri, and CodecHostPackageUri must be unique.'
+    throw 'AppInstallerUri and MainPackageUri must be unique.'
 }
 
 $memory = [IO.MemoryStream]::new()
@@ -84,16 +74,6 @@ try {
     $writer.WriteAttributeString('Version', $pair.Main.Version)
     $writer.WriteAttributeString('ProcessorArchitecture', $pair.Main.Architecture)
     $writer.WriteAttributeString('Uri', $mainPackageUriValue)
-    $writer.WriteEndElement()
-
-    $writer.WriteStartElement('Dependencies', $script:EzyAppInstallerNamespace)
-    $writer.WriteStartElement('Package', $script:EzyAppInstallerNamespace)
-    $writer.WriteAttributeString('Name', $pair.CodecHost.Name)
-    $writer.WriteAttributeString('Publisher', $pair.CodecHost.Publisher)
-    $writer.WriteAttributeString('Version', $pair.CodecHost.Version)
-    $writer.WriteAttributeString('ProcessorArchitecture', $pair.CodecHost.Architecture)
-    $writer.WriteAttributeString('Uri', $codecHostPackageUriValue)
-    $writer.WriteEndElement()
     $writer.WriteEndElement()
 
     if ($UpdateMode -eq 'OnLaunch') {
@@ -126,12 +106,10 @@ Assert-EzyAppInstallerDocument `
     -Pair $pair `
     -AppInstallerUri $appInstallerUriValue `
     -MainPackageUri $mainPackageUriValue `
-    -CodecHostPackageUri $codecHostPackageUriValue `
     -ExpectedUpdateMode $UpdateMode `
     -HoursBetweenUpdateChecks $HoursBetweenUpdateChecks
 $writtenPath = Write-EzyAppInstallerFile -Path $outputFullPath -Bytes $bytes
 
 Write-Output "appinstaller: $writtenPath"
 Write-Output "identity: $($pair.Main.Name) $($pair.Main.Version) $($pair.Main.Architecture)"
-Write-Output "dependency: $($pair.CodecHost.Name) $($pair.CodecHost.Version) $($pair.CodecHost.Architecture)"
 Write-Output "update mode: $UpdateMode"

@@ -1,13 +1,10 @@
 #Requires -Version 5.1
 
-# Exercises deterministic generation plus representative fail-closed App Installer mutations.
+# 결정적 생성과 대표적인 닫힘 우선 App Installer 변형 검사.
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)]
-    [string]$MainPackage,
-
-    [Parameter(Mandatory = $true)]
-    [string]$CodecHostPackage
+    [string]$MainPackage
 )
 
 Set-StrictMode -Version 2.0
@@ -15,10 +12,8 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'appinstaller-helpers.ps1')
 
 $mainItem = Get-EzyAppInstallerPhysicalFile -Path $MainPackage -Label 'MainPackage'
-$codecHostItem = Get-EzyAppInstallerPhysicalFile `
-    -Path $CodecHostPackage -Label 'CodecHostPackage'
-$pair = Get-EzyReleasePairContract `
-    -MainPackage $mainItem.FullName -CodecHostPackage $codecHostItem.FullName
+$pair = Get-EzyReleasePackageContract `
+    -MainPackage $mainItem.FullName
 $generator = Join-Path $PSScriptRoot 'generate-appinstaller.ps1'
 $verifier = Join-Path $PSScriptRoot 'verify-appinstaller-release.ps1'
 $scratch = Join-Path ([IO.Path]::GetTempPath()) (
@@ -27,7 +22,6 @@ $scratch = Join-Path ([IO.Path]::GetTempPath()) (
 
 $baseUri = 'https://example.invalid/ezyimageviewer/'
 $mainUri = $baseUri + $mainItem.Name
-$codecHostUri = $baseUri + $codecHostItem.Name
 $defaultPath = Join-Path $scratch 'ezyImageViewer.appinstaller'
 $defaultUri = $baseUri + 'ezyImageViewer.appinstaller'
 $onLaunchPath = Join-Path $scratch 'ezyImageViewer-onlaunch.appinstaller'
@@ -53,10 +47,8 @@ function Invoke-AppInstallerVerifier {
         '-File', $verifier,
         '-AppInstallerFile', $Path,
         '-MainPackage', $mainItem.FullName,
-        '-CodecHostPackage', $codecHostItem.FullName,
         '-AppInstallerUri', $ExpectedAppInstallerUri,
         '-MainPackageUri', $mainUri,
-        '-CodecHostPackageUri', $codecHostUri,
         '-ExpectedUpdateMode', $Mode)
     if ($Mode -eq 'OnLaunch') {
         $arguments += @('-HoursBetweenUpdateChecks', $Hours)
@@ -110,11 +102,10 @@ function Assert-ExpectedFailure {
 try {
     & powershell -NoProfile -ExecutionPolicy Bypass -File $generator `
         -MainPackage $mainItem.FullName `
-        -CodecHostPackage $codecHostItem.FullName `
         -OutputPath $defaultPath `
         -AppInstallerUri $defaultUri `
         -MainPackageUri $mainUri `
-        -CodecHostPackageUri $codecHostUri | Out-Null
+        | Out-Null
     if ($LASTEXITCODE -ne 0) {
         throw "Default App Installer generation exited with $LASTEXITCODE."
     }
@@ -123,11 +114,10 @@ try {
 
     & powershell -NoProfile -ExecutionPolicy Bypass -File $generator `
         -MainPackage $mainItem.FullName `
-        -CodecHostPackage $codecHostItem.FullName `
         -OutputPath $defaultPath `
         -AppInstallerUri $defaultUri `
         -MainPackageUri $mainUri `
-        -CodecHostPackageUri $codecHostUri | Out-Null
+        | Out-Null
     if ($LASTEXITCODE -ne 0) {
         throw "Repeated App Installer generation exited with $LASTEXITCODE."
     }
@@ -138,11 +128,9 @@ try {
 
     & powershell -NoProfile -ExecutionPolicy Bypass -File $generator `
         -MainPackage $mainItem.FullName `
-        -CodecHostPackage $codecHostItem.FullName `
         -OutputPath $onLaunchPath `
         -AppInstallerUri $onLaunchUri `
         -MainPackageUri $mainUri `
-        -CodecHostPackageUri $codecHostUri `
         -UpdateMode OnLaunch `
         -HoursBetweenUpdateChecks 12 | Out-Null
     if ($LASTEXITCODE -ne 0) {
@@ -249,10 +237,9 @@ try {
         & powershell -NoProfile -ExecutionPolicy Bypass -File $verifier `
             -AppInstallerFile $defaultPath `
             -MainPackage $mainItem.FullName `
-            -CodecHostPackage $codecHostItem.FullName `
             -AppInstallerUri $queryUri `
             -MainPackageUri $mainUri `
-            -CodecHostPackageUri $codecHostUri 2>&1 | Out-Null
+            2>&1 | Out-Null
         if ($LASTEXITCODE -ne 0) {
             throw "Expected query rejection exit $LASTEXITCODE."
         }
@@ -262,11 +249,10 @@ try {
     Assert-ExpectedFailure -Label 'encoded path separator' -Action {
         & powershell -NoProfile -ExecutionPolicy Bypass -File $generator `
             -MainPackage $mainItem.FullName `
-            -CodecHostPackage $codecHostItem.FullName `
             -OutputPath $defaultPath `
             -AppInstallerUri $defaultUri `
             -MainPackageUri $encodedSeparatorUri `
-            -CodecHostPackageUri $codecHostUri 2>&1 | Out-Null
+            2>&1 | Out-Null
         if ($LASTEXITCODE -ne 0) {
             throw "Expected encoded-separator rejection exit $LASTEXITCODE."
         }
@@ -276,11 +262,10 @@ try {
     Assert-ExpectedFailure -Label 'encoded package basename' -Action {
         & powershell -NoProfile -ExecutionPolicy Bypass -File $generator `
             -MainPackage $mainItem.FullName `
-            -CodecHostPackage $codecHostItem.FullName `
             -OutputPath $defaultPath `
             -AppInstallerUri $defaultUri `
             -MainPackageUri $encodedFileNameUri `
-            -CodecHostPackageUri $codecHostUri 2>&1 | Out-Null
+            2>&1 | Out-Null
         if ($LASTEXITCODE -ne 0) {
             throw "Expected encoded-basename rejection exit $LASTEXITCODE."
         }
@@ -290,11 +275,10 @@ try {
     Assert-ExpectedFailure -Label 'nested percent encoding' -Action {
         & powershell -NoProfile -ExecutionPolicy Bypass -File $generator `
             -MainPackage $mainItem.FullName `
-            -CodecHostPackage $codecHostItem.FullName `
             -OutputPath $defaultPath `
             -AppInstallerUri $defaultUri `
             -MainPackageUri $nestedEncodingUri `
-            -CodecHostPackageUri $codecHostUri 2>&1 | Out-Null
+            2>&1 | Out-Null
         if ($LASTEXITCODE -ne 0) {
             throw "Expected nested-encoding rejection exit $LASTEXITCODE."
         }
@@ -311,10 +295,6 @@ try {
 
     $caseVariantHashesPath = Join-Path $scratch 'SHA256SUMS-case-variant.txt'
     $caseVariantRecords = @(
-        [pscustomobject]@{
-            Name = $codecHostItem.Name
-            Hash = (Get-FileHash -LiteralPath $codecHostItem.FullName -Algorithm SHA256).Hash
-        },
         [pscustomobject]@{
             Name = [IO.Path]::GetFileName($defaultPath)
             Hash = (Get-FileHash -LiteralPath $defaultPath -Algorithm SHA256).Hash
@@ -335,9 +315,7 @@ try {
         & powershell -NoProfile -ExecutionPolicy Bypass `
             -File (Join-Path $PSScriptRoot 'verify-msix-release.ps1') `
             -MainPackage $mainItem.FullName `
-            -CodecHostPackage $codecHostItem.FullName `
             -Version $pair.Main.Version `
-            -CodecHostVersion $pair.CodecHost.Version `
             -Publisher $pair.Main.Publisher `
             -HashesFile $caseVariantHashesPath `
             -AppInstallerFile $defaultPath `

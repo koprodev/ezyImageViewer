@@ -6,7 +6,7 @@ using Xunit;
 
 namespace EzyImageViewer.Tests.Imaging;
 
-/// <summary>Minimal per-format fixtures through the real dispatch path (FMT-RASTER coverage floor).</summary>
+/// <summary>실제 디스패치 경로를 지나는 형식별 최소 픽스처(FMT-RASTER 커버리지 바닥).</summary>
 public class RasterFixtureTests
 {
     private static readonly DocumentLoader Loader = new();
@@ -30,7 +30,7 @@ public class RasterFixtureTests
         Assert.Equal(expected, document.Format);
         Assert.Equal(16, document.Frame.Width);
         Assert.Equal(8, document.Frame.Height);
-        // Orange-dominant center pixel in BGRA layout (red high, blue low).
+        // BGRA 배치의 주황 우세 중심 픽셀. 빨강 높고 파랑 낮음.
         var pixels = document.Frame.Pixels;
         var center = (4 * document.Frame.Width + 8) * 4;
         Assert.True(pixels[center + 2] > 0xB0 && pixels[center] < 0x60);

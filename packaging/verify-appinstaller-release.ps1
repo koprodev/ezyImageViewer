@@ -1,6 +1,6 @@
 #Requires -Version 5.1
 
-# Verifies an App Installer file against the byte-backed identities in an actual MSIX pair.
+# App Installer 파일을 실제 MSIX 쌍의 바이트 기반 ID와 대조.
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)]
@@ -10,16 +10,10 @@ param(
     [string]$MainPackage,
 
     [Parameter(Mandatory = $true)]
-    [string]$CodecHostPackage,
-
-    [Parameter(Mandatory = $true)]
     [string]$AppInstallerUri,
 
     [Parameter(Mandatory = $true)]
     [string]$MainPackageUri,
-
-    [Parameter(Mandatory = $true)]
-    [string]$CodecHostPackageUri,
 
     [ValidateSet('None', 'OnLaunch')]
     [string]$ExpectedUpdateMode = 'None',
@@ -47,18 +41,14 @@ if (-not [string]::Equals(
 }
 Assert-EzyAsciiText -Value $appInstallerItem.Name -Label 'AppInstallerFile basename'
 
-$pair = Get-EzyReleasePairContract `
-    -MainPackage $MainPackage -CodecHostPackage $CodecHostPackage
+$pair = Get-EzyReleasePackageContract -MainPackage $MainPackage
 $appInstallerUriValue = Resolve-EzyAppInstallerHttpsUri `
     -Value $AppInstallerUri -ExpectedFileName $appInstallerItem.Name -Label 'AppInstallerUri'
 $mainPackageUriValue = Resolve-EzyAppInstallerHttpsUri `
     -Value $MainPackageUri -ExpectedFileName $pair.Main.File.Name -Label 'MainPackageUri'
-$codecHostPackageUriValue = Resolve-EzyAppInstallerHttpsUri `
-    -Value $CodecHostPackageUri -ExpectedFileName $pair.CodecHost.File.Name `
-    -Label 'CodecHostPackageUri'
-$uriValues = @($appInstallerUriValue, $mainPackageUriValue, $codecHostPackageUriValue)
+$uriValues = @($appInstallerUriValue, $mainPackageUriValue)
 if (@($uriValues | Select-Object -Unique).Count -ne $uriValues.Count) {
-    throw 'AppInstallerUri, MainPackageUri, and CodecHostPackageUri must be unique.'
+    throw 'AppInstallerUri and MainPackageUri must be unique.'
 }
 
 $stream = [IO.FileStream]::new(
@@ -93,11 +83,9 @@ Assert-EzyAppInstallerDocument `
     -Pair $pair `
     -AppInstallerUri $appInstallerUriValue `
     -MainPackageUri $mainPackageUriValue `
-    -CodecHostPackageUri $codecHostPackageUriValue `
     -ExpectedUpdateMode $ExpectedUpdateMode `
     -HoursBetweenUpdateChecks $HoursBetweenUpdateChecks
 
 Write-Output "verified appinstaller: $($appInstallerItem.FullName)"
 Write-Output "identity: $($pair.Main.Name) $($pair.Main.Version) $($pair.Main.Architecture)"
-Write-Output "dependency: $($pair.CodecHost.Name) $($pair.CodecHost.Version) $($pair.CodecHost.Architecture)"
 Write-Output "update mode: $ExpectedUpdateMode"

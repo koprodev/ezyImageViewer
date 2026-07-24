@@ -7,7 +7,7 @@ public sealed record DecodeRequest(InputLimits Limits, int? PreferredMaxDimensio
     public static DecodeRequest Default { get; } = new(InputLimits.Default);
 }
 
-/// <summary>Stable user-facing failure categories from requirements §8.5.</summary>
+/// <summary>사용자에게 보여 주는 안정적인 실패 분류.</summary>
 public enum ImageLoadFailureKind
 {
     CorruptFile,
@@ -17,7 +17,7 @@ public enum ImageLoadFailureKind
     ResourceOrSecurityLimitExceeded,
 }
 
-/// <summary>Raised when the input is refused by policy — not a decoder bug.</summary>
+/// <summary>디코더 버그가 아니라 입력 정책 거절일 때 발생.</summary>
 public class ImageRejectedException : Exception
 {
     public ImageRejectedException(string message)
@@ -52,12 +52,7 @@ public sealed class CodecUnavailableException(string message, Exception? innerEx
 public sealed class SecurityLimitExceededException(string message, Exception? innerException = null)
     : ImageRejectedException(ImageLoadFailureKind.ResourceOrSecurityLimitExceeded, message, innerException);
 
-/// <summary>
-/// The frame, whether it was decoded at reduced size under the pixel budget, and the source's own
-/// post-EXIF size. <paramref name="NativeSize"/> is what annotation geometry is expressed in, so a
-/// reduced preview and a later full-resolution decode of the same file address identical
-/// coordinates (ADR-0008); it equals the frame size unless <paramref name="IsReduced"/>.
-/// </summary>
+/// <summary>디코드 프레임, 축소 여부, EXIF 적용 뒤 원본 크기 묶음.</summary>
 public readonly record struct DecodeResult(
     DecodedFrame Frame,
     bool IsReduced,
@@ -65,10 +60,7 @@ public readonly record struct DecodeResult(
     int FrameCount = 1,
     IReadOnlyList<DocumentDiagnostic>? Diagnostics = null);
 
-/// <summary>
-/// Decode contract (ADR-0006 abstraction point): implementations must run off the UI thread,
-/// honor cancellation, apply EXIF orientation exactly once, and emit BGRA8 premultiplied pixels.
-/// </summary>
+/// <summary>디코더 계약: UI 밖 실행, 취소 준수, EXIF 방향 한 번 적용, BGRA8 premul 출력.</summary>
 public interface IImageDecoder
 {
     Task<DecodeResult> DecodeAsync(Stream stream, DecodeRequest request, CancellationToken cancellationToken);

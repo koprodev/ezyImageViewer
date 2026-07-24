@@ -32,8 +32,7 @@
               bal:Overridable="yes" Persisted="yes" />
     <Variable Name="EzyFileAssociations" Type="numeric" Value="1"
               bal:Overridable="yes" Persisted="no" />
-    <!-- Absolute launch path per selected scope: a bare exe name relied on App Paths
-         resolution from the BA process, which fails on machines without a matching view. -->
+    <!-- 선택한 범위의 절대 실행 경로 사용. 실행 파일 이름만 두면 BA 프로세스의 App Paths 뷰가 달라 실패할 수 있음. -->
     <Variable Name="LaunchTargetPath" Type="formatted"
               Value="[PerUserInstallFolder]\ezyImageViewer.exe" />
     <SetVariable Variable="LaunchTargetPath" Type="formatted"

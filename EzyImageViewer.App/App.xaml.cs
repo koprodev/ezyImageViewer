@@ -18,6 +18,7 @@ public partial class App : Application
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
+        StartupTimeline.Mark("onLaunched");
         var commandLine = Environment.GetCommandLineArgs();
         string? Arg(string prefix) => commandLine
             .FirstOrDefault(a => a.StartsWith(prefix, StringComparison.Ordinal))?[prefix.Length..];
@@ -59,18 +60,11 @@ public partial class App : Application
         {
             var smokeOut = Arg("--smoke-out=")
                 ?? Path.Combine(Path.GetTempPath(), "ezy-smoke.json");
-            var isolatedCodecExercise = commandLine.Contains(
-                "--smoke-codec",
-                StringComparer.Ordinal);
             try
             {
-                var viewer = new ViewerWindow(
-                    isolatedCodecExercise
-                        ? AppServices.CreateIsolatedCodecSmokeLoader()
-                        : null);
+                var viewer = new ViewerWindow();
                 viewer.ConfigureSmoke(smokePath, smokeOut, Arg("--smoke-project="),
-                    commandLine.Contains("--smoke-capture"),
-                    isolatedCodecExercise);
+                    commandLine.Contains("--smoke-capture"));
                 _window = viewer;
                 _window.Activate();
             }
@@ -93,11 +87,11 @@ public partial class App : Application
             return;
         }
 
-        // Normal path: the initial request was posted by Program.Main before the UI existed.
+            // 일반 경로: UI가 생기기 전에 Program.Main이 최초 요청을 올려 둠.
         AppServices.InitializeUi(DispatcherQueue.GetForCurrentThread());
     }
 
-    /// <summary>Synthetic 6000x4000 (24MP) JPEG for the NFR-PERF-002 first-display measurement.</summary>
+    /// <summary>NFR-PERF-002 최초 표시 측정용 합성 6000×4000(24MP) JPEG.</summary>
     private static string Generate24MpJpeg()
     {
         var path = Path.Combine(Path.GetTempPath(), "ezy-bench-24mp.jpg");
