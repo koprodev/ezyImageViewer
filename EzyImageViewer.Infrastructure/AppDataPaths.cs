@@ -18,6 +18,7 @@ public interface IAppDataPaths
     string RecoveryQuarantineDirectory { get; }
     string CrashMarkersDirectory { get; }
     string StartupHealthFile { get; }
+    string UpdateCheckStateFile { get; }
 }
 
 public sealed class AppDataPaths : IAppDataPaths
@@ -33,6 +34,7 @@ public sealed class AppDataPaths : IAppDataPaths
         RecoveryQuarantineDirectory = UnderRoot("recovery-quarantine");
         CrashMarkersDirectory = UnderRoot("crash-markers");
         StartupHealthFile = UnderRoot("startup-health.json");
+        UpdateCheckStateFile = UnderRoot("update-check-state.txt");
     }
 
     public string RootDirectory { get; }
@@ -43,6 +45,7 @@ public sealed class AppDataPaths : IAppDataPaths
     public string RecoveryQuarantineDirectory { get; }
     public string CrashMarkersDirectory { get; }
     public string StartupHealthFile { get; }
+    public string UpdateCheckStateFile { get; }
 
     public static AppDataPaths CreateDefault()
     {

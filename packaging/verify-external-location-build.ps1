@@ -3,6 +3,8 @@ param(
     [Parameter(Mandatory)]
     [string]$Version,
 
+    [string]$ReleaseVersion,
+
     [Parameter(Mandatory)]
     [string]$Publisher,
 
@@ -20,6 +22,9 @@ $scriptRoot = Split-Path -Parent $PSCommandPath
 . (Join-Path $scriptRoot 'external-location-helpers.ps1')
 
 Assert-EzyExternalFourPartVersion $Version 'Version'
+if ([string]::IsNullOrWhiteSpace($ReleaseVersion)) {
+    $ReleaseVersion = ($Version.Split('.')[0..2] -join '.')
+}
 Assert-EzyExternalPublisher $Publisher
 Assert-EzyExternalMinVersion $MinVersion
 
@@ -72,6 +77,7 @@ try {
 
     $common = @{
         Version = $Version
+        ReleaseVersion = $ReleaseVersion
         Publisher = $Publisher
         MinVersion = $MinVersion
     }

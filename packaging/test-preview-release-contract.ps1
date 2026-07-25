@@ -52,6 +52,7 @@ foreach ($expected in @(
         '-p:EnableCompressionInSingleFile=true', '-p:EnableMsixTooling=true',
         '-t:Rebuild', '-p:CustomBeforeMicrosoftCommonProps=', 'Copy-EzyPortableThirdPartyFiles',
         'WindowsAppSDK.manifest', '[IO.File]::Delete', 'SingleFilePublish.targets',
+        '-p:InformationalVersion=$ReleaseVersion',
         "'ezyImageViewer.exe'", "'NotSigned'")) {
     Assert-Contains $singleBuild $expected 'Single-file portable builder'
 }
@@ -63,7 +64,7 @@ foreach ($expected in @(
 }
 foreach ($expected in @(
         'build-single-file-portable.ps1', 'pack-msix.ps1', '-SkipSign',
-        'build-wix-installer.ps1', '-DevelopmentUnsigned', 'EzyRtfLargeTheme.xml',
+        'build-wix-installer.ps1', '-ReleaseVersion', '-DevelopmentUnsigned', 'EzyRtfLargeTheme.xml',
         'LICENSE-MRL.txt', 'preview-release-manifest.json', 'SHA256SUMS.txt',
         'Join-Path $scriptRoot ''preview-release.json''')) {
     Assert-Contains $releaseBuild $expected 'Preview release builder'

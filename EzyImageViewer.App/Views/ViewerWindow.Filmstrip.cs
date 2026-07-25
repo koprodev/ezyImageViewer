@@ -1,8 +1,10 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
+using Windows.System;
 using Windows.Storage;
 using Windows.Storage.FileProperties;
 
@@ -59,6 +61,7 @@ public sealed partial class ViewerWindow
             },
             ItemTemplate = new FilmstripCardFactory(),
             ItemsSource = _filmstripFiles,
+            HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
         };
         repeater.ElementPrepared += OnFilmstripElementPrepared;
@@ -68,6 +71,7 @@ public sealed partial class ViewerWindow
         var scroll = new ScrollViewer
         {
             Content = repeater,
+            HorizontalContentAlignment = HorizontalAlignment.Center,
             HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
             HorizontalScrollMode = ScrollMode.Enabled,
             VerticalScrollBarVisibility = ScrollBarVisibility.Disabled,
@@ -187,6 +191,8 @@ public sealed partial class ViewerWindow
         card.Bind(index, Path.GetFileName(path), index == _filmstripCurrentIndex);
         card.Click -= OnFilmstripCardClicked;
         card.Click += OnFilmstripCardClicked;
+        card.KeyDown -= OnFilmstripCardKeyDown;
+        card.KeyDown += OnFilmstripCardKeyDown;
 
         if (_filmstripThumbnails.TryGetValue(path, out var cached))
         {
@@ -202,6 +208,7 @@ public sealed partial class ViewerWindow
         if (args.Element is not FilmstripCard card)
             return;
         card.Click -= OnFilmstripCardClicked;
+        card.KeyDown -= OnFilmstripCardKeyDown;
         card.Release();
     }
 
@@ -209,9 +216,28 @@ public sealed partial class ViewerWindow
     {
         if (sender is not FilmstripCard { Index: >= 0 } card)
             return;
-        // 스트립은 두고 포커스만 캔버스로 돌려 방향키가 카드 대신 파일 이동.
         _viewModel.OpenAt(card.Index);
-        Canvas.Focus(FocusState.Programmatic);
+    }
+
+    private void OnFilmstripCardKeyDown(object sender, KeyRoutedEventArgs e)
+    {
+        if (sender is not FilmstripCard { Index: >= 0 } card)
+            return;
+
+        if (e.Key is not (VirtualKey.Left or VirtualKey.Right))
+            return;
+
+        e.Handled = true;
+        var targetIndex = e.Key == VirtualKey.Left
+            ? card.Index - 1
+            : card.Index + 1;
+        if (targetIndex < 0 || targetIndex >= _filmstripFiles.Count)
+            return;
+
+        // 포커스와 본 이미지를 한 칸씩 동행. 썸네일만 산책 보내지 않음.
+        var targetCard = _filmstripRepeater?.GetOrCreateElement(targetIndex) as FilmstripCard;
+        _viewModel.OpenAt(targetIndex);
+        targetCard?.Focus(FocusState.Keyboard);
     }
 
     /// <summary>직접 디코드 대신 Windows 셸 썸네일 캐시 사용.</summary>

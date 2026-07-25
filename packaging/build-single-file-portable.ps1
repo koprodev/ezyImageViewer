@@ -1,6 +1,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)][string]$Version,
+    [string]$ReleaseVersion,
     [Parameter(Mandatory)][string]$OutputDirectory,
     # 로컬 테스트만 현재 작업 트리 그대로 게시. 공개 릴리스는 이 옵션 없이 commit에 결박.
     [switch]$AllowUncommittedSource
@@ -15,6 +16,18 @@ $repositoryRoot = [IO.Path]::GetFullPath((Join-Path $scriptRoot '..'))
 . (Join-Path $scriptRoot 'portable-release-helpers.ps1')
 
 Assert-EzyPortableVersion $Version
+if ([string]::IsNullOrWhiteSpace($ReleaseVersion)) {
+    $ReleaseVersion = $Version
+}
+if ($ReleaseVersion -cnotmatch '^\d+\.\d+\.\d+(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$') {
+    throw "ReleaseVersion has an invalid format: '$ReleaseVersion'."
+}
+$productVersion = $Version.Split('-')[0]
+if ($ReleaseVersion -cne $productVersion -and
+    -not $ReleaseVersion.StartsWith(
+        "$productVersion-", [StringComparison]::Ordinal)) {
+    throw "ReleaseVersion must match Version: '$ReleaseVersion'."
+}
 $numericVersion = Get-EzyPortableNumericVersion $Version
 if (-not $AllowUncommittedSource) {
     [void](Assert-EzyPortableSourceState $repositoryRoot)
@@ -64,7 +77,7 @@ try {
         '-p:Portable=true', '-p:DebugSymbols=false', '-p:DebugType=None',
         '-p:CopyOutputSymbolsToPublishDirectory=false', "-p:Version=$Version",
         "-p:AssemblyVersion=$numericVersion", "-p:FileVersion=$numericVersion",
-        "-p:InformationalVersion=$Version")
+        "-p:InformationalVersion=$ReleaseVersion")
 
     & dotnet publish @commonPublishArguments `
         "-p:CustomAfterMicrosoftCommonTargets=$(Join-Path $scriptRoot 'MsiPublish.targets')" `

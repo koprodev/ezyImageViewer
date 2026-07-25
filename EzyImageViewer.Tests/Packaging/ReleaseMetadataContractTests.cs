@@ -64,7 +64,8 @@ public sealed class ReleaseMetadataContractTests
         Assert.DoesNotContain("`.pdf`", guide, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("`.psd`", guide, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("Portable", guide, StringComparison.Ordinal);
-        Assert.Contains("자동 버전 확인", guide, StringComparison.Ordinal);
+        Assert.Contains("24시간", guide, StringComparison.Ordinal);
+        Assert.Contains("자동 다운로드", guide, StringComparison.Ordinal);
         Assert.Contains("기본 브라우저", guide, StringComparison.Ordinal);
     }
 

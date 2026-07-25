@@ -26,6 +26,17 @@ internal sealed class SettingsDialogContent : Grid
     private readonly ToggleSwitch _toolbarZoomGroup = new();
     private readonly ToggleSwitch _toolbarProtectGroup = new();
     private readonly Button _checkForUpdates = new();
+    private readonly TextBlock _updateStatus = new()
+    {
+        TextWrapping = TextWrapping.Wrap,
+        Visibility = Visibility.Collapsed,
+    };
+    private readonly Button _openUpdateRelease = new()
+    {
+        HorizontalAlignment = HorizontalAlignment.Left,
+        Visibility = Visibility.Collapsed,
+    };
+    private Uri? _updateReleasePage;
     private readonly CheckBox _control = new();
     private readonly CheckBox _alt = new();
     private readonly CheckBox _shift = new();
@@ -110,6 +121,41 @@ internal sealed class SettingsDialogContent : Grid
     public AppSettings InitialSettings => _initial;
     public event EventHandler? CheckForUpdatesRequested;
     public event EventHandler<Uri>? LinkRequested;
+
+    public void SetUpdateCheckPending()
+    {
+        _checkForUpdates.IsEnabled = false;
+        _updateStatus.Text = AppStrings.UpdateChecking;
+        _updateStatus.Visibility = Visibility.Visible;
+        _openUpdateRelease.Visibility = Visibility.Collapsed;
+        _updateReleasePage = null;
+    }
+
+    public void SetUpdateCheckResult(UpdateCheckResult result)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+        _checkForUpdates.IsEnabled = true;
+        _updateStatus.Text = result.Status switch
+        {
+            UpdateCheckStatus.UpdateAvailable => string.Format(
+                CultureInfo.CurrentCulture,
+                AppStrings.UpdateAvailableBody,
+                result.CurrentVersion,
+                result.LatestVersion),
+            UpdateCheckStatus.Current => string.Format(
+                CultureInfo.CurrentCulture,
+                AppStrings.UpdateCurrent,
+                result.CurrentVersion),
+            _ => AppStrings.UpdateUnavailable,
+        };
+        _updateStatus.Visibility = Visibility.Visible;
+        _updateReleasePage = result.Status == UpdateCheckStatus.UpdateAvailable
+            ? result.ReleasePage
+            : null;
+        _openUpdateRelease.Visibility = _updateReleasePage is null
+            ? Visibility.Collapsed
+            : Visibility.Visible;
+    }
 
     public bool TryCreateSettings(out AppSettings settings)
     {
@@ -501,6 +547,15 @@ internal sealed class SettingsDialogContent : Grid
         _checkForUpdates.Click += (_, _) =>
             CheckForUpdatesRequested?.Invoke(this, EventArgs.Empty);
         panel.Children.Add(_checkForUpdates);
+        panel.Children.Add(_updateStatus);
+        _openUpdateRelease.Content = AppStrings.UpdateOpenRelease;
+        AutomationProperties.SetName(_openUpdateRelease, AppStrings.UpdateOpenRelease);
+        _openUpdateRelease.Click += (_, _) =>
+        {
+            if (_updateReleasePage is { } page)
+                LinkRequested?.Invoke(this, page);
+        };
+        panel.Children.Add(_openUpdateRelease);
         return WrapPage(panel);
     }
 

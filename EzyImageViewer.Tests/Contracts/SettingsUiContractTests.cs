@@ -6,7 +6,7 @@ namespace EzyImageViewer.Tests.Contracts;
 public sealed class SettingsUiContractTests
 {
     [Fact]
-    public void UpdateFlow_IsManualBrowserOnlyAndHasNoAutomaticChecker()
+    public void UpdateFlow_UsesOneDailyAutomaticCheckAndKeepsManualRefresh()
     {
         var settings = File.ReadAllText(RepoFile(
             "EzyImageViewer.Infrastructure", "AppSettings.cs"));
@@ -28,20 +28,24 @@ public sealed class SettingsUiContractTests
             "UpdateChecksEnabled",
             currentSettingsModel,
             StringComparison.Ordinal);
-        Assert.DoesNotContain("TryStartUpdateCheck", services, StringComparison.Ordinal);
-        Assert.DoesNotContain("ShutdownUpdateCheck", windowManager, StringComparison.Ordinal);
+        Assert.Contains("TryStartUpdateCheck", services, StringComparison.Ordinal);
+        Assert.Contains("ApplicationReleaseVersion", services, StringComparison.Ordinal);
+        Assert.Contains("TimeSpan.FromHours(24)", File.ReadAllText(RepoFile(
+            "EzyImageViewer.Infrastructure", "GitHubReleaseUpdateChecker.cs")));
+        Assert.Contains("ShutdownUpdateCheck", windowManager, StringComparison.Ordinal);
         Assert.DoesNotContain("EzyImageViewerUpdateEndpoint", appProject, StringComparison.Ordinal);
         Assert.Contains("CheckForUpdatesRequested", settingsUi, StringComparison.Ordinal);
         Assert.Contains(
-            "Launcher.LaunchUriAsync(ReleaseDistributionPolicy.LatestReleasePage)",
+            "CheckForUpdatesAsync(",
             viewer,
             StringComparison.Ordinal);
-        Assert.False(File.Exists(RepoFile(
+        Assert.Contains("ShowUpdateAvailableAsync", viewer, StringComparison.Ordinal);
+        Assert.True(File.Exists(RepoFile(
             "EzyImageViewer.Infrastructure", "GitHubReleaseUpdateChecker.cs")));
     }
 
     [Fact]
-    public void UpdateFlow_HasNoNetworkVersionDownloadInstallOrRestartImplementation()
+    public void UpdateFlow_HasNoDownloadInstallOrRestartImplementation()
     {
         string[] productDirectories =
         [
@@ -63,16 +67,7 @@ public sealed class SettingsUiContractTests
             .ToArray();
         string[] forbiddenTokens =
         [
-            "System.Net.Http",
-            "HttpClient",
-            "HttpRequestMessage",
             "WebClient",
-            "api.github.com",
-            "GitHubReleaseUpdateChecker",
-            "UpdateCheckStatus",
-            "UpdateCheckResult",
-            "TryParseStableVersion",
-            "LatestVersion",
             "Windows.Management.Deployment",
             "PackageManager",
             "DownloadFile",

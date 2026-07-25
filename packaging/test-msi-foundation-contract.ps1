@@ -240,6 +240,8 @@ try {
         'MSI staging does not use external identity publish provenance.'
     Assert-Foundation ($stageScript.Contains("'--runtime', 'win-x64'")) `
         'MSI staging locked restore does not select the lock-file runtime graph.'
+    Assert-Foundation ($stageScript.Contains('"-p:InformationalVersion=$ReleaseVersion"')) `
+        'MSI staging does not stamp the comparable release version.'
     Assert-Foundation (-not $stageScript.Contains('-p:ApplicationManifest=')) `
         'MSI staging bypasses the external identity project contract.'
 

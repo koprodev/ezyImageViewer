@@ -85,9 +85,27 @@ public class InitialWindowGeometryTests
         Assert.True(layout.ContentScale > 0f);
     }
 
-        // 아직 안 보인 창은 장식 크기를 모름.
-        // 클라이언트 영역을 한 번 정하고 비클라이언트 프레임을 읽은 뒤 바깥 창 공간에서 다시 측정.
-        // 두 번째 측정이 작업 영역 상한과 최소 창 크기를 책임짐.
+    [Fact]
+    public void EmptyWindow_UsesHalfOfTheWorkAreaOnBothAxes()
+    {
+        var window = InitialWindowGeometry.MeasureEmptyWindow(new PixelSize(1920, 1040));
+
+        Assert.Equal(960, window.Width);
+        Assert.Equal(520, window.Height);
+    }
+
+    [Fact]
+    public void EmptyWindow_DegenerateWorkAreaStillProducesAUsableSize()
+    {
+        var window = InitialWindowGeometry.MeasureEmptyWindow(new PixelSize(0, -1));
+
+        Assert.Equal(1, window.Width);
+        Assert.Equal(1, window.Height);
+    }
+
+    // 아직 안 보인 창은 장식 크기를 모름.
+    // 클라이언트 영역을 한 번 정하고 비클라이언트 프레임을 읽은 뒤 바깥 창 공간에서 다시 측정.
+    // 두 번째 측정이 작업 영역 상한과 최소 창 크기를 책임짐.
     private static readonly PixelSize NonClientFrame = new(16, 47);
     private static readonly PixelSize StatusBar = new(0, 44);
 

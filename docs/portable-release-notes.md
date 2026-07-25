@@ -13,7 +13,7 @@ This is the first identity-free, installation-free testing preview for Windows
 
 - This preview is unsigned, so Windows SmartScreen may warn.
 - It does not install shortcuts, registry entries, file associations, package
-  identity, or automatic updates.
+  identity, or automatic update downloads and installation.
 - The official package-identity Snipping Tool callback is unavailable; the
   clipboard fallback remains available.
 - PDF and PSD remain disabled in the normal UI.

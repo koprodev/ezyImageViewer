@@ -70,9 +70,11 @@ Assert-ContainsLiteral $readme '(docs/signpath-readiness.md)' 'README'
 Assert-ContainsLiteral $readme 'There is no production-signed public installer yet' 'README'
 
 Assert-ContainsLiteral $privacy `
-    'This program will not transfer any information to other networked systems' `
+    'one unauthenticated HTTPS GET request' `
     'Privacy policy'
-Assert-ContainsLiteral $privacy 'automatic version checks' 'Privacy policy'
+Assert-ContainsLiteral $privacy 'Automatic checks are limited to once every 24' `
+    'Privacy policy'
+Assert-ContainsLiteral $privacy 'no image bytes' 'Privacy policy'
 
 Assert-ContainsLiteral $signing `
     'SignPath Foundation has not accepted this project' `

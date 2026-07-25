@@ -7,6 +7,9 @@ param(
     [string]$Version,
 
     [Parameter(Mandatory)]
+    [string]$ReleaseVersion,
+
+    [Parameter(Mandatory)]
     [string]$Publisher,
 
     [Parameter(Mandatory)]
@@ -25,6 +28,15 @@ $repositoryRoot = [IO.Path]::GetFullPath((Join-Path $scriptRoot '..'))
 . (Join-Path $scriptRoot 'msi-payload-helpers.ps1')
 
 Assert-EzyExternalFourPartVersion $Version 'Version'
+if ($ReleaseVersion -cnotmatch '^\d+\.\d+\.\d+(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$') {
+    throw "ReleaseVersion has an invalid format: '$ReleaseVersion'."
+}
+$productVersion = ($Version.Split('.')[0..2] -join '.')
+if ($ReleaseVersion -cne $productVersion -and
+    -not $ReleaseVersion.StartsWith(
+        "$productVersion-", [StringComparison]::Ordinal)) {
+    throw "ReleaseVersion must match Version: '$ReleaseVersion'."
+}
 Assert-EzyExternalPublisher $Publisher
 Assert-EzyExternalMinVersion $MinVersion
 
@@ -87,6 +99,7 @@ try {
 # 어셈블리에 설치 프로그램 버전 기록.
 # MSI는 FileVersion이 같으면 파일을 건너뛰므로 고정 버전이면 큰 업그레이드에도 묵은 바이너리가 남음.
         "-p:FileVersion=$Version",
+        "-p:InformationalVersion=$ReleaseVersion",
         '-p:DebugSymbols=false',
         '-p:DebugType=None',
         '-p:CopyOutputSymbolsToPublishDirectory=false',

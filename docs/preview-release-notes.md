@@ -1,4 +1,4 @@
-# ezy Image Viewer Installer + Portable Preview 1.0.42
+# ezy Image Viewer Installer + Portable Preview 1.0.47
 
 This unsigned prerelease is provided for personal evaluation and testing on
 Windows 10 build 19041 or later, x64. It is not a production-signed release.
@@ -6,7 +6,7 @@ Windows SmartScreen may warn when either executable is launched.
 
 ## Downloads
 
-- `ezyImageViewerSetup-1.0.42-x64-dev-unsigned.exe`: installer with current-user
+- `ezyImageViewerSetup-1.0.47-x64-dev-unsigned.exe`: installer with current-user
   or all-users scope. Start menu and supported image file association (Open With)
   registration are enabled by default. The desktop shortcut remains an explicit
   opt-in choice.
@@ -30,7 +30,7 @@ The installer can register PNG, JPG, JPEG, BMP, GIF, WebP, TIF, and TIFF as
 Open With candidates. It does not force ezy Image Viewer to become the Windows
 default handler; that final choice remains with the user.
 
-Preview 1.0.42 adds, since 1.0.12: a speech bubble annotation with a draggable
+Preview 1.0.47 adds, since 1.0.12: a speech bubble annotation with a draggable
 tail, a 4K whiteboard document (white or black, baked grid), right-drag
 panning, box pixel selection with transparent cut and lift-to-object editing,
 crop-region clipboard copy, toolbar dropdown groups (open, select split,

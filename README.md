@@ -25,9 +25,10 @@ the exact supported formats and limits.
 
 ## Privacy
 
-The application has no telemetry, analytics, automatic version check, or
-automatic upload path. Selecting **Check for updates** only asks the operating
-system to open the fixed GitHub Releases page in the user's default browser.
+The application has no telemetry, analytics, or automatic upload path. At
+startup it checks the repository's public GitHub Releases metadata no more than
+once every 24 hours, including preview releases. It never uploads image or file
+data and does not download or install an update automatically.
 
 Read the [privacy policy](docs/privacy.md) and the
 [local data operations guide](docs/operations.md) before handling sensitive

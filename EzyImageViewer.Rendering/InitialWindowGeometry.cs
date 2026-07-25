@@ -13,6 +13,18 @@ public static class InitialWindowGeometry
 {
     /// <summary>자동 크기 창이 차지할 수 있는 모니터 작업 영역 최대 비율.</summary>
     public const double WorkAreaFraction = 0.9;
+    /// <summary>이미지 없이 여는 창의 작업 영역 비율.</summary>
+    public const double EmptyWindowWorkAreaFraction = 0.5;
+
+    /// <summary>빈 창은 작업 영역의 절반 크기. 반쪽이어도 가운데는 당당하게.</summary>
+    public static PixelSize MeasureEmptyWindow(PixelSize workArea) =>
+        new(
+            Math.Max(
+                1,
+                (int)Math.Round(Math.Max(1, workArea.Width) * EmptyWindowWorkAreaFraction)),
+            Math.Max(
+                1,
+                (int)Math.Round(Math.Max(1, workArea.Height) * EmptyWindowWorkAreaFraction)));
 
     /// <param name="content">이미지 자체 픽셀 크기.</param>
     /// <param name="chrome">창에서 캔버스를 뺀 제목·테두리·상태바 크기.</param>

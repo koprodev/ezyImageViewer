@@ -36,8 +36,33 @@ public sealed class FirstWindowPresentationContractTests
         var normalized = windowManager.Replace("\r\n", "\n");
         Assert.Contains(
             "if (deferPresentation)\n            window.DeferFirstPresentation(FirstPresentationDeadline);\n"
-                + "        else\n            window.Activate();",
+                + "        else\n        {\n            window.SizeForEmptyPresentation();\n"
+                + "            window.Activate();\n        }",
             normalized,
+            StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void EmptyWindow_UsesHalfWorkAreaBeforeActivation()
+    {
+        var windowManager = File.ReadAllText(RepoFile("EzyImageViewer.App", "WindowManager.cs"));
+        var viewer = File.ReadAllText(RepoFile(
+            "EzyImageViewer.App", "Views", "ViewerWindow.xaml.cs"));
+        var geometry = File.ReadAllText(RepoFile(
+            "EzyImageViewer.Rendering", "InitialWindowGeometry.cs"));
+
+        Assert.Contains("window.SizeForEmptyPresentation();", windowManager, StringComparison.Ordinal);
+        Assert.Contains(
+            "internal void SizeForEmptyPresentation()",
+            viewer,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "InitialWindowGeometry.MeasureEmptyWindow(workArea)",
+            viewer,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "EmptyWindowWorkAreaFraction = 0.5",
+            geometry,
             StringComparison.Ordinal);
     }
 

@@ -15,6 +15,7 @@
 param(
     [Parameter(Mandatory = $true)]
     [string]$Version,
+    [string]$ReleaseVersion,
     [string]$Publisher = "CN=ezyImageViewer Dev",
     [string]$CertificateThumbprint,
     [switch]$CreateDevCertificate,
@@ -153,6 +154,18 @@ function Open-ExclusivePublishLock {
 
 Assert-MsixVersion $Version 'Version'
 Assert-Publisher $Publisher
+if ([string]::IsNullOrWhiteSpace($ReleaseVersion)) {
+    $ReleaseVersion = ($Version.Split('.')[0..2] -join '.')
+}
+if ($ReleaseVersion -cnotmatch '^\d+\.\d+\.\d+(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$') {
+    throw "ReleaseVersion has an invalid format: '$ReleaseVersion'."
+}
+$productVersion = ($Version.Split('.')[0..2] -join '.')
+if ($ReleaseVersion -cne $productVersion -and
+    -not $ReleaseVersion.StartsWith(
+        "$productVersion-", [StringComparison]::Ordinal)) {
+    throw "ReleaseVersion must match Version: '$ReleaseVersion'."
+}
 if ($SkipSign -and ($CreateDevCertificate -or -not [string]::IsNullOrWhiteSpace($CertificateThumbprint))) {
     throw 'Certificate options cannot be combined with -SkipSign.'
 }
@@ -200,7 +213,8 @@ if (-not (Test-Path -LiteralPath $signtool)) {
 
 if (-not $NoBuild) {
     # Packaged=true면 비패키지 부트스트랩을 빼고 모든 프로젝트를 packaged bin/obj로 보냄.
-    & dotnet build $appProj -c Release -p:Packaged=true -p:Platform=x64
+    & dotnet build $appProj -c Release -p:Packaged=true -p:Platform=x64 `
+        "-p:FileVersion=$Version" "-p:InformationalVersion=$ReleaseVersion"
     if ($LASTEXITCODE -ne 0) { throw "dotnet build failed ($LASTEXITCODE)" }
 }
 if (-not (Test-Path (Join-Path $buildOut 'ezyImageViewer.exe'))) { throw "packaged build output missing: $buildOut" }

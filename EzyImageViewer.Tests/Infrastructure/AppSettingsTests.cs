@@ -523,6 +523,7 @@ public sealed class AppSettingsTests : IDisposable
             paths.RecoveryQuarantineDirectory,
             paths.CrashMarkersDirectory,
             paths.StartupHealthFile,
+            paths.UpdateCheckStateFile,
         }, path =>
         {
             var relative = Path.GetRelativePath(paths.RootDirectory, path);

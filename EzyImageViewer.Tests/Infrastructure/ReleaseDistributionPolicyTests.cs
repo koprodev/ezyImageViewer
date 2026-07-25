@@ -46,4 +46,20 @@ public sealed class ReleaseDistributionPolicyTests
             Assert.Empty(page.Fragment);
         }
     }
+
+    [Fact]
+    public void ReleaseApiAndAcceptedPages_StayInsideTheFixedRepository()
+    {
+        Assert.Equal(
+            "https://api.github.com/repos/koprodev/ezyImageViewer/releases?per_page=20",
+            ReleaseDistributionPolicy.ReleasesApi.OriginalString);
+        Assert.True(ReleaseDistributionPolicy.IsTrustedReleasePage(new Uri(
+            "https://github.com/koprodev/ezyImageViewer/releases/tag/v1.0.43-preview.1")));
+        Assert.False(ReleaseDistributionPolicy.IsTrustedReleasePage(new Uri(
+            "https://example.com/koprodev/ezyImageViewer/releases/tag/v1.0.43")));
+        Assert.False(ReleaseDistributionPolicy.IsTrustedReleasePage(new Uri(
+            "https://github.com/other/ezyImageViewer/releases/tag/v1.0.43")));
+        Assert.False(ReleaseDistributionPolicy.IsTrustedReleasePage(new Uri(
+            "https://github.com/koprodev/ezyImageViewer/releases/tag/v1.0.43?download=1")));
+    }
 }

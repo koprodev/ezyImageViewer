@@ -1,6 +1,6 @@
 # 릴리스 절차
 
-> 현재 계약: `v1.0.42-preview.1` / 앱 `1.0.38.0` / Portable `1.0.42-portable.1`
+> 현재 계약: `v1.0.47-preview.1` / 앱 `1.0.38.0` / Portable `1.0.47-portable.1`
 >
 > 공개 저장소: `koprodev/ezyImageViewer`
 
@@ -15,7 +15,7 @@
 
 공개 파일:
 
-- `ezyImageViewerSetup-1.0.42-x64-dev-unsigned.exe`
+- `ezyImageViewerSetup-1.0.47-x64-dev-unsigned.exe`
 - `ezyImageViewer.exe`
 - `EzyRtfLargeTheme.xml`
 - `LICENSE-MRL.txt`
@@ -31,11 +31,11 @@ Setup은 per-user·per-machine MSI 중 하나를 고르는 WiX Burn 번들이다
 ```powershell
 powershell -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass `
   -File packaging/build-preview-release.ps1 `
-  -OutputDirectory packaging/out/preview-1.0.42
+  -OutputDirectory packaging/out/preview-1.0.47
 
 powershell -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass `
   -File packaging/verify-preview-release.ps1 `
-  -OutputDirectory packaging/out/preview-1.0.42
+  -OutputDirectory packaging/out/preview-1.0.47
 ```
 
 ### Basic Portable preview

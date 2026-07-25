@@ -67,6 +67,8 @@ public sealed class PackagingContractTests
             "pack-msix.ps1"));
 
         Assert.Contains("-p:Packaged=true -p:Platform=x64", script, StringComparison.Ordinal);
+        Assert.Contains("-p:InformationalVersion=$ReleaseVersion", script,
+            StringComparison.Ordinal);
         Assert.Contains(
             @"bin\packaged\x64\Release",
             script,
@@ -107,6 +109,8 @@ public sealed class PackagingContractTests
             "build-wix-installer.ps1"));
         Assert.Contains("Get-GeneratedPayloadFileCount", installerScript, StringComparison.Ordinal);
         Assert.Contains("Generated WiX payload counts differ by scope.", installerScript,
+            StringComparison.Ordinal);
+        Assert.Contains("-ReleaseVersion $ReleaseVersion", installerScript,
             StringComparison.Ordinal);
         Assert.DoesNotContain("payload.fileCount - 1 +", installerScript,
             StringComparison.Ordinal);

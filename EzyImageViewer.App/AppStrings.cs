@@ -95,7 +95,7 @@ public static class AppStrings
     public static string SettingsClipboardWatch => Get("SettingsClipboardWatch", "클립보드 캡처 감시");
     public static string SettingsRecentFiles => Get("SettingsRecentFiles", "최근 파일 기록");
     public static string SettingsPrivacySummary => Get("SettingsPrivacySummary",
-        "파일과 이미지 내용은 외부로 전송하지 않습니다. 원격 분석과 자동 업데이트 확인은 사용하지 않습니다.");
+        "파일과 이미지 내용은 외부로 전송하지 않습니다. 원격 분석은 사용하지 않으며, 버전 확인은 GitHub 공개 정보만 조회합니다.");
     public static string SettingsIncludeSubfolders => Get("SettingsIncludeSubfolders", "폴더 탐색에 하위 폴더 포함");
     public static string SettingsCaptureHotkey => Get("SettingsCaptureHotkey", "전역 캡처 단축키");
     public static string SettingsHotkeyInvalid => Get("SettingsHotkeyInvalid", "보조 키를 하나 이상 선택하고 키를 지정하세요.");
@@ -149,7 +149,16 @@ public static class AppStrings
     public static string AboutLicense => Get("AboutLicense", "MIT 라이선스 · © 2026 koprodev");
     public static string AboutProjectPage => Get("AboutProjectPage", "GitHub에서 릴리스 보기");
     public static string UpdatePolicyNote => Get("UpdatePolicyNote",
-        "자동 업데이트 확인은 수행하지 않습니다. 아래 버튼은 최신 릴리스 페이지를 기본 브라우저로 엽니다.");
+        "실행 시 하루에 한 번 GitHub 공개 릴리스를 확인합니다. 프리뷰도 포함하며 다운로드와 설치는 직접 선택합니다.");
+    public static string UpdateChecking => Get("UpdateChecking", "최신 버전을 확인하는 중입니다…");
+    public static string UpdateCurrent => Get("UpdateCurrent", "현재 최신 버전입니다. ({0})");
+    public static string UpdateUnavailable => Get("UpdateUnavailable",
+        "업데이트 정보를 확인하지 못했습니다. 인터넷 연결을 확인한 뒤 다시 시도해 주세요.");
+    public static string UpdateAvailableTitle => Get("UpdateAvailableTitle", "새 버전이 있습니다");
+    public static string UpdateAvailableBody => Get("UpdateAvailableBody",
+        "현재 버전: {0}\n최신 버전: {1}");
+    public static string UpdateOpenRelease => Get("UpdateOpenRelease", "릴리스 페이지 열기");
+    public static string UpdateLater => Get("UpdateLater", "나중에");
     public static string SupportNote => Get("SupportNote",
         "ezy Image Viewer는 무료로 제공됩니다. 도움이 되었다면 개발을 응원해 주세요.");
     public static string SupportAction => Get("SupportAction", "개발 응원하기 ☕");

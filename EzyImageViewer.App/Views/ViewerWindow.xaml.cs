@@ -100,6 +100,15 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         new(ReferenceEqualityComparer.Instance);
     private Guid _snapshotDocumentId;
     private long _snapshotSurfaceRevision = -1;
+    private SKImage? _documentTransitionFrame;
+    /// <summary>교체 직전 화면의 GPU 사본. 로드 시작 신호에 미리 떠 두고 전환 때 꺼내 씀.</summary>
+    private SKImage? _documentTransitionPrecapture;
+    private bool _documentTransitionCaptureRequested;
+    /// <summary>후임 문서를 기다리며 옛 장면을 붙잡아 둘 수 있는 한계 시각.</summary>
+    private long _documentTransitionHoldDeadline;
+    private Guid _documentTransitionTargetId;
+    private long _documentTransitionStartedTimestamp;
+    private double _documentTransitionDurationMilliseconds;
     private SKShader? _checkerShader;
     private SKPoint? _lastPointer;
     private uint? _activePointerId;
@@ -179,6 +188,10 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
     private ToolRailDock _toolRailDock;
     private readonly UISettings _uiSettings = new();
     private readonly Storyboard _toolRailOverflowPulse = new();
+    // 넘기는 맛이 살아야 하니 짧게. 1초짜리 페이드는 감상이 아니라 대기였음.
+    private const double DocumentReplacementCrossfadeMilliseconds = 180d;
+    private const double FirstDocumentFadeInMilliseconds = 220d;
+    private const double DocumentTransitionHoldMilliseconds = 500d;
     private bool _animationsEnabled;
     private bool _toolRailOverflowPulseRunning;
     private bool _toolRailOverflowUpdateQueued;
@@ -190,12 +203,14 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
     private Microsoft.UI.Dispatching.DispatcherQueueTimer? _canvasResizeSettleTimer;
     private readonly Microsoft.UI.Dispatching.DispatcherQueueTimer _animationTimer;
     private readonly Microsoft.UI.Dispatching.DispatcherQueueTimer _scaleRenderTimer;
+    private readonly Microsoft.UI.Dispatching.DispatcherQueueTimer _documentTransitionTimer;
     private CancellationTokenSource? _scaleRenderCancellation;
     private int _scaleRenderTarget;
     private bool _animationTickInProgress;
     private bool _animationPausedByUser;
     private bool _animationEditAccepted;
     private bool _animationConfirmationPending;
+    private bool _syncingSession;
     private long _animationFirstEditStateId;
     private readonly Dictionary<int, Guid> _pageActiveLayers = [];
 
@@ -279,6 +294,10 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         _scaleRenderTimer.Interval = TimeSpan.FromMilliseconds(150);
         _scaleRenderTimer.IsRepeating = false;
         _scaleRenderTimer.Tick += OnScaleDependentRenderTimerTick;
+        _documentTransitionTimer = DispatcherQueue.CreateTimer();
+        _documentTransitionTimer.Interval = TimeSpan.FromMilliseconds(16);
+        _documentTransitionTimer.IsRepeating = true;
+        _documentTransitionTimer.Tick += OnDocumentTransitionTick;
         // .ico 로드는 첫 프레임에 급하지 않음. 그동안 작업 표시줄은 EXE 내장 아이콘 사용.
         _ = DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () =>
         {
@@ -347,6 +366,9 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
             StopPresentationDeadline();
             _animationTimer.Stop();
             _scaleRenderTimer.Stop();
+            _documentTransitionTimer.Stop();
+            _documentTransitionTimer.Tick -= OnDocumentTransitionTick;
+            StopDocumentTransition();
             _scaleRenderCancellation?.Cancel();
             _scaleRenderCancellation?.Dispose();
             _topmostReleaseTimer?.Stop();
@@ -1408,8 +1430,23 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         _animationConfirmationPending = false;
         _pageActiveLayers.Clear();
         _pasteCancellation?.Cancel();
+        var incomingDocument = _viewModel.Session.Current;
+        if (incomingDocument is not null
+            && _snapshotDocumentId != Guid.Empty
+            && incomingDocument.Id != _snapshotDocumentId)
+        {
+            PrepareDocumentCrossfade(incomingDocument.Id);
+        }
         // 상태바와 제목이 수정 상태를 읽으니 편집기부터 재결합.
-        _viewModel.SyncEditor();
+        _syncingSession = true;
+        try
+        {
+            _viewModel.SyncEditor();
+        }
+        finally
+        {
+            _syncingSession = false;
+        }
         RecordSessionOutcome();
         // 교체 문서는 새 저장 대상, 프로젝트는 자기 저장 대상 사용.
         var sessionDocumentId = _viewModel.Session.Current?.Id ?? Guid.Empty;
@@ -1431,14 +1468,15 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         // 문서 교체 시작·완료는 걸쳐 있던 제스처와 대화상자를 종료. 후임 문서는 무죄.
         CancelActiveGesture();
         CancelEditDialog();
-        RebuildSnapshot(_viewModel.Session.Current);
+        var snapshotReady = RebuildSnapshot(_viewModel.Session.Current);
         PresentDeferredWindow();
         MaybeApplyInitialWindowSize();
         _viewModel.RefreshStatus();
         UpdateStatusBar();
         UpdateOverlay();
         UpdateEditCommands();
-        Canvas.Invalidate();
+        if (snapshotReady)
+            Canvas.Invalidate();
         ConfigureAnimationPlayback();
         MaybeApplyHoldEdit();
         MaybeRunRecoverySmokeSeed();
@@ -1520,6 +1558,12 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
 
     private void OnDocumentLoadStarted()
     {
+        // 다음 키가 오면 진행 중 장면부터 또렷하게 마감. 전환이 입력을 붙들면 낭패.
+        if (_documentTransitionTargetId != Guid.Empty)
+            CompleteDocumentTransition();
+        // 아직 옛 문서가 화면 주인일 때 사본을 예약. 교체 순간의 CPU 합성이 사라짐.
+        _documentTransitionCaptureRequested = true;
+        Canvas.Invalidate();
         _documentOpenStartTimestamp = Stopwatch.GetTimestamp();
     }
 
@@ -1571,7 +1615,8 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         UpdateLayerPanel();
         UpdateToolUi();
         UpdateEditCommands();
-        Canvas.Invalidate();
+        if (!_syncingSession)
+            Canvas.Invalidate();
         UpdateRecoveryCheckpoint();
     }
 
@@ -1741,31 +1786,43 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
     /// 배경 렌더 스냅샷의 단일 소유자. 픽셀 복사 후 UI 스레드에서 교체·해제.
     /// 늦은 프레임은 건너뛰고 주석 편집은 재업로드 없이 다시 그리기만 수행.
     /// </summary>
-    private void RebuildSnapshot(Core.Documents.ImageDocument? document, bool preserveView = false)
+    private bool RebuildSnapshot(
+        Core.Documents.ImageDocument? document,
+        bool preserveView = false,
+        bool allowDocumentTransition = true)
     {
         if (document is null)
         {
+            StopDocumentTransition();
             ResetAssetWarmQueue();
             SetSnapshot(null);
             _snapshotDocumentId = Guid.Empty;
             _snapshotSurfaceRevision = -1;
             _assetCache.Clear();
-            return;
+            return true;
         }
         if (document.Id == _snapshotDocumentId
             && document.SurfaceRevision == _snapshotSurfaceRevision)
-            return;
+            return true;
 
         try
         {
             if (document.Frame.IsDisposed)
-                return;
+                return true;
+            var previousDocumentId = _snapshotDocumentId;
+            if (allowDocumentTransition
+                && previousDocumentId != Guid.Empty
+                && previousDocumentId != document.Id
+                && _documentTransitionTargetId != document.Id)
+                PrepareDocumentCrossfade(document.Id);
+
             var image = document.Frame.ToSKImage();
             ResetAssetWarmQueue();
             _assetCache.Clear();
             SetSnapshot(image);
             _snapshotDocumentId = document.Id;
             _snapshotSurfaceRevision = document.SurfaceRevision;
+            var changedDocument = previousDocumentId != document.Id;
             // 콘텐츠 좌표는 변환 출력 캔버스. 맞춤·실제 크기와 편집 좌표는 축소 디코드와 무관.
             if (preserveView)
             {
@@ -1777,12 +1834,22 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
                 _fitPending = true;
                 _selectedAnnotation = default;
             }
+            if (changedDocument)
+            {
+                StartDocumentTransition(
+                    document.Id,
+                    previousDocumentId == Guid.Empty
+                        ? FirstDocumentFadeInMilliseconds
+                        : DocumentReplacementCrossfadeMilliseconds);
+            }
             if (_firstPaintWatch is null)
                 Title = BuildWindowTitle();
+            return true;
         }
         catch (ObjectDisposedException)
         {
             // 복사 중 교체됨. 다음 변경 이벤트가 현재 문서를 가져옴.
+            return document.Id == _snapshotDocumentId;
         }
     }
 
@@ -1867,15 +1934,77 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
     {
         var canvas = e.Surface.Canvas;
         var viewport = canvas.DeviceClipBounds;
+        var previousFrame = _documentTransitionFrame;
+        var transitionActive = _documentTransitionTargetId == _snapshotDocumentId
+            && _documentTransitionStartedTimestamp != 0;
+        var progress = transitionActive ? DocumentTransitionProgress() : 1f;
+
         DrawBackground(canvas, viewport.Width, viewport.Height);
 
-        if (_snapshot is null)
-            return;
-        // 합성은 이 문서의 편집기 변환이 필요. 세션과 UI 콜백이 엇갈리면 다음 이벤트에 맡김.
-        if (_viewModel.Editor.Document is not { } document || document.Id != _snapshotDocumentId)
-            return;
+        bool currentDrawn;
+        if (previousFrame is null && transitionActive && progress < 1f)
+        {
+            // 첫 문서는 지울 옛 장면이 없어 배경 위로 직접 떠오름. 여기만 레이어가 필요.
+            using var fadePaint = new SKPaint { Color = SKColors.White.WithAlpha(ToAlpha(progress)) };
+            canvas.SaveLayer(fadePaint);
+            currentDrawn = DrawCurrentDocument(canvas, viewport.Width, viewport.Height);
+            canvas.Restore();
+        }
+        else
+        {
+            currentDrawn = DrawCurrentDocument(canvas, viewport.Width, viewport.Height);
+        }
 
-        _transform.SetViewport(viewport.Width, viewport.Height);
+        if (previousFrame is not null)
+        {
+            if (!currentDrawn)
+            {
+                // 후임 문서가 아직 못 그리는 프레임. 배경만 남기면 번쩍이니 옛 장면을 붙잡고 시계도 미룸.
+                // 한계 시각을 넘기면 놓아준다. 안 오는 문서를 영원히 기다릴 수는 없음.
+                if (Stopwatch.GetTimestamp() < _documentTransitionHoldDeadline)
+                {
+                    if (transitionActive)
+                        _documentTransitionStartedTimestamp = Stopwatch.GetTimestamp();
+                    DrawDocumentTransitionFrame(
+                        canvas, previousFrame, viewport.Width, viewport.Height, byte.MaxValue);
+                }
+            }
+            else if (transitionActive && progress < 1f)
+            {
+                // 새 장면을 다 그린 뒤 옛 장면을 알파로 덮어 지움. 오프스크린 레이어 없이 전면 사각형 한 장.
+                DrawDocumentTransitionFrame(
+                    canvas, previousFrame, viewport.Width, viewport.Height, ToAlpha(1f - progress));
+            }
+        }
+
+        if (transitionActive && progress >= 1f && currentDrawn)
+            CompleteDocumentTransition();
+
+        if (_documentTransitionCaptureRequested && currentDrawn)
+        {
+            _documentTransitionCaptureRequested = false;
+            canvas.Flush();
+            ReplaceDocumentTransitionPrecapture(e.Surface.Snapshot());
+        }
+
+        if (currentDrawn
+            && _firstPaintWatch is { IsRunning: true }
+            && _viewModel.Session.State == SessionState.Ready)
+        {
+            _firstPaintWatch.Stop();
+            DispatcherQueue.TryEnqueue(MaybeWriteUnattendedResult);
+        }
+    }
+
+    private bool DrawCurrentDocument(SKCanvas canvas, int viewportWidth, int viewportHeight)
+    {
+        if (_snapshot is null)
+            return false;
+        // 합성은 이 문서의 편집기 변환이 필요. 세션과 UI 콜백이 엇갈리면 다음 프레임 차례.
+        if (_viewModel.Editor.Document is not { } document || document.Id != _snapshotDocumentId)
+            return false;
+
+        _transform.SetViewport(viewportWidth, viewportHeight);
         if (_fitPending)
         {
             _transform.FitToViewport();
@@ -1891,13 +2020,26 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         DrawSelectionBand(canvas, viewMatrix);
         DrawCropOverlay(canvas, viewMatrix);
         DrawRegionOverlay(canvas, viewMatrix);
-
-        if (_firstPaintWatch is { IsRunning: true } && _viewModel.Session.State == SessionState.Ready)
-        {
-            _firstPaintWatch.Stop();
-            DispatcherQueue.TryEnqueue(MaybeWriteUnattendedResult);
-        }
+        return true;
     }
+
+    private static void DrawDocumentTransitionFrame(
+        SKCanvas canvas, SKImage frame, int viewportWidth, int viewportHeight, byte alpha)
+    {
+        using var paint = new SKPaint
+        {
+            IsAntialias = false,
+            Color = SKColors.White.WithAlpha(alpha),
+        };
+        canvas.DrawImage(
+            frame,
+            SKRect.Create(viewportWidth, viewportHeight),
+            new SKSamplingOptions(SKFilterMode.Linear, SKMipmapMode.None),
+            paint);
+    }
+
+    private static byte ToAlpha(float unit) =>
+        (byte)Math.Clamp(MathF.Round(unit * 255f), 0f, 255f);
 
     /// <summary>기록에 넣지 않고 원본 좌표 작성 초안 그리기.</summary>
     private void DrawPendingAnnotation(SKCanvas canvas, SKMatrix viewMatrix)
@@ -2201,6 +2343,22 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
 
     /// <summary>사용자가 보는 창은 정해진 위치·크기로 딱 한 번 표시.</summary>
     internal bool IsPresentationDeferred => _presentationDeferred;
+
+    /// <summary>이미지 없이 여는 창을 작업 영역 절반 크기로 중앙 배치.</summary>
+    internal void SizeForEmptyPresentation()
+    {
+        if (AppWindow.Presenter is not OverlappedPresenter { State: OverlappedPresenterState.Restored })
+            return;
+        if (DisplayArea.GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Nearest) is not { } display)
+            return;
+
+        var workArea = new PixelSize(display.WorkArea.Width, display.WorkArea.Height);
+        var window = InitialWindowGeometry.MeasureEmptyWindow(workArea);
+        var (x, y) = InitialWindowGeometry.Center(
+            window, workArea, display.WorkArea.X, display.WorkArea.Y);
+        AppWindow.MoveAndResize(new Windows.Graphics.RectInt32(
+            x, y, window.Width, window.Height));
+    }
 
     /// <summary>첫 이미지 크기 계산까지 화면 밖에서 대기. 마감까지 실패하면 현재 크기로 표시.</summary>
     internal void DeferFirstPresentation(TimeSpan deadline)
@@ -3578,9 +3736,62 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
 
     private async void OnCheckForUpdatesRequested(object? sender, EventArgs e)
     {
+        if (sender is not SettingsDialogContent editor)
+            return;
+        editor.SetUpdateCheckPending();
         try
         {
-            if (await Launcher.LaunchUriAsync(ReleaseDistributionPolicy.LatestReleasePage))
+            var result = await AppServices.CheckForUpdatesAsync(
+                force: true,
+                _shutdownCts.Token);
+            if (!_windowClosed)
+                editor.SetUpdateCheckResult(result);
+        }
+        catch (OperationCanceledException) when (_shutdownCts.IsCancellationRequested)
+        {
+        }
+    }
+
+    internal async Task ShowUpdateAvailableAsync(UpdateCheckResult result)
+    {
+        if (result.Status != UpdateCheckStatus.UpdateAvailable
+            || result.ReleasePage is not { } releasePage)
+            return;
+
+        try
+        {
+            for (var attempt = 0; attempt < 60 && _activeDialog is not null; attempt++)
+                await Task.Delay(TimeSpan.FromMilliseconds(500), _shutdownCts.Token);
+            if (_windowClosed || _activeDialog is not null || Content?.XamlRoot is null)
+                return;
+
+            var dialog = new ContentDialog
+            {
+                XamlRoot = Content.XamlRoot,
+                Title = AppStrings.UpdateAvailableTitle,
+                Content = string.Format(
+                    System.Globalization.CultureInfo.CurrentCulture,
+                    AppStrings.UpdateAvailableBody,
+                    result.CurrentVersion,
+                    result.LatestVersion),
+                PrimaryButtonText = AppStrings.UpdateOpenRelease,
+                CloseButtonText = AppStrings.UpdateLater,
+                DefaultButton = ContentDialogButton.Primary,
+            };
+            if (await ShowDialogAsync(dialog, editScoped: false)
+                == ContentDialogResult.Primary)
+                await OpenReleasePageAsync(releasePage);
+        }
+        catch (OperationCanceledException) when (_shutdownCts.IsCancellationRequested)
+        {
+        }
+    }
+
+    private async Task OpenReleasePageAsync(Uri releasePage)
+    {
+        try
+        {
+            if (await Launcher.LaunchUriAsync(releasePage))
                 return;
             ReportReleasePageLaunchFailure();
         }
@@ -3714,14 +3925,18 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
             return;
         }
         AnimationPlaybackButton.Visibility = Visibility.Visible;
+        var documentTransitionPending = _documentTransitionTargetId != Guid.Empty;
         var isPlaying = _animationsEnabled
+            && !documentTransitionPending
             && !_animationPausedByUser
             && !_animationConfirmationPending;
         AnimationPlaybackIcon.IconSource = IconSourceFor(
             isPlaying ? "Icon.View.Pause" : "Icon.View.Play");
         var action = isPlaying ? AppStrings.ToolPauseAnimation : AppStrings.ToolPlayAnimation;
         SetTip(AnimationPlaybackButton, action, action);
-        AnimationPlaybackButton.IsEnabled = _animationsEnabled && !_animationConfirmationPending;
+        AnimationPlaybackButton.IsEnabled = _animationsEnabled
+            && !documentTransitionPending
+            && !_animationConfirmationPending;
         if (!isPlaying)
             return;
 
@@ -4830,6 +5045,150 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         ToolRailScroll.SizeChanged += OnToolRailSizeChanged;
         ToolRailItems.SizeChanged += OnToolRailSizeChanged;
         ToolRailScroll.PointerWheelChanged += OnToolRailPointerWheelChanged;
+    }
+
+    /// <summary>지금 보이는 합성 결과를 잡아 둠. 다음 사진이 올라올 발판, 흰 화면은 퇴장.</summary>
+    private void PrepareDocumentCrossfade(Guid targetDocumentId)
+    {
+        if (targetDocumentId == Guid.Empty || targetDocumentId == _snapshotDocumentId)
+            return;
+
+        if (_documentTransitionTargetId != Guid.Empty)
+            CompleteDocumentTransition();
+        // 예약해 둔 GPU 사본이 1순위. 로드 시작 신호가 없는 경로만 CPU 합성으로 되돌아감.
+        ReplaceDocumentTransitionFrame(
+            TakeDocumentTransitionPrecapture() ?? CaptureCurrentPresentation());
+        _documentTransitionTargetId = targetDocumentId;
+        _documentTransitionStartedTimestamp = 0;
+        _documentTransitionDurationMilliseconds = 0d;
+        _documentTransitionHoldDeadline = HoldDeadlineFromNow();
+        _animationTimer.Stop();
+    }
+
+    private static long HoldDeadlineFromNow() => Stopwatch.GetTimestamp()
+        + (long)(Stopwatch.Frequency * DocumentTransitionHoldMilliseconds / 1000d);
+
+    private SKImage? CaptureCurrentPresentation()
+    {
+        if (_snapshot is null
+            || _viewModel.Editor.Document is not { } document
+            || document.Id != _snapshotDocumentId)
+            return null;
+
+        var width = (int)MathF.Round(_transform.Viewport.Width);
+        var height = (int)MathF.Round(_transform.Viewport.Height);
+        if (width <= 0 || height <= 0)
+            return null;
+
+        using var surface = SKSurface.Create(new SKImageInfo(
+            width, height, SKColorType.Bgra8888, SKAlphaType.Premul));
+        if (surface is null)
+            return null;
+
+        var canvas = surface.Canvas;
+        DrawBackground(canvas, width, height);
+        DrawCurrentDocument(canvas, width, height);
+
+        canvas.Flush();
+        return surface.Snapshot();
+    }
+
+    private void StartDocumentTransition(Guid targetDocumentId, double durationMilliseconds)
+    {
+        if (_documentTransitionTargetId != targetDocumentId)
+        {
+            ReplaceDocumentTransitionFrame(null);
+            _documentTransitionTargetId = targetDocumentId;
+        }
+        _documentTransitionDurationMilliseconds = Math.Max(0d, durationMilliseconds);
+        _documentTransitionStartedTimestamp = Stopwatch.GetTimestamp();
+        _documentTransitionHoldDeadline = HoldDeadlineFromNow();
+        _animationTimer.Stop();
+        _documentTransitionTimer.Stop();
+        _documentTransitionTimer.Start();
+        Canvas.Invalidate();
+        ConfigureAnimationPlayback();
+    }
+
+    private void OnDocumentTransitionTick(
+        Microsoft.UI.Dispatching.DispatcherQueueTimer sender, object args)
+    {
+        if (_documentTransitionTargetId == Guid.Empty)
+        {
+            sender.Stop();
+            return;
+        }
+        Canvas.Invalidate();
+    }
+
+    private float DocumentTransitionProgress()
+    {
+        if (_documentTransitionStartedTimestamp == 0
+            || _documentTransitionDurationMilliseconds <= 0d)
+            return 1f;
+        var linear = Math.Clamp(
+            Stopwatch.GetElapsedTime(_documentTransitionStartedTimestamp).TotalMilliseconds
+            / _documentTransitionDurationMilliseconds,
+            0d,
+            1d);
+        // 양 끝에서 살짝 숨 고르기. 사진끼리 악수할 시간은 줌.
+        return (float)(linear * linear * (3d - (2d * linear)));
+    }
+
+    private void CompleteDocumentTransition()
+    {
+        _documentTransitionTimer.Stop();
+        _documentTransitionTargetId = Guid.Empty;
+        _documentTransitionStartedTimestamp = 0;
+        _documentTransitionDurationMilliseconds = 0d;
+        _documentTransitionHoldDeadline = 0;
+        ReplaceDocumentTransitionFrame(null);
+        ConfigureAnimationPlayback();
+    }
+
+    private void StopDocumentTransition()
+    {
+        _documentTransitionTimer.Stop();
+        _documentTransitionTargetId = Guid.Empty;
+        _documentTransitionStartedTimestamp = 0;
+        _documentTransitionDurationMilliseconds = 0d;
+        _documentTransitionHoldDeadline = 0;
+        _documentTransitionCaptureRequested = false;
+        ReplaceDocumentTransitionFrame(null);
+        ReplaceDocumentTransitionPrecapture(null);
+    }
+
+    private void ReplaceDocumentTransitionFrame(SKImage? frame)
+    {
+        var previous = _documentTransitionFrame;
+        if (ReferenceEquals(previous, frame))
+            return;
+        _documentTransitionFrame = frame;
+        DisposeSnapshotOnUi(previous);
+    }
+
+    private void ReplaceDocumentTransitionPrecapture(SKImage? frame)
+    {
+        var previous = _documentTransitionPrecapture;
+        if (ReferenceEquals(previous, frame))
+            return;
+        _documentTransitionPrecapture = frame;
+        DisposeSnapshotOnUi(previous);
+    }
+
+    /// <summary>예약 사본 회수. 창 크기가 바뀐 뒤의 묵은 사본은 늘어나 보이니 버림.</summary>
+    private SKImage? TakeDocumentTransitionPrecapture()
+    {
+        var frame = _documentTransitionPrecapture;
+        _documentTransitionPrecapture = null;
+        _documentTransitionCaptureRequested = false;
+        if (frame is null)
+            return null;
+        if (frame.Width == (int)MathF.Round(_transform.Viewport.Width)
+            && frame.Height == (int)MathF.Round(_transform.Viewport.Height))
+            return frame;
+        DisposeSnapshotOnUi(frame);
+        return null;
     }
 
     private void DetachToolRailOverflowHints()

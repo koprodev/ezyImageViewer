@@ -2,6 +2,7 @@
 [CmdletBinding(DefaultParameterSetName = 'Development')]
 param(
     [Parameter(Mandatory)][string]$Version,
+    [Parameter(Mandatory)][string]$ReleaseVersion,
     [Parameter(Mandatory)][string]$Publisher,
     [Parameter(Mandatory)][string]$EulaRtf,
     [Parameter(Mandatory)][string]$OutputDirectory,
@@ -151,6 +152,12 @@ Assert-EzyExternalPublisher $Publisher
 Assert-EzyExternalMinVersion $MinVersion
 $versionParts = $Version.Split('.')
 $productVersion = ($versionParts[0..2] -join '.')
+if ($ReleaseVersion -cnotmatch '^\d+\.\d+\.\d+(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$' -or
+    ($ReleaseVersion -cne $productVersion -and
+        -not $ReleaseVersion.StartsWith(
+            "$productVersion-", [StringComparison]::Ordinal))) {
+    throw "ReleaseVersion must match Version: '$ReleaseVersion'."
+}
 $eula = Get-PhysicalFile $EulaRtf 'EulaRtf' '.rtf'
 $themeSource = Get-PhysicalFile (Join-Path $repositoryRoot `
         'installer\bundle\EzyRtfLargeTheme.xml') 'Burn theme source' '.xml'
@@ -204,7 +211,7 @@ try {
     ConvertTo-Rtf $koreanEulaText.FullName $koreanEula
     [void](Get-PhysicalFile $koreanEula 'Generated Korean EULA' '.rtf')
     & (Join-Path $scriptRoot 'stage-msi-foundation.ps1') `
-        -OutputDirectory $foundation -Version $Version `
+        -OutputDirectory $foundation -Version $Version -ReleaseVersion $ReleaseVersion `
         -Publisher $Publisher -MinVersion $MinVersion
     if ($LASTEXITCODE -ne 0) { throw 'MSI foundation staging failed.' }
     & (Join-Path $scriptRoot 'verify-msi-foundation.ps1') `

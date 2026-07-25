@@ -105,7 +105,10 @@ public sealed class WindowManager(DispatcherQueue dispatcherQueue)
         window.Activated += (_, e) =>
         {
             if (e.WindowActivationState != Microsoft.UI.Xaml.WindowActivationState.Deactivated)
+            {
                 _lastActive = window;
+                AppServices.TryStartUpdateCheck(window);
+            }
         };
         window.Closed += (_, _) =>
         {
@@ -122,7 +125,10 @@ public sealed class WindowManager(DispatcherQueue dispatcherQueue)
         if (deferPresentation)
             window.DeferFirstPresentation(FirstPresentationDeadline);
         else
+        {
+            window.SizeForEmptyPresentation();
             window.Activate();
+        }
         return window;
     }
 
@@ -173,6 +179,7 @@ public sealed class WindowManager(DispatcherQueue dispatcherQueue)
                         LocalLogLevel.Information,
                         new StructuredLogEvent { Name = StructuredLogEventNames.AppStopped });
                     await AppServices.Logs.DrainAsync();
+                    AppServices.ShutdownUpdateCheck();
                     AppServices.ShutdownCapture();
                     Program.ReleaseInstanceKey();
                 }

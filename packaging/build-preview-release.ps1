@@ -63,17 +63,20 @@ try {
     $portableOutput = Join-Path $working 'portable'
     & (Join-Path $scriptRoot 'build-single-file-portable.ps1') `
         -Version ([string]$contract.portableVersion) `
+        -ReleaseVersion ([string]$contract.releaseVersion) `
         -OutputDirectory $portableOutput
     if ($LASTEXITCODE -ne 0) { throw 'Single-file portable build failed.' }
 
     & (Join-Path $scriptRoot 'pack-msix.ps1') `
         -Version ([string]$contract.applicationVersion) `
+        -ReleaseVersion ([string]$contract.releaseVersion) `
         -Publisher ([string]$contract.publisher) -SkipSign
     if ($LASTEXITCODE -ne 0) { throw 'Unsigned identity package build failed.' }
 
     $installerOutput = Join-Path $working 'installer'
     & (Join-Path $scriptRoot 'build-wix-installer.ps1') `
         -Version ([string]$contract.applicationVersion) `
+        -ReleaseVersion ([string]$contract.releaseVersion) `
         -Publisher ([string]$contract.publisher) `
         -EulaRtf (Join-Path $repositoryRoot 'installer\assets\EULA.rtf') `
         -OutputDirectory $installerOutput `
