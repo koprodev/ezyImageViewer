@@ -1,34 +1,24 @@
 # ezy Image Viewer privacy policy
 
-Status: **public source policy; no public production binary release exists**
-Last reviewed: 2026-07-25
+Last reviewed: 2026-07-26
 
-This policy describes the behavior implemented in the public source tree. It
-does not claim that a production binary release or support service is already
-available.
+This policy describes the behavior implemented in the public source tree and
+the Microsoft Store package.
 
 ## Network and telemetry policy
 
 The application does not implement telemetry, analytics, advertising,
-automatic crash reporting, background downloads, or automatic update
-installation.
+automatic crash reporting, background downloads, or an application-initiated
+update check. It contains no advertising or tracking identifiers and requires
+no account, sign-in, or registration.
 
-At startup, the application may send one unauthenticated HTTPS GET request to
-the public GitHub Releases API. Automatic checks are limited to once every 24
-hours and include preview releases. A manual **Check for updates** action
-bypasses that local interval. The request contains the normal HTTP connection
-metadata, a fixed application User-Agent, and no image bytes, image metadata,
-file paths, settings, logs, or recovery data. GitHub may process the originating
-IP address and request metadata under its own policies.
+Microsoft Store installation and update delivery are handled by the Store, not
+by an application network request.
 
-The following user-requested operating-system integrations may cause another
-application to use the network:
-
-- **Open release page** asks Windows to open the validated GitHub release page
-  in the default browser. The application does not download a release itself.
-- A user may download a release, submit an issue, or share diagnostic material
-  through a browser or another tool. Those transfers are controlled by the
-  user and the selected third-party service, not by ezy Image Viewer.
+A user may explicitly open a sponsorship or Windows Settings link. Windows may
+then launch another application, and that application may use the network under
+its own policy. The transfer is controlled by the user and the selected
+application, not by ezy Image Viewer.
 
 The Windows Snipping Tool protocol and clipboard integration are local Windows
 operations. Opened images, captured images, clipboard contents, and project
@@ -44,8 +34,9 @@ The application may store the following under
 - bounded structured logs that exclude original document paths, exception
   messages, stack traces, image bytes, and clipboard contents;
 - recovery checkpoints that can contain the original image and edit state;
-- quarantine and crash-marker data used for recovery and safe mode;
-- the last update-check attempt time in `update-check-state.txt`.
+- quarantine and crash-marker data used for recovery and safe mode.
+
+None of this data leaves the device unless the user deliberately shares it.
 
 Recovery checkpoints are integrity checked but are not separately encrypted.
 Users handling sensitive images should rely on Windows account and storage

@@ -1,0 +1,378 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="ToolOpen" xml:space="preserve"><value>खोलें (Ctrl+O)</value></data>
+  <data name="ToolClipboard" xml:space="preserve"><value>क्लिपबोर्ड से दस्तावेज़ खोलें</value></data>
+  <data name="ToolWhiteboard" xml:space="preserve"><value>व्हाइटबोर्ड खोलें</value></data>
+  <data name="TipWhiteboard" xml:space="preserve"><value>ग्रिड पृष्ठभूमि वाला 4K व्हाइटबोर्ड नए दस्तावेज़ के रूप में खोलता है।</value></data>
+  <data name="WhiteboardWhite" xml:space="preserve"><value>सफ़ेद व्हाइटबोर्ड</value></data>
+  <data name="WhiteboardBlack" xml:space="preserve"><value>काला व्हाइटबोर्ड</value></data>
+  <data name="ToolPrevious" xml:space="preserve"><value>पिछली फ़ाइल (←)</value></data>
+  <data name="ToolNext" xml:space="preserve"><value>अगली फ़ाइल (→)</value></data>
+  <data name="ToolFit" xml:space="preserve"><value>विंडो में फ़िट करें (Ctrl+0)</value></data>
+  <data name="ToolActualSize" xml:space="preserve"><value>वास्तविक आकार (Ctrl+1)</value></data>
+  <data name="ToolRotate" xml:space="preserve"><value>दस्तावेज़ को दक्षिणावर्त घुमाएँ</value></data>
+  <data name="ToolRotateCcw" xml:space="preserve"><value>दस्तावेज़ को वामावर्त घुमाएँ</value></data>
+  <data name="ToolOpenGroup" xml:space="preserve"><value>खोलें मेन्यू</value></data>
+  <data name="TipOpenGroup" xml:space="preserve"><value>फ़ाइल, हाल की फ़ाइलें, क्लिपबोर्ड, कैप्चर, व्हाइटबोर्ड और नई विंडो को एक ही मेन्यू में रखता है।</value></data>
+  <data name="ToolTransformGroup" xml:space="preserve"><value>घुमाएँ और पलटें मेन्यू</value></data>
+  <data name="TipTransformGroup" xml:space="preserve"><value>दक्षिणावर्त-वामावर्त घुमाव को क्षैतिज-लंबवत पलटाव के साथ जोड़ता है।</value></data>
+  <data name="ToolCropGroup" xml:space="preserve"><value>क्रॉप और आकार मेन्यू</value></data>
+  <data name="TipCropGroup" xml:space="preserve"><value>क्रॉप, क्रॉप अनुपात और आकार बदलना एक ही मेन्यू में रखता है।</value></data>
+  <data name="ToolZoomGroup" xml:space="preserve"><value>ज़ूम मेन्यू</value></data>
+  <data name="TipZoomGroup" xml:space="preserve"><value>विंडो में फ़िट और वास्तविक आकार को एक ही मेन्यू में रखता है।</value></data>
+  <data name="ToolProtectGroup" xml:space="preserve"><value>जानकारी छिपाने का मेन्यू</value></data>
+  <data name="TipProtectGroup" xml:space="preserve"><value>पिक्सलेट, धुँधला और ढकना एक ही मेन्यू में रखता है।</value></data>
+  <data name="MenuCrop" xml:space="preserve"><value>क्रॉप</value></data>
+  <data name="MenuCropRatio" xml:space="preserve"><value>क्रॉप अनुपात</value></data>
+  <data name="MenuResize" xml:space="preserve"><value>आकार बदलें</value></data>
+  <data name="SettingsNavToolbarGroups" xml:space="preserve"><value>टूलबार समूह</value></data>
+  <data name="SettingsToolbarGroups" xml:space="preserve"><value>चुनें कि टूलबार के कौन से बटन ड्रॉपडाउन समूहों में समेटे जाएँ।</value></data>
+  <data name="SettingsToolbarGroupOpen" xml:space="preserve"><value>खोलें समूह (खोलें, हाल की, क्लिपबोर्ड, कैप्चर, व्हाइटबोर्ड, नई विंडो)</value></data>
+  <data name="SettingsToolbarGroupSelect" xml:space="preserve"><value>चयन का विभाजित बटन (ऑब्जेक्ट / क्षेत्र चयन)</value></data>
+  <data name="SettingsToolbarGroupTransform" xml:space="preserve"><value>घुमाएँ और पलटें समूह</value></data>
+  <data name="SettingsToolbarGroupCrop" xml:space="preserve"><value>क्रॉप और आकार समूह (क्रॉप, अनुपात, आकार बदलना)</value></data>
+  <data name="SettingsToolbarGroupZoom" xml:space="preserve"><value>ज़ूम समूह (विंडो में फ़िट, वास्तविक आकार)</value></data>
+  <data name="SettingsToolbarGroupProtect" xml:space="preserve"><value>जानकारी छिपाने का समूह (पिक्सलेट, धुँधला, ढकना)</value></data>
+  <data name="ToolFullScreen" xml:space="preserve"><value>पूर्ण स्क्रीन (F11)</value></data>
+  <data name="ToolDockToggle" xml:space="preserve"><value>टूलबार की दिशा बदलें</value></data>
+  <data name="ToolSendToBack" xml:space="preserve"><value>सबसे पीछे भेजें (Ctrl+Shift+[)</value></data>
+  <data name="ToolSendBackward" xml:space="preserve"><value>एक स्तर पीछे भेजें (Ctrl+[)</value></data>
+  <data name="ToolBringForward" xml:space="preserve"><value>एक स्तर आगे लाएँ (Ctrl+])</value></data>
+  <data name="ToolBringToFront" xml:space="preserve"><value>सबसे आगे लाएँ (Ctrl+Shift+])</value></data>
+  <data name="ToolDuplicate" xml:space="preserve"><value>चयन की प्रतिलिपि बनाएँ (Ctrl+D)</value></data>
+  <data name="ToolEditText" xml:space="preserve"><value>चयनित टेक्स्ट संपादित करें</value></data>
+  <data name="LayerPanel" xml:space="preserve"><value>लेयर</value></data>
+  <data name="LayerVisible" xml:space="preserve"><value>दृश्य</value></data>
+  <data name="LayerHidden" xml:space="preserve"><value>छिपी हुई</value></data>
+  <data name="LayerLocked" xml:space="preserve"><value>लॉक</value></data>
+  <data name="LayerUnlocked" xml:space="preserve"><value>अनलॉक</value></data>
+  <data name="LayerTypeInk" xml:space="preserve"><value>पेन</value></data>
+  <data name="LayerTypeHighlighter" xml:space="preserve"><value>हाइलाइटर</value></data>
+  <data name="LayerTypeLine" xml:space="preserve"><value>रेखा</value></data>
+  <data name="LayerTypeArrow" xml:space="preserve"><value>तीर</value></data>
+  <data name="LayerTypeRectangle" xml:space="preserve"><value>आकृति</value></data>
+  <data name="LayerTypeEllipse" xml:space="preserve"><value>दीर्घवृत्त</value></data>
+  <data name="LayerTypeText" xml:space="preserve"><value>टेक्स्ट</value></data>
+  <data name="LayerTypeNumber" xml:space="preserve"><value>संख्या</value></data>
+  <data name="LayerTypeSpeechBubble" xml:space="preserve"><value>स्पीच बबल</value></data>
+  <data name="LayerTypeImage" xml:space="preserve"><value>छवि</value></data>
+  <data name="LayerTypeMosaic" xml:space="preserve"><value>पिक्सलेशन</value></data>
+  <data name="LayerTypeBlur" xml:space="preserve"><value>धुँधलापन</value></data>
+  <data name="LayerTypeMask" xml:space="preserve"><value>ढकना</value></data>
+  <data name="ToolMosaic" xml:space="preserve"><value>पिक्सलेट</value></data>
+  <data name="TipMosaic" xml:space="preserve"><value>खींचे गए क्षेत्र को ब्लॉकों के पीछे छिपाता है</value></data>
+  <data name="ToolBlur" xml:space="preserve"><value>धुँधला</value></data>
+  <data name="TipBlur" xml:space="preserve"><value>खींचे गए क्षेत्र को धुँधला करता है</value></data>
+  <data name="ToolMask" xml:space="preserve"><value>ढकें</value></data>
+  <data name="TipMask" xml:space="preserve"><value>खींचे गए क्षेत्र को ठोस रंग से पूरी तरह ढक देता है</value></data>
+  <data name="StyleBlockSize" xml:space="preserve"><value>ब्लॉक आकार</value></data>
+  <data name="StyleBlurSigma" xml:space="preserve"><value>तीव्रता</value></data>
+  <data name="ToolCapture" xml:space="preserve"><value>स्क्रीन कैप्चर</value></data>
+  <data name="TipCapture" xml:space="preserve"><value>Windows का स्निपिंग टूल खोलता है और परिणाम अपने आप ले आता है</value></data>
+  <data name="CaptureNoticeTitle" xml:space="preserve"><value>क्लिपबोर्ड में नया कैप्चर मिला</value></data>
+  <data name="CaptureNoticeOpen" xml:space="preserve"><value>खोलें</value></data>
+  <data name="CaptureLaunchFailed" xml:space="preserve"><value>स्निपिंग टूल नहीं खुल सका — Win+Shift+S से कैप्चर करें, वह अपने आप आ जाएगा</value></data>
+  <data name="CaptureHotkeyUnavailable" xml:space="preserve"><value>ग्लोबल कैप्चर शॉर्टकट ({0}) पहले से किसी दूसरे ऐप के पास है</value></data>
+  <data name="CaptureFailed" xml:space="preserve"><value>कैप्चर पूरा नहीं हुआ</value></data>
+  <data name="ToolSave" xml:space="preserve"><value>सहेजें (Ctrl+S)</value></data>
+  <data name="TipSave" xml:space="preserve"><value>त्वरित सहेजना · इस रूप में सहेजें के लिए Ctrl+Shift+S</value></data>
+  <data name="SaveDone" xml:space="preserve"><value>सहेजा गया</value></data>
+  <data name="SaveDoneNoMetadata" xml:space="preserve"><value>सहेजा गया · मेटाडेटा छोड़ दिया गया</value></data>
+  <data name="SaveNoChanges" xml:space="preserve"><value>सहेजने के लिए कोई बदलाव नहीं</value></data>
+  <data name="SaveFailed" xml:space="preserve"><value>सहेजना विफल</value></data>
+  <data name="SaveInProgress" xml:space="preserve"><value>सहेजा जा रहा है…</value></data>
+  <data name="SaveFullResUnavailable" xml:space="preserve"><value>मूल छवि पूर्ण रिज़ॉल्यूशन में दोबारा नहीं पढ़ी जा सकी, इसलिए निर्यात संभव नहीं</value></data>
+  <data name="SaveSourceChanged" xml:space="preserve"><value>स्रोत फ़ाइल डिस्क पर बदल गई है, इसलिए सहेजा नहीं जा सकता। दस्तावेज़ फिर से खोलें</value></data>
+  <data name="SaveDefaultName" xml:space="preserve"><value>छवि</value></data>
+  <data name="CopyDone" xml:space="preserve"><value>क्लिपबोर्ड पर कॉपी किया गया</value></data>
+  <data name="CopyRegionDone" xml:space="preserve"><value>चयनित क्षेत्र क्लिपबोर्ड पर कॉपी किया गया</value></data>
+  <data name="CopyRegionStale" xml:space="preserve"><value>क्रॉप समीक्षा क्षेत्र अब मान्य नहीं है, इसलिए कुछ कॉपी नहीं हुआ</value></data>
+  <data name="ExportOptionsTitle" xml:space="preserve"><value>निर्यात विकल्प</value></data>
+  <data name="ExportQualityLabel" xml:space="preserve"><value>गुणवत्ता</value></data>
+  <data name="ExportKeepMetadataLabel" xml:space="preserve"><value>मेटाडेटा रखें (स्थान जैसी संवेदनशील जानकारी हमेशा हटा दी जाती है)</value></data>
+  <data name="ExportLosslessLabel" xml:space="preserve"><value>बिना हानि</value></data>
+  <data name="OverwriteTitle" xml:space="preserve"><value>मूल फ़ाइल पर लिखें</value></data>
+  <data name="OverwriteBody" xml:space="preserve"><value>मूल फ़ाइल आपके संपादनों से बदल दी जाएगी। इसे पूर्ववत नहीं किया जा सकता।</value></data>
+  <data name="OverwriteConfirm" xml:space="preserve"><value>अधिलेखित करें</value></data>
+  <data name="DialogSaveButton" xml:space="preserve"><value>सहेजें</value></data>
+  <data name="DialogDontSaveButton" xml:space="preserve"><value>न सहेजें</value></data>
+  <data name="ProjectTypeName" xml:space="preserve"><value>ezyImage प्रोजेक्ट</value></data>
+  <data name="TextEditTitle" xml:space="preserve"><value>टेक्स्ट संपादित करें</value></data>
+  <data name="ToolColor" xml:space="preserve"><value>ड्राइंग का रंग चुनें</value></data>
+  <data name="ToolRectangle" xml:space="preserve"><value>आयत (खींचकर बनाएँ · Delete से हटाएँ)</value></data>
+  <data name="ToolUndo" xml:space="preserve"><value>पूर्ववत करें (Ctrl+Z)</value></data>
+  <data name="ToolRedo" xml:space="preserve"><value>फिर से करें (Ctrl+Y)</value></data>
+  <data name="StateReady" xml:space="preserve"><value>तैयार</value></data>
+  <data name="StateLoading" xml:space="preserve"><value>लोड हो रहा है…</value></data>
+  <data name="StateFailed" xml:space="preserve"><value>खोलना विफल</value></data>
+  <data name="StateModified" xml:space="preserve"><value>बदला गया</value></data>
+  <data name="DiscardTitle" xml:space="preserve"><value>बिना सहेजे बदलाव</value></data>
+  <data name="DiscardBody" xml:space="preserve"><value>इस दस्तावेज़ में बिना सहेजे बदलाव हैं। न सहेजने पर वे खो जाएँगे।</value></data>
+  <data name="DiscardConfirm" xml:space="preserve"><value>बदलाव छोड़ें</value></data>
+  <data name="DiscardCancel" xml:space="preserve"><value>रद्द करें</value></data>
+  <data name="ToolCrop" xml:space="preserve"><value>क्रॉप (खींचें, फिर Enter दबाएँ या क्षेत्र के भीतर डबल-क्लिक करें · Esc से रद्द)</value></data>
+  <data name="ToolCropRatio" xml:space="preserve"><value>क्रॉप अनुपात बदलें (मुक्त / 1:1 / 4:3 / 16:9)</value></data>
+  <data name="ToolFlipHorizontal" xml:space="preserve"><value>क्षैतिज रूप से पलटें</value></data>
+  <data name="ToolFlipVertical" xml:space="preserve"><value>लंबवत रूप से पलटें</value></data>
+  <data name="ToolResize" xml:space="preserve"><value>आकार बदलें</value></data>
+  <data name="CropRatioFree" xml:space="preserve"><value>मुक्त</value></data>
+  <data name="CropReviewHint" xml:space="preserve"><value>क्रॉप समीक्षा: Enter दबाएँ या क्षेत्र के भीतर डबल-क्लिक करें · Esc से रद्द करें</value></data>
+  <data name="ColorBlack" xml:space="preserve"><value>काला</value></data>
+  <data name="ColorGray" xml:space="preserve"><value>धूसर</value></data>
+  <data name="ColorSilver" xml:space="preserve"><value>रजत</value></data>
+  <data name="ColorWhite" xml:space="preserve"><value>सफ़ेद</value></data>
+  <data name="ColorRed" xml:space="preserve"><value>लाल</value></data>
+  <data name="ColorOrange" xml:space="preserve"><value>नारंगी</value></data>
+  <data name="ColorYellow" xml:space="preserve"><value>पीला</value></data>
+  <data name="ColorLime" xml:space="preserve"><value>नीबूं हरा</value></data>
+  <data name="ColorGreen" xml:space="preserve"><value>हरा</value></data>
+  <data name="ColorTeal" xml:space="preserve"><value>नीलहरित</value></data>
+  <data name="ColorSky" xml:space="preserve"><value>आसमानी</value></data>
+  <data name="ColorBlue" xml:space="preserve"><value>नीला</value></data>
+  <data name="ColorNavy" xml:space="preserve"><value>गहरा नीला</value></data>
+  <data name="ColorPurple" xml:space="preserve"><value>बैंगनी</value></data>
+  <data name="ColorMagenta" xml:space="preserve"><value>मैजेंटा</value></data>
+  <data name="ColorBrown" xml:space="preserve"><value>भूरा</value></data>
+  <data name="ColorSelected" xml:space="preserve"><value>चयनित</value></data>
+  <data name="EditFailed" xml:space="preserve"><value>संपादन विफल</value></data>
+  <data name="DialogApply" xml:space="preserve"><value>लागू करें</value></data>
+  <data name="DialogCancel" xml:space="preserve"><value>रद्द करें</value></data>
+  <data name="ResizeTitle" xml:space="preserve"><value>आकार बदलें</value></data>
+  <data name="ResizeWidthLabel" xml:space="preserve"><value>चौड़ाई (px)</value></data>
+  <data name="ResizeHeightLabel" xml:space="preserve"><value>ऊँचाई (px)</value></data>
+  <data name="ResizePercentLabel" xml:space="preserve"><value>अनुमाप (%)</value></data>
+  <data name="ResizeKeepAspect" xml:space="preserve"><value>पक्षानुपात बनाए रखें</value></data>
+  <data name="ToolSelect" xml:space="preserve"><value>चुनें और खिसकाएँ</value></data>
+  <data name="ToolSelectMode" xml:space="preserve"><value>चयन मोड बदलें</value></data>
+  <data name="TipSelectMode" xml:space="preserve"><value>तय करता है कि चयन उपकरण ऑब्जेक्ट उठाए या क्षेत्र खींचे।</value></data>
+  <data name="SelectModeRegion" xml:space="preserve"><value>क्षेत्र चयन</value></data>
+  <data name="TipRegionSelect" xml:space="preserve"><value>पृष्ठभूमि का आयताकार क्षेत्र चुनता है। भीतर खींचकर उसे उठाकर खिसकाएँ, या Ctrl+X से काटें।</value></data>
+  <data name="RegionReviewHint" xml:space="preserve"><value>चयनित क्षेत्र: भीतर खींचें = उठाकर खिसकाएँ · Ctrl+X = काटें · Ctrl+C = कॉपी · Esc = रद्द</value></data>
+  <data name="RegionCutDone" xml:space="preserve"><value>चयनित क्षेत्र क्लिपबोर्ड पर काटा गया</value></data>
+  <data name="RegionNeedsFullRes" xml:space="preserve"><value>पूर्वावलोकन रिज़ॉल्यूशन वाले दस्तावेज़ में क्षेत्र संपादन उपलब्ध नहीं है</value></data>
+  <data name="ToolPen" xml:space="preserve"><value>पेन</value></data>
+  <data name="ToolHighlighter" xml:space="preserve"><value>हाइलाइटर</value></data>
+  <data name="ToolLine" xml:space="preserve"><value>रेखा</value></data>
+  <data name="ToolArrow" xml:space="preserve"><value>तीर</value></data>
+  <data name="ToolRoundedRectangle" xml:space="preserve"><value>गोल कोनों वाला आयत</value></data>
+  <data name="ToolEllipse" xml:space="preserve"><value>दीर्घवृत्त</value></data>
+  <data name="ToolText" xml:space="preserve"><value>टेक्स्ट बॉक्स</value></data>
+  <data name="ToolNumber" xml:space="preserve"><value>संख्या मार्कर</value></data>
+  <data name="ToolSpeechBubble" xml:space="preserve"><value>स्पीच बबल</value></data>
+  <data name="TextTitle" xml:space="preserve"><value>टेक्स्ट जोड़ें</value></data>
+  <data name="SpeechBubbleTitle" xml:space="preserve"><value>बबल का टेक्स्ट</value></data>
+  <data name="TextContentLabel" xml:space="preserve"><value>सामग्री</value></data>
+  <data name="MarkerLimitReached" xml:space="preserve"><value>संख्या मार्कर की सीमा पूरी हो गई है।</value></data>
+  <data name="StyleFill" xml:space="preserve"><value>भराव</value></data>
+  <data name="StyleBackground" xml:space="preserve"><value>पृष्ठभूमि</value></data>
+  <data name="StyleCornerRadius" xml:space="preserve"><value>कोने की त्रिज्या</value></data>
+  <data name="LayerCollapse" xml:space="preserve"><value>लेयर समेटें</value></data>
+  <data name="LayerExpand" xml:space="preserve"><value>लेयर फैलाएँ</value></data>
+  <data name="TipLayerCollapse" xml:space="preserve"><value>लेयर सूची को समेटता या फैलाता है।</value></data>
+  <data name="StyleStrokeWidth" xml:space="preserve"><value>रेखा की मोटाई (px)</value></data>
+  <data name="StyleOpacity" xml:space="preserve"><value>अपारदर्शिता (%)</value></data>
+  <data name="StyleFontSize" xml:space="preserve"><value>फ़ॉन्ट आकार</value></data>
+  <data name="StyleRotation" xml:space="preserve"><value>घुमाव (°)</value></data>
+  <data name="StyleArrowhead" xml:space="preserve"><value>तीर की नोक</value></data>
+  <data name="StyleFontFamily" xml:space="preserve"><value>फ़ॉन्ट</value></data>
+  <data name="StyleBold" xml:space="preserve"><value>मोटा</value></data>
+  <data name="StyleItalic" xml:space="preserve"><value>तिरछा</value></data>
+  <data name="StyleAlignment" xml:space="preserve"><value>टेक्स्ट संरेखण</value></data>
+  <data name="ArrowheadOpen" xml:space="preserve"><value>खुली नोक</value></data>
+  <data name="ArrowheadTriangle" xml:space="preserve"><value>त्रिकोणीय नोक</value></data>
+  <data name="AlignmentLeft" xml:space="preserve"><value>बाएँ</value></data>
+  <data name="AlignmentCenter" xml:space="preserve"><value>मध्य</value></data>
+  <data name="AlignmentRight" xml:space="preserve"><value>दाएँ</value></data>
+  <data name="ToolNewWindow" xml:space="preserve"><value>नई विंडो खोलें</value></data>
+  <data name="ToolRail" xml:space="preserve"><value>टूलबार</value></data>
+  <data name="ToolEyedropper" xml:space="preserve"><value>स्क्रीन पर दिख रही छवि से रंग लें</value></data>
+  <data name="ToolZoomOut" xml:space="preserve"><value>छोटा करें</value></data>
+  <data name="ToolZoomIn" xml:space="preserve"><value>बड़ा करें</value></data>
+  <data name="StatusFile" xml:space="preserve"><value>फ़ाइल</value></data>
+  <data name="StatusPage" xml:space="preserve"><value>पृष्ठ</value></data>
+  <data name="StatusColorMode" xml:space="preserve"><value>रंग मोड</value></data>
+  <data name="StatusProgress" xml:space="preserve"><value>कार्य की प्रगति</value></data>
+  <data name="StatusZoom" xml:space="preserve"><value>ज़ूम स्तर</value></data>
+  <data name="StatusDetails" xml:space="preserve"><value>छवि विवरण</value></data>
+  <data name="CanvasName" xml:space="preserve"><value>छवि संपादन कैनवास</value></data>
+  <data name="ToolContext" xml:space="preserve"><value>उपकरण गुण</value></data>
+  <data name="ColorModeRgb8" xml:space="preserve"><value>RGB 8-बिट</value></data>
+  <data name="ColorModeRgba8" xml:space="preserve"><value>RGBA 8-बिट</value></data>
+  <data name="GroupFile" xml:space="preserve"><value>फ़ाइल उपकरण</value></data>
+  <data name="GroupHistory" xml:space="preserve"><value>इतिहास उपकरण</value></data>
+  <data name="GroupImage" xml:space="preserve"><value>छवि उपकरण</value></data>
+  <data name="GroupDrawing" xml:space="preserve"><value>ड्राइंग उपकरण</value></data>
+  <data name="GroupShapes" xml:space="preserve"><value>आकृति उपकरण</value></data>
+  <data name="GroupText" xml:space="preserve"><value>टेक्स्ट उपकरण</value></data>
+  <data name="GroupProtection" xml:space="preserve"><value>जानकारी छिपाने के उपकरण</value></data>
+  <data name="GroupView" xml:space="preserve"><value>दृश्य उपकरण</value></data>
+  <data name="LayerShow" xml:space="preserve"><value>दिखाएँ</value></data>
+  <data name="LayerHide" xml:space="preserve"><value>छिपाएँ</value></data>
+  <data name="LayerLock" xml:space="preserve"><value>लॉक करें</value></data>
+  <data name="LayerUnlock" xml:space="preserve"><value>अनलॉक करें</value></data>
+  <data name="LayerDefaultName" xml:space="preserve"><value>लेयर</value></data>
+  <data name="LayerActive" xml:space="preserve"><value>सक्रिय लेयर</value></data>
+  <data name="LayerSetActive" xml:space="preserve"><value>सक्रिय लेयर बनाएँ</value></data>
+  <data name="ToolLayerPanel" xml:space="preserve"><value>लेयर पैनल</value></data>
+  <data name="TipLayerPanel" xml:space="preserve"><value>लेयर पैनल दिखाता या छिपाता है।</value></data>
+  <data name="LayerAdd" xml:space="preserve"><value>नई लेयर</value></data>
+  <data name="TipLayerAdd" xml:space="preserve"><value>सक्रिय लेयर के ऊपर नई लेयर जोड़ता है।</value></data>
+  <data name="LayerDelete" xml:space="preserve"><value>लेयर हटाएँ</value></data>
+  <data name="TipLayerDelete" xml:space="preserve"><value>सक्रिय लेयर और उस पर मौजूद सब कुछ हटा देता है।</value></data>
+  <data name="LayerMoveUp" xml:space="preserve"><value>लेयर ऊपर</value></data>
+  <data name="TipLayerMoveUp" xml:space="preserve"><value>सक्रिय लेयर को एक स्तर आगे ले जाता है।</value></data>
+  <data name="LayerMoveDown" xml:space="preserve"><value>लेयर नीचे</value></data>
+  <data name="TipLayerMoveDown" xml:space="preserve"><value>सक्रिय लेयर को एक स्तर पीछे ले जाता है।</value></data>
+  <data name="LayerRename" xml:space="preserve"><value>लेयर का नाम बदलें</value></data>
+  <data name="TipLayerRename" xml:space="preserve"><value>सक्रिय लेयर का नाम बदलता है।</value></data>
+  <data name="LayerMoveSelection" xml:space="preserve"><value>चयन को सक्रिय लेयर पर ले जाएँ</value></data>
+  <data name="TipLayerMoveSelection" xml:space="preserve"><value>चयनित ऑब्जेक्ट को सक्रिय लेयर के सबसे ऊपर ले जाता है।</value></data>
+  <data name="LayerBlockedHidden" xml:space="preserve"><value>छिपी हुई लेयर संपादित नहीं की जा सकती</value></data>
+  <data name="LayerBlockedLocked" xml:space="preserve"><value>लॉक की गई लेयर संपादित नहीं की जा सकती</value></data>
+  <data name="TipOpen" xml:space="preserve"><value>समर्थित छवि फ़ाइल चुनें और इसी विंडो में खोलें।</value></data>
+  <data name="TipClipboard" xml:space="preserve"><value>क्लिपबोर्ड की छवि को नए दस्तावेज़ के रूप में खोलता है।</value></data>
+  <data name="TipNewWindow" xml:space="preserve"><value>एक और स्वतंत्र खाली दर्शक विंडो खोलता है।</value></data>
+  <data name="TipPrevious" xml:space="preserve"><value>मौजूदा फ़ोल्डर की पिछली छवि पर जाता है।</value></data>
+  <data name="TipNext" xml:space="preserve"><value>मौजूदा फ़ोल्डर की अगली छवि पर जाता है।</value></data>
+  <data name="TipFit" xml:space="preserve"><value>पूरी छवि को कैनवास के भीतर फ़िट करता है।</value></data>
+  <data name="TipActualSize" xml:space="preserve"><value>छवि के एक पिक्सेल को स्क्रीन के एक पिक्सेल के रूप में दिखाता है।</value></data>
+  <data name="TipRotate" xml:space="preserve"><value>छवि या चयनित ऑब्जेक्ट को दक्षिणावर्त घुमाता है।</value></data>
+  <data name="TipColor" xml:space="preserve"><value>ड्राइंग और चयनित ऑब्जेक्ट के लिए रंग चुनता है।</value></data>
+  <data name="TipEyedropper" xml:space="preserve"><value>संयोजित छवि से एक पिक्सेल का प्रदर्शित रंग लेता है।</value></data>
+  <data name="TipZoomOut" xml:space="preserve"><value>कैनवास का ज़ूम एक चरण घटाता है।</value></data>
+  <data name="TipZoomIn" xml:space="preserve"><value>कैनवास का ज़ूम एक चरण बढ़ाता है।</value></data>
+  <data name="TipZoomSlider" xml:space="preserve"><value>स्लाइडर या तीर कुंजियों से ज़ूम समायोजित करता है।</value></data>
+  <data name="TipFullScreen" xml:space="preserve"><value>पूर्ण स्क्रीन और विंडो दृश्य के बीच बदलता है।</value></data>
+  <data name="TipDockHorizontal" xml:space="preserve"><value>टूलबार को विंडो के ऊपर क्षैतिज पट्टी में ले जाता है।</value></data>
+  <data name="TipDockVertical" xml:space="preserve"><value>टूलबार को विंडो के बाईं ओर लंबवत पट्टी में ले जाता है।</value></data>
+  <data name="TipSendToBack" xml:space="preserve"><value>चयनित ऑब्जेक्ट को सभी के पीछे ले जाता है।</value></data>
+  <data name="TipSendBackward" xml:space="preserve"><value>चयनित ऑब्जेक्ट को एक स्तर पीछे ले जाता है।</value></data>
+  <data name="TipBringForward" xml:space="preserve"><value>चयनित ऑब्जेक्ट को एक स्तर आगे ले जाता है।</value></data>
+  <data name="TipBringToFront" xml:space="preserve"><value>चयनित ऑब्जेक्ट को सभी के आगे ले जाता है।</value></data>
+  <data name="TipDuplicate" xml:space="preserve"><value>चयनित ऑब्जेक्ट की प्रतिलिपि बनाकर नई प्रतियाँ चुन लेता है।</value></data>
+  <data name="TipEditText" xml:space="preserve"><value>चयनित टेक्स्ट ऑब्जेक्ट की सामग्री संपादित करता है।</value></data>
+  <data name="TipSelect" xml:space="preserve"><value>ऑब्जेक्ट चुनकर उन्हें खिसकाएँ, आकार बदलें और घुमाएँ।</value></data>
+  <data name="TipPen" xml:space="preserve"><value>पॉइंटर खींचकर मुक्तहस्त वक्र बनाएँ।</value></data>
+  <data name="TipHighlighter" xml:space="preserve"><value>अर्धपारदर्शी मुक्तहस्त वक्र बनाता है।</value></data>
+  <data name="TipLine" xml:space="preserve"><value>आरंभ बिंदु से अंत बिंदु तक सीधी रेखा बनाता है।</value></data>
+  <data name="TipArrow" xml:space="preserve"><value>आरंभ बिंदु से अंत बिंदु तक तीर बनाता है।</value></data>
+  <data name="TipRectangle" xml:space="preserve"><value>पॉइंटर खींचकर आयत बनाएँ।</value></data>
+  <data name="TipRoundedRectangle" xml:space="preserve"><value>पॉइंटर खींचकर गोल कोनों वाला आयत बनाएँ।</value></data>
+  <data name="TipEllipse" xml:space="preserve"><value>पॉइंटर खींचकर दीर्घवृत्त बनाएँ।</value></data>
+  <data name="TipText" xml:space="preserve"><value>पहले क्षेत्र तय करें, फिर अपना टेक्स्ट लिखें।</value></data>
+  <data name="TipNumber" xml:space="preserve"><value>क्रम से बढ़ने वाले संख्या मार्कर लगाता है।</value></data>
+  <data name="TipSpeechBubble" xml:space="preserve"><value>टेक्स्ट वाला स्पीच बबल बनाता है। पूँछ के हैंडल से उसकी दिशा तय करें।</value></data>
+  <data name="TipUndo" xml:space="preserve"><value>सबसे हालिया संपादन को एक चरण पूर्ववत करता है।</value></data>
+  <data name="TipRedo" xml:space="preserve"><value>पूर्ववत किए गए एक संपादन को फिर से लागू करता है।</value></data>
+  <data name="TipCrop" xml:space="preserve"><value>क्षेत्र खींचें, फिर लागू करने के लिए Enter या रद्द करने के लिए Esc दबाएँ।</value></data>
+  <data name="TipCropRatio" xml:space="preserve"><value>हर क्लिक पर मुक्त, 1:1, 4:3 और 16:9 के बीच बदलता है।</value></data>
+  <data name="TipFlipHorizontal" xml:space="preserve"><value>छवि को बाएँ से दाएँ पलटता है।</value></data>
+  <data name="TipFlipVertical" xml:space="preserve"><value>छवि को ऊपर से नीचे पलटता है।</value></data>
+  <data name="TipResize" xml:space="preserve"><value>आउटपुट आकार पिक्सेल या प्रतिशत में तय करता है।</value></data>
+  <data name="TipColorSwatch" xml:space="preserve"><value>चुनने के लिए Enter दबाएँ और तीर कुंजियों से पैलेट में घूमें।</value></data>
+  <data name="ToolPreviousPage" xml:space="preserve"><value>पिछला पृष्ठ (Page Up)</value></data>
+  <data name="ToolNextPage" xml:space="preserve"><value>अगला पृष्ठ (Page Down)</value></data>
+  <data name="ToolPlayAnimation" xml:space="preserve"><value>एनिमेशन चलाएँ</value></data>
+  <data name="ToolPauseAnimation" xml:space="preserve"><value>एनिमेशन रोकें</value></data>
+  <data name="AnimationEditTitle" xml:space="preserve"><value>एनिमेशन फ़्रेम संपादित करें</value></data>
+  <data name="AnimationEditBody" xml:space="preserve"><value>आगे बढ़ने पर प्लेबैक रुक जाएगा और मौजूदा फ़्रेम स्थिर छवि में समतल कर दिया जाएगा।</value></data>
+  <data name="AnimationEditConfirm" xml:space="preserve"><value>मौजूदा फ़्रेम संपादित करें</value></data>
+  <data name="ToolSettings" xml:space="preserve"><value>सेटिंग्स</value></data>
+  <data name="TipSettings" xml:space="preserve"><value>ऐप के व्यवहार और गोपनीयता सेटिंग्स बदलता है।</value></data>
+  <data name="SettingsTitle" xml:space="preserve"><value>सेटिंग्स</value></data>
+  <data name="SettingsSave" xml:space="preserve"><value>सहेजें</value></data>
+  <data name="SettingsSaved" xml:space="preserve"><value>सेटिंग्स सहेजी गईं</value></data>
+  <data name="SettingsSaveFailed" xml:space="preserve"><value>सेटिंग्स सहेजी नहीं जा सकीं</value></data>
+  <data name="SettingsTheme" xml:space="preserve"><value>थीम</value></data>
+  <data name="SettingsThemeSystem" xml:space="preserve"><value>सिस्टम सेटिंग का उपयोग करें</value></data>
+  <data name="SettingsThemeLight" xml:space="preserve"><value>हल्की</value></data>
+  <data name="SettingsThemeDark" xml:space="preserve"><value>गहरी</value></data>
+  <data name="SettingsFileActivation" xml:space="preserve"><value>दूसरी फ़ाइल खोलते समय</value></data>
+  <data name="SettingsReuseWindow" xml:space="preserve"><value>मौजूदा विंडो में खोलें</value></data>
+  <data name="SettingsOpenNewWindow" xml:space="preserve"><value>नई विंडो में खोलें</value></data>
+  <data name="SettingsClipboardWatch" xml:space="preserve"><value>क्लिपबोर्ड में कैप्चर पर नज़र रखें</value></data>
+  <data name="SettingsRecentFiles" xml:space="preserve"><value>हाल की फ़ाइलों का इतिहास</value></data>
+  <data name="SettingsPrivacySummary" xml:space="preserve"><value>आपकी फ़ाइलें और चित्र सामग्री कहीं भी नहीं भेजी जाती। कोई टेलीमेट्री या स्वचालित नेटवर्क संचार नहीं है।</value></data>
+  <data name="SettingsIncludeSubfolders" xml:space="preserve"><value>ब्राउज़ करते समय उपफ़ोल्डर शामिल करें</value></data>
+  <data name="SettingsCaptureHotkey" xml:space="preserve"><value>ग्लोबल कैप्चर शॉर्टकट</value></data>
+  <data name="SettingsHotkeyInvalid" xml:space="preserve"><value>कम से कम एक संशोधक कुंजी चुनें और एक कुंजी निर्धारित करें।</value></data>
+  <data name="SettingsApplicationInformation" xml:space="preserve"><value>ऐप जानकारी</value></data>
+  <data name="SettingsCurrentVersion" xml:space="preserve"><value>मौजूदा संस्करण: {0}</value></data>
+  <data name="StatusPreview" xml:space="preserve"><value>पूर्वावलोकन</value></data>
+  <data name="ToolRecent" xml:space="preserve"><value>हाल की फ़ाइलें</value></data>
+  <data name="TipRecent" xml:space="preserve"><value>हाल ही में सफलतापूर्वक खोली गई फ़ाइलें दिखाता है।</value></data>
+  <data name="RecentTitle" xml:space="preserve"><value>हाल की फ़ाइलें</value></data>
+  <data name="RecentEmpty" xml:space="preserve"><value>कोई हाल की फ़ाइल नहीं है, या इतिहास बंद है।</value></data>
+  <data name="RecentOpen" xml:space="preserve"><value>खोलें</value></data>
+  <data name="RecentClear" xml:space="preserve"><value>सब हटाएँ</value></data>
+  <data name="RecentCleared" xml:space="preserve"><value>हाल की फ़ाइलों का इतिहास हटा दिया गया</value></data>
+  <data name="RecentClearFailed" xml:space="preserve"><value>हाल की फ़ाइलों का इतिहास नहीं हटाया जा सका</value></data>
+  <data name="RecentEnableBlocked" xml:space="preserve"><value>मौजूदा इतिहास न हटाए जा सकने के कारण इतिहास चालू नहीं किया गया</value></data>
+  <data name="RecentDisableIncomplete" xml:space="preserve"><value>हाल की फ़ाइलों का इतिहास बंद कर दिया गया, पर मौजूदा प्रविष्टियाँ नहीं हटाई जा सकीं। अगली बार ऐप शुरू होने पर फिर कोशिश होगी</value></data>
+  <data name="RecoveryTitle" xml:space="preserve"><value>पुनर्प्राप्त करने योग्य काम मौजूद है</value></data>
+  <data name="RecoveryBody" xml:space="preserve"><value>पिछला सत्र सामान्य रूप से बंद नहीं हुआ था। आप बिना सहेजा काम पुनर्प्राप्त कर सकते हैं।</value></data>
+  <data name="RecoveryIncompleteWarning" xml:space="preserve"><value>कुछ पुनर्प्राप्ति आइटम पढ़े नहीं जा सके। केवल नीचे सूचीबद्ध आइटम संसाधित होंगे; बाकी सुरक्षित रहेंगे।</value></data>
+  <data name="RecoveryRestoreAll" xml:space="preserve"><value>सब पुनर्प्राप्त करें</value></data>
+  <data name="RecoveryDiscardAll" xml:space="preserve"><value>सब छोड़ें</value></data>
+  <data name="RecoveryDiscardVisible" xml:space="preserve"><value>सूचीबद्ध आइटम छोड़ें</value></data>
+  <data name="RecoveryDiscarded" xml:space="preserve"><value>सूचीबद्ध पुनर्प्राप्ति आइटम छोड़ दिए गए</value></data>
+  <data name="RecoveryDiscardDeferred" xml:space="preserve"><value>सूचीबद्ध पुनर्प्राप्ति आइटम छोड़ दिए गए। जो आइटम पढ़े नहीं जा सके, वे अगली बार शुरू होने पर फिर जाँचे जाएँगे</value></data>
+  <data name="RecoveryLater" xml:space="preserve"><value>बाद में</value></data>
+  <data name="RecoveryFailed" xml:space="preserve"><value>कुछ काम पुनर्प्राप्त नहीं हो सका</value></data>
+  <data name="RecoveryRestored" xml:space="preserve"><value>आपका पिछला काम पुनर्प्राप्त कर लिया गया। कृपया इसे सुरक्षित जगह सहेजें</value></data>
+  <data name="RecoveryAvailabilityTitle" xml:space="preserve"><value>स्वतः पुनर्प्राप्ति की स्थिति</value></data>
+  <data name="RecoveryUnavailablePersistent" xml:space="preserve"><value>स्वतः पुनर्प्राप्ति शुरू नहीं हो सकी। इस सत्र में अपना काम बार-बार सहेजते रहें।</value></data>
+  <data name="RecoveryDegradedPersistent" xml:space="preserve"><value>स्वतः पुनर्प्राप्ति के सहेजने में दिक्कत है। यह सूचना हटने तक अपना काम खुद सहेजें।</value></data>
+  <data name="AppDataProtectionTitle" xml:space="preserve"><value>स्थानीय डेटा की सुरक्षा विफल</value></data>
+  <data name="AppDataProtectionPersistent" xml:space="preserve"><value>आपका निजी डेटा फ़ोल्डर सुरक्षित नहीं किया जा सका, इसलिए इस सत्र में सेटिंग्स, हाल की फ़ाइलें और स्वतः पुनर्प्राप्ति बंद कर दी गई हैं।</value></data>
+  <data name="SafeModeTitle" xml:space="preserve"><value>सुरक्षित मोड में शुरू करें?</value></data>
+  <data name="SafeModeBody" xml:space="preserve"><value>वही आरंभिक त्रुटि बार-बार हुई। सुरक्षित मोड इस सत्र के लिए क्लिपबोर्ड निगरानी, ग्लोबल कैप्चर, हाल की फ़ाइलें, उपफ़ोल्डर ब्राउज़िंग और स्वतः पुनर्प्राप्ति संकेत बंद कर देता है।</value></data>
+  <data name="SafeModeStart" xml:space="preserve"><value>सुरक्षित मोड में शुरू करें</value></data>
+  <data name="SafeModeContinue" xml:space="preserve"><value>सामान्य रूप से जारी रखें</value></data>
+  <data name="SafeModeLabel" xml:space="preserve"><value>सुरक्षित मोड</value></data>
+  <data name="SettingsNavGeneral" xml:space="preserve"><value>भाषा और अन्य सेटिंग्स</value></data>
+  <data name="SettingsNavFileAssoc" xml:space="preserve"><value>फ़ाइल संबद्धता</value></data>
+  <data name="SettingsNavAbout" xml:space="preserve"><value>परिचय</value></data>
+  <data name="SettingsNavUpdate" xml:space="preserve"><value>अपडेट</value></data>
+  <data name="SettingsNavSupport" xml:space="preserve"><value>डेवलपर का सहयोग करें</value></data>
+  <data name="SettingsLanguage" xml:space="preserve"><value>भाषा</value></data>
+  <data name="SettingsLanguageSystem" xml:space="preserve"><value>सिस्टम डिफ़ॉल्ट (Windows प्रदर्शन भाषा)</value></data>
+  <data name="SettingsLanguageRestartNote" xml:space="preserve"><value>नई भाषा हर स्क्रीन पर लागू करने के लिए ऐप फिर से शुरू करें।</value></data>
+  <data name="FileAssocWindowsSettings" xml:space="preserve"><value>Windows डिफ़ॉल्ट ऐप सेटिंग्स</value></data>
+  <data name="FileAssocPackagedNote" xml:space="preserve"><value>इस संस्करण में फ़ाइल संबद्धता इंस्टॉलेशन पैकेज संभालता है। नीचे दिए गए प्रारूप पहले ही 'इससे खोलें' विकल्प के रूप में दर्ज हैं, इसलिए यहाँ लागू करने को कुछ नहीं है। डबल-क्लिक पर यह ऐप खुले, इसके लिए 'Windows डिफ़ॉल्ट ऐप सेटिंग्स' में ezy Image Viewer चुनें।</value></data>
+  <data name="FileAssocPackagedRegistered" xml:space="preserve"><value>पैकेज द्वारा दर्ज प्रारूप</value></data>
+  <data name="FilmstripLabel" xml:space="preserve"><value>फ़ोल्डर की थंबनेल सूची</value></data>
+  <data name="FilmstripCurrent" xml:space="preserve"><value>मौजूदा फ़ाइल</value></data>
+  <data name="FilmstripShow" xml:space="preserve"><value>थंबनेल सूची दिखाएँ</value></data>
+  <data name="FilmstripHide" xml:space="preserve"><value>थंबनेल सूची छिपाएँ</value></data>
+  <data name="TipFilmstrip" xml:space="preserve"><value>सूची खुली रखें ताकि एक के बाद एक कई छवियाँ चुन सकें।</value></data>
+  <data name="AboutDescription" xml:space="preserve"><value>Windows के लिए हल्का और तेज़ छवि दर्शक व संपादक</value></data>
+  <data name="AboutLicense" xml:space="preserve"><value>MIT लाइसेंस · © 2026 koprodev</value></data>
+  <data name="UpdateStoreManagedNote" xml:space="preserve"><value>अपडेट Microsoft Store अपने आप संभालता है। आप अपनी Store लाइब्रेरी में खुद भी देख सकते हैं।</value></data>
+  <data name="SupportNote" xml:space="preserve"><value>ezy Image Viewer निःशुल्क है। अगर यह काम आया हो, तो इसके विकास का सहयोग करने पर विचार करें।</value></data>
+  <data name="SupportAction" xml:space="preserve"><value>विकास का सहयोग करें ☕</value></data>
+  <data name="LinkOpenFailed" xml:space="preserve"><value>पृष्ठ नहीं खुल सका</value></data>
+  <data name="ToggleOn" xml:space="preserve"><value>चालू</value></data>
+  <data name="ToggleOff" xml:space="preserve"><value>बंद</value></data>
+  <data name="DeleteImageTitle" xml:space="preserve"><value>क्या यह छवि हटाएँ?</value></data>
+  <data name="DeleteImageRecycleBody" xml:space="preserve"><value>'{0}' को रीसायकल बिन में भेजा जाएगा। आप इसे Windows से वापस ला सकते हैं।</value></data>
+  <data name="DeleteImagePermanentBody" xml:space="preserve"><value>इस स्थान पर रीसायकल बिन नहीं है, इसलिए '{0}' स्थायी रूप से हट जाएगा। इसे पूर्ववत नहीं किया जा सकता।</value></data>
+  <data name="DeleteImageUnsavedNote" xml:space="preserve"><value>इस दस्तावेज़ में बिना सहेजे बदलाव हैं। फ़ाइल हटाने से वे कहीं सहेजे नहीं जाते।</value></data>
+  <data name="DeleteImageConfirm" xml:space="preserve"><value>हटाएँ</value></data>
+  <data name="DeleteImageDone" xml:space="preserve"><value>'{0}' को रीसायकल बिन में भेजा गया</value></data>
+  <data name="DeleteImageDonePermanent" xml:space="preserve"><value>'{0}' हटा दिया गया</value></data>
+  <data name="DeleteImageFailed" xml:space="preserve"><value>फ़ाइल नहीं हटाई जा सकी</value></data>
+  <data name="RenameFileLabel" xml:space="preserve"><value>फ़ाइल का नाम</value></data>
+  <data name="RenameFileTip" xml:space="preserve"><value>इस फ़ाइल का नाम बदलने के लिए क्लिक करें या F2 दबाएँ।</value></data>
+  <data name="RenameDone" xml:space="preserve"><value>नाम बदलकर '{0}' किया गया</value></data>
+  <data name="RenameFailed" xml:space="preserve"><value>फ़ाइल का नाम नहीं बदला जा सका</value></data>
+  <data name="RenameEmpty" xml:space="preserve"><value>फ़ाइल का नाम लिखें।</value></data>
+  <data name="RenameInvalidCharacters" xml:space="preserve"><value>फ़ाइल के नाम में \ / : * ? " &lt; &gt; | नहीं आ सकते, और वह स्थान या बिंदु पर समाप्त नहीं हो सकता।</value></data>
+  <data name="RenameReservedName" xml:space="preserve"><value>यह नाम Windows ने आरक्षित किया है। दूसरा नाम चुनें।</value></data>
+  <data name="RenameTooLong" xml:space="preserve"><value>यह फ़ाइल नाम बहुत लंबा है।</value></data>
+  <data name="RenameTargetExists" xml:space="preserve"><value>इस नाम की फ़ाइल इस फ़ोल्डर में पहले से मौजूद है।</value></data>
+</root>

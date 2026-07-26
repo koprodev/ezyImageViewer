@@ -1,4 +1,5 @@
 using EzyImageViewer.App.Views;
+using EzyImageViewer.Infrastructure;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using SkiaSharp;
@@ -29,6 +30,18 @@ public partial class App : Application
             _window = new BenchWindow(Arg("--bench-backend=") ?? "xaml", benchOut);
             _window.Activate();
             return;
+        }
+
+        // Program.Main이 설정 파일을 미리 훑어 언어를 걸어 뒀다. 여기서는 실제로 적재된
+        // 설정과 대조해 어긋날 때만 우리 문자열을 바로잡는다(WinUI 자체 문자열은 이미 확정됨).
+        var savedLanguage = AppServices.Settings.Language;
+        if (!string.IsNullOrEmpty(savedLanguage)
+            && !string.Equals(
+                savedLanguage,
+                LanguagePolicy.EffectiveUiLanguage,
+                StringComparison.OrdinalIgnoreCase))
+        {
+            AppStrings.ApplyLanguage(savedLanguage);
         }
 
         if (Arg("--bench-startup=") is { } startupOut)

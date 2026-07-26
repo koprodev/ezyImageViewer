@@ -81,6 +81,8 @@ internal sealed class WicDocumentFrameSource : IDocumentFrameSource
             .ConfigureAwait(false);
     }
 
+    public void RebindSourcePath(string path) => _source.RebindPath(path);
+
     public void Dispose()
     {
         if (_disposed)

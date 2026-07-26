@@ -1,18 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- MSIX ID 매니페스트(Q7=b). pack-msix.ps1이 버전·게시자를 기록하며 게시자는 서명 인증서 주체와 정확히 일치해야 함. -->
+<!-- MSIX ID 매니페스트(Q7=b). pack-msix.ps1이 자리표시자를 채운다.
+     Store 제출은 Name·Publisher·PublisherDisplayName 셋 다 Partner Center가 준 값이어야 하고
+     개발 서명 빌드는 Publisher가 인증서 주체와 정확히 일치해야 함. -->
 <Package
   xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
   xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
   xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities">
 
-  <Identity Name="GRTech.ezyImageViewer"
+  <Identity Name="{{IDENTITY_NAME}}"
             Publisher="{{PUBLISHER}}"
             Version="{{VERSION}}"
             ProcessorArchitecture="x64" />
 
   <Properties>
     <DisplayName>ezy Image Viewer</DisplayName>
-    <PublisherDisplayName>grtech-devpro</PublisherDisplayName>
+    <PublisherDisplayName>{{PUBLISHER_DISPLAY_NAME}}</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
 
@@ -20,8 +22,21 @@
     <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.19041.0" MaxVersionTested="10.0.26100.0" />
   </Dependencies>
 
+  <!-- 목록과 순서는 LanguagePolicy.Supported와 같아야 하며 계약 테스트가 대조한다.
+       첫 항목이 Store 등록 정보의 기본 언어이자 리소스 최종 폴백이다. -->
   <Resources>
+    <Resource Language="en-US" />
     <Resource Language="ko-KR" />
+    <Resource Language="zh-CN" />
+    <Resource Language="es-419" />
+    <Resource Language="ja-JP" />
+    <Resource Language="pt-BR" />
+    <Resource Language="en-IN" />
+    <Resource Language="hi-IN" />
+    <Resource Language="de-DE" />
+    <Resource Language="fr-FR" />
+    <Resource Language="ru-RU" />
+    <Resource Language="id-ID" />
   </Resources>
 
   <Applications>
@@ -37,6 +52,24 @@
           <uap:Protocol Name="ezyimageviewer" DesiredView="default">
             <uap:DisplayName>ezy Image Viewer</uap:DisplayName>
           </uap:Protocol>
+        </uap:Extension>
+        <!-- 연결 위임은 Windows 몫이라 MSIX는 기본 처리기를 뺏지 못함. 연결 프로그램 후보로만 올라감.
+             목록은 FileAssociationPolicy.EssentialExtensions와 같아야 하며 계약 테스트가 어긋남을 잡는다. -->
+        <uap:Extension Category="windows.fileTypeAssociation">
+          <uap:FileTypeAssociation Name="ezyimageviewer.image">
+            <uap:DisplayName>ezy Image Viewer Image</uap:DisplayName>
+            <uap:Logo>Assets\StoreLogo.png</uap:Logo>
+            <uap:SupportedFileTypes>
+              <uap:FileType>.png</uap:FileType>
+              <uap:FileType>.jpg</uap:FileType>
+              <uap:FileType>.jpeg</uap:FileType>
+              <uap:FileType>.bmp</uap:FileType>
+              <uap:FileType>.gif</uap:FileType>
+              <uap:FileType>.webp</uap:FileType>
+              <uap:FileType>.tif</uap:FileType>
+              <uap:FileType>.tiff</uap:FileType>
+            </uap:SupportedFileTypes>
+          </uap:FileTypeAssociation>
         </uap:Extension>
       </Extensions>
     </Application>

@@ -244,6 +244,8 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
     private bool _closePromptOpen;
     /// <summary>WinUI가 허용하는 단 하나의 대화상자.</summary>
     private ContentDialog? _activeDialog;
+    private bool _renameInProgress;
+    private string? _renameOriginalPath;
     private bool _activeDialogEditScoped;
 
     // 무인 실행 진입점(--smoke-open / --bench-open24mp).
@@ -1385,6 +1387,8 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         Add(VirtualKey.Y, VirtualKeyModifiers.Control, (_, _) => Redo());
         Add(VirtualKey.Z, VirtualKeyModifiers.Control | VirtualKeyModifiers.Shift, (_, _) => Redo());
         Add(VirtualKey.Delete, default, (_, _) => DeleteSelection());
+        // 탐색기와 같은 이름 바꾸기 키. 상태바의 파일명을 그 자리에서 편집한다.
+        Add(VirtualKey.F2, default, (_, _) => BeginRenameFile());
         Add(VirtualKey.D, VirtualKeyModifiers.Control, (_, _) => DuplicateSelection());
         Add(openBracketKey, VirtualKeyModifiers.Control, (_, _) => ReorderSelection(-1, false));
         Add(closeBracketKey, VirtualKeyModifiers.Control, (_, _) => ReorderSelection(1, false));
@@ -1862,6 +1866,7 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         StatusColorMode.Text = _viewModel.ColorModeText;
         StatusFileSize.Text = _viewModel.FileSizeText;
         StatusModified.Text = _viewModel.ModifiedText;
+        UpdateFileNameStatus();
         SetStatusState(_cropInteraction.Phase == CropInteractionPhase.Reviewing
             ? AppStrings.CropReviewHint
             : _tool == CanvasTool.RegionSelect
@@ -1898,6 +1903,121 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
             StatusColorMode, $"{AppStrings.StatusColorMode}: {StatusColorMode.Text}");
         UpdateDynamicTooltips();
     }
+
+    /// <summary>상태바의 파일명. 디스크 파일일 때만 나오고 그때만 이름을 바꿀 수 있다.</summary>
+    private void UpdateFileNameStatus()
+    {
+        if (_viewModel.CurrentFilePath is not { } path)
+        {
+            StatusFileNameGroup.Visibility = Visibility.Collapsed;
+            CancelRenameFile();
+            return;
+        }
+        StatusFileNameGroup.Visibility = Visibility.Visible;
+        var name = Path.GetFileName(path);
+        StatusFileName.Text = name;
+        ToolTipService.SetToolTip(StatusFileNameButton, $"{path}{Environment.NewLine}{AppStrings.RenameFileTip}");
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(
+            StatusFileNameButton, $"{AppStrings.RenameFileLabel}: {name}");
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(
+            StatusFileNameBox, AppStrings.RenameFileLabel);
+    }
+
+    private void OnRenameFileClicked(object sender, RoutedEventArgs e) => BeginRenameFile();
+
+    /// <summary>이름 편집 시작. 탐색기처럼 확장자를 뺀 부분만 선택해 둔다.</summary>
+    private void BeginRenameFile()
+    {
+        if (_renameInProgress || _activeDialog is not null)
+            return;
+        if (_viewModel.CurrentFilePath is not { } path)
+            return;
+
+        var name = Path.GetFileName(path);
+        _renameInProgress = true;
+        _renameOriginalPath = path;
+        StatusFileNameBox.Text = name;
+        StatusFileNameButton.Visibility = Visibility.Collapsed;
+        StatusFileNameBox.Visibility = Visibility.Visible;
+        StatusFileNameBox.Focus(FocusState.Programmatic);
+        var stemLength = Path.GetFileNameWithoutExtension(name).Length;
+        StatusFileNameBox.Select(0, stemLength > 0 ? stemLength : name.Length);
+    }
+
+    private void CancelRenameFile()
+    {
+        if (!_renameInProgress)
+            return;
+        _renameInProgress = false;
+        _renameOriginalPath = null;
+        StatusFileNameBox.Visibility = Visibility.Collapsed;
+        StatusFileNameButton.Visibility = Visibility.Visible;
+    }
+
+    private void OnRenameBoxKeyDown(object sender, KeyRoutedEventArgs e)
+    {
+        if (e.Key == VirtualKey.Enter)
+        {
+            e.Handled = true;
+            CommitRenameFile();
+            return;
+        }
+        if (e.Key != VirtualKey.Escape)
+            return;
+        e.Handled = true;
+        CancelRenameFile();
+        Canvas.Focus(FocusState.Programmatic);
+    }
+
+    // 포커스를 잃으면 탐색기처럼 입력한 이름을 확정한다.
+    private void OnRenameBoxLostFocus(object sender, RoutedEventArgs e) => CommitRenameFile();
+
+    private void CommitRenameFile()
+    {
+        if (!_renameInProgress || _renameOriginalPath is not { } path)
+            return;
+        var candidate = StatusFileNameBox.Text;
+        // 먼저 편집 상태를 닫는다. 실패 안내는 상태바가 받으므로 입력창에 갇히지 않는다.
+        CancelRenameFile();
+
+        var validation = FileRenamePolicy.Validate(path, candidate);
+        if (validation == RenameValidation.Unchanged)
+            return;
+        if (validation != RenameValidation.Valid)
+        {
+            SetStatusState(DescribeRenameValidation(validation));
+            return;
+        }
+
+        var target = FileRenamePolicy.ResolveTargetPath(path, candidate);
+        try
+        {
+            File.Move(path, target);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException
+            or ArgumentException or NotSupportedException)
+        {
+            SetStatusState($"{AppStrings.RenameFailed}: {ex.Message}");
+            return;
+        }
+
+        // 재로드가 아니라 제자리 재바인딩이라 저장하지 않은 편집이 살아남는다.
+        _viewModel.RebindRenamedFile(target);
+        Title = BuildWindowTitle();
+        UpdateFileNameStatus();
+        SetStatusState(string.Format(
+            CultureInfo.CurrentCulture, AppStrings.RenameDone, Path.GetFileName(target)));
+    }
+
+    private static string DescribeRenameValidation(RenameValidation validation) => validation switch
+    {
+        RenameValidation.Empty => AppStrings.RenameEmpty,
+        RenameValidation.InvalidCharacters => AppStrings.RenameInvalidCharacters,
+        RenameValidation.ReservedName => AppStrings.RenameReservedName,
+        RenameValidation.TooLong => AppStrings.RenameTooLong,
+        RenameValidation.TargetExists => AppStrings.RenameTargetExists,
+        _ => AppStrings.RenameFailed,
+    };
 
     private string BuildWindowTitle() => AppServices.IsSafeMode
         ? $"{_viewModel.BuildTitle()} — {AppStrings.SafeModeLabel}"
@@ -3734,73 +3854,6 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         CaptureBar.IsOpen = false;
     }
 
-    private async void OnCheckForUpdatesRequested(object? sender, EventArgs e)
-    {
-        if (sender is not SettingsDialogContent editor)
-            return;
-        editor.SetUpdateCheckPending();
-        try
-        {
-            var result = await AppServices.CheckForUpdatesAsync(
-                force: true,
-                _shutdownCts.Token);
-            if (!_windowClosed)
-                editor.SetUpdateCheckResult(result);
-        }
-        catch (OperationCanceledException) when (_shutdownCts.IsCancellationRequested)
-        {
-        }
-    }
-
-    internal async Task ShowUpdateAvailableAsync(UpdateCheckResult result)
-    {
-        if (result.Status != UpdateCheckStatus.UpdateAvailable
-            || result.ReleasePage is not { } releasePage)
-            return;
-
-        try
-        {
-            for (var attempt = 0; attempt < 60 && _activeDialog is not null; attempt++)
-                await Task.Delay(TimeSpan.FromMilliseconds(500), _shutdownCts.Token);
-            if (_windowClosed || _activeDialog is not null || Content?.XamlRoot is null)
-                return;
-
-            var dialog = new ContentDialog
-            {
-                XamlRoot = Content.XamlRoot,
-                Title = AppStrings.UpdateAvailableTitle,
-                Content = string.Format(
-                    System.Globalization.CultureInfo.CurrentCulture,
-                    AppStrings.UpdateAvailableBody,
-                    result.CurrentVersion,
-                    result.LatestVersion),
-                PrimaryButtonText = AppStrings.UpdateOpenRelease,
-                CloseButtonText = AppStrings.UpdateLater,
-                DefaultButton = ContentDialogButton.Primary,
-            };
-            if (await ShowDialogAsync(dialog, editScoped: false)
-                == ContentDialogResult.Primary)
-                await OpenReleasePageAsync(releasePage);
-        }
-        catch (OperationCanceledException) when (_shutdownCts.IsCancellationRequested)
-        {
-        }
-    }
-
-    private async Task OpenReleasePageAsync(Uri releasePage)
-    {
-        try
-        {
-            if (await Launcher.LaunchUriAsync(releasePage))
-                return;
-            ReportReleasePageLaunchFailure();
-        }
-        catch (Exception ex)
-        {
-            ReportReleasePageLaunchFailure(ex);
-        }
-    }
-
     private async void OnSettingsLinkRequested(object? sender, Uri target)
     {
         try
@@ -3818,19 +3871,6 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
     private void ReportExternalPageLaunchFailure(Exception? exception = null)
     {
         SetStatusState(AppStrings.LinkOpenFailed);
-        _ = AppServices.Logs.TryEnqueue(
-            LocalLogLevel.Warning,
-            new StructuredLogEvent
-            {
-                Name = StructuredLogEventNames.ReleasePageLaunchFailed,
-                ErrorCode = "shell_launch_failed",
-            },
-            exception);
-    }
-
-    private void ReportReleasePageLaunchFailure(Exception? exception = null)
-    {
-        SetStatusState(AppStrings.UpdateOpenFailed);
         _ = AppServices.Logs.TryEnqueue(
             LocalLogLevel.Warning,
             new StructuredLogEvent
@@ -5446,7 +5486,6 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         if (Content?.XamlRoot is null)
             return;
         var editor = new SettingsDialogContent(AppServices.Settings);
-        editor.CheckForUpdatesRequested += OnCheckForUpdatesRequested;
         editor.LinkRequested += OnSettingsLinkRequested;
         AppSettings? candidate = null;
         var dialog = new ContentDialog
@@ -5470,7 +5509,6 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         if (await ShowDialogAsync(dialog, editScoped: false) != ContentDialogResult.Primary
             || candidate is null)
             return;
-        editor.ApplyPendingAssociations();
         try
         {
             await AppServices.UpdateSettingsAsync(current =>
@@ -5771,9 +5809,113 @@ public sealed partial class ViewerWindow : Window, Capture.Snipping.ICaptureTarg
         var editor = _viewModel.Editor;
         if (_selectedAnnotation == default
             || editor.State.Find(_selectedAnnotation) is not { IsLocked: false })
+        {
+            // 지울 객체가 없으면 화면의 이미지 파일을 지우려는 것으로 본다. 확인은 대화상자가 받는다.
+            // 예외를 그냥 버리면 키를 눌러도 아무 일이 없는 것처럼 보인다. 상태바로 끌어낸다.
+            _ = DeleteCurrentFileAsync().ContinueWith(
+                task => SetStatusState($"{AppStrings.DeleteImageFailed}: {task.Exception?.GetBaseException().Message}"),
+                CancellationToken.None,
+                TaskContinuationOptions.OnlyOnFaulted,
+                TaskScheduler.FromCurrentSynchronizationContext());
             return;
+        }
         editor.Apply(new DeleteAnnotationCommand(editor.State, _selectedAnnotation));
         _selectedAnnotation = default;
+    }
+
+    /// <summary>
+    /// 화면의 이미지 파일을 휴지통으로 보낸다. 삭제한 뒤에는 폴더의 다음 파일로 넘어가고,
+    /// 마지막 파일이었다면 이전 파일로, 폴더가 비면 빈 화면으로 돌아간다.
+    /// </summary>
+    private async Task DeleteCurrentFileAsync()
+    {
+        if (_activeDialog is not null || _viewModel.CurrentFilePath is not { } path)
+            return;
+        if (_renameInProgress)
+            return;
+
+        var name = Path.GetFileName(path);
+        var recyclable = ShellFileOperations.CanRecycle(path);
+        var body = string.Format(
+            CultureInfo.CurrentCulture,
+            recyclable ? AppStrings.DeleteImageRecycleBody : AppStrings.DeleteImagePermanentBody,
+            name);
+        if (_viewModel.Editor.IsModified)
+            body += Environment.NewLine + Environment.NewLine + AppStrings.DeleteImageUnsavedNote;
+
+        var dialog = new ContentDialog
+        {
+            XamlRoot = Content.XamlRoot,
+            Title = AppStrings.DeleteImageTitle,
+            Content = new TextBlock { Text = body, TextWrapping = TextWrapping.Wrap },
+            PrimaryButtonText = AppStrings.DeleteImageConfirm,
+            CloseButtonText = AppStrings.DiscardCancel,
+            DefaultButton = ContentDialogButton.Close,
+        };
+        if (await ShowDialogAsync(dialog, editScoped: false) != ContentDialogResult.Primary)
+            return;
+
+        // 지우기 전에 어디로 갈지 정해 둔다. 삭제 뒤에는 현재 색인이 의미를 잃는다.
+        var successor = ResolveSuccessorPath(path);
+
+        FileDeleteResult result;
+        try
+        {
+            result = ShellFileOperations.MoveToRecycleBin(path);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException
+            or ArgumentException)
+        {
+            SetStatusState($"{AppStrings.DeleteImageFailed}: {ex.Message}");
+            return;
+        }
+
+        if (result.Outcome == FileDeleteOutcome.Canceled)
+            return;
+        if (!result.Succeeded)
+        {
+            SetStatusState(AppStrings.DeleteImageFailed);
+            return;
+        }
+
+        SetStatusState(string.Format(
+            CultureInfo.CurrentCulture,
+            result.Outcome == FileDeleteOutcome.Recycled
+                ? AppStrings.DeleteImageDone
+                : AppStrings.DeleteImageDonePermanent,
+            name));
+
+        if (successor is null)
+        {
+            // 폴더가 비었다. 목록도 지운 파일 기준으로 다시 훑어 잔재를 남기지 않는다.
+            _viewModel.CloseDocument(path);
+            return;
+        }
+        _viewModel.OpenFiles([successor]);
+    }
+
+    /// <summary>삭제 뒤 열 파일. 다음 파일 우선, 없으면 이전 파일, 그것도 없으면 null.</summary>
+    private string? ResolveSuccessorPath(string deletedPath)
+    {
+        var files = _viewModel.NavigationFiles;
+        var index = _viewModel.NavigationIndex;
+        if (index < 0 || index >= files.Count
+            || !StringComparer.OrdinalIgnoreCase.Equals(files[index], deletedPath))
+        {
+            index = -1;
+            for (var i = 0; i < files.Count; i++)
+            {
+                if (!StringComparer.OrdinalIgnoreCase.Equals(files[i], deletedPath))
+                    continue;
+                index = i;
+                break;
+            }
+        }
+        if (index < 0)
+            return null;
+        if (index + 1 < files.Count)
+            return files[index + 1];
+        return index > 0 ? files[index - 1] : null;
     }
 
     /// <summary>명령 적용 전 초안·자르기 검토·포인터 캡처 정리.</summary>

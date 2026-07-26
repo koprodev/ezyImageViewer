@@ -33,19 +33,16 @@ try {
         'icon.png',
         'EzyImageViewer.slnx',
         'EzyImageViewer.App/EzyImageViewer.App.csproj',
-        'installer/bundle/ezyImageViewer.Bundle.wixproj',
         '.github/workflows/ci.yml',
-        '.github/workflows/release-portable.yml',
-        '.github/workflows/release-preview.yml',
-        'docs/portable-readme.txt',
-        'docs/preview-release-notes.md',
         'docs/adr/ADR-0013-material-symbols-font-icons.md',
-        'docs/adr/ADR-0019-external-location-identity-wix-transition.md',
-        'packaging/build-portable-release.ps1',
+        'docs/adr/ADR-0018-msix-packaging-official-capture.md',
+        'docs/privacy.md',
+        'docs/release-process.md',
+        'packaging/AppxManifest.template.xml',
+        'packaging/pack-msix.ps1',
         'packaging/public-source-allowlist.txt',
         'packaging/sync-public-source.ps1',
-        'packaging/verify-portable-release.ps1',
-        'packaging/portable-release.json'
+        'packaging/verify-msix-release.ps1'
     )) {
         $candidatePath = Join-Path $snapshotPath $requiredPath.Replace('/', [IO.Path]::DirectorySeparatorChar)
         Assert-True ([IO.File]::Exists($candidatePath)) "Required public source file is missing: $requiredPath"
@@ -70,6 +67,22 @@ try {
         $candidatePath = Join-Path $snapshotPath $excludedPath.Replace('/', [IO.Path]::DirectorySeparatorChar)
         Assert-True (-not [IO.File]::Exists($candidatePath) -and -not [IO.Directory]::Exists($candidatePath)) `
             "Internal path leaked into the public source snapshot: $excludedPath"
+    }
+
+    foreach ($retiredPath in @(
+        'installer',
+        'tools',
+        '.github/workflows/release-portable.yml',
+        '.github/workflows/release-preview.yml',
+        'docs/portable-readme.txt',
+        'docs/signpath-readiness.md',
+        'packaging/build-portable-release.ps1',
+        'packaging/build-wix-installer.ps1',
+        'packaging/generate-appinstaller.ps1'
+    )) {
+        $candidatePath = Join-Path $snapshotPath $retiredPath.Replace('/', [IO.Path]::DirectorySeparatorChar)
+        Assert-True (-not [IO.File]::Exists($candidatePath) -and -not [IO.Directory]::Exists($candidatePath)) `
+            "Retired distribution path leaked into the public source snapshot: $retiredPath"
     }
 
     Assert-True (-not [IO.Directory]::Exists((Join-Path $snapshotPath '.git'))) `

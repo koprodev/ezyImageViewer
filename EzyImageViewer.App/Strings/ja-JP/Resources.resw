@@ -1,0 +1,378 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="ToolOpen" xml:space="preserve"><value>開く (Ctrl+O)</value></data>
+  <data name="ToolClipboard" xml:space="preserve"><value>クリップボードから開く</value></data>
+  <data name="ToolWhiteboard" xml:space="preserve"><value>ホワイトボードを開く</value></data>
+  <data name="TipWhiteboard" xml:space="preserve"><value>グリッド背景の 4K ホワイトボードを新しいドキュメントとして開きます。</value></data>
+  <data name="WhiteboardWhite" xml:space="preserve"><value>白いホワイトボード</value></data>
+  <data name="WhiteboardBlack" xml:space="preserve"><value>黒いホワイトボード</value></data>
+  <data name="ToolPrevious" xml:space="preserve"><value>前のファイル (←)</value></data>
+  <data name="ToolNext" xml:space="preserve"><value>次のファイル (→)</value></data>
+  <data name="ToolFit" xml:space="preserve"><value>ウィンドウに合わせる (Ctrl+0)</value></data>
+  <data name="ToolActualSize" xml:space="preserve"><value>実際のサイズ (Ctrl+1)</value></data>
+  <data name="ToolRotate" xml:space="preserve"><value>時計回りに回転</value></data>
+  <data name="ToolRotateCcw" xml:space="preserve"><value>反時計回りに回転</value></data>
+  <data name="ToolOpenGroup" xml:space="preserve"><value>開くメニュー</value></data>
+  <data name="TipOpenGroup" xml:space="preserve"><value>ファイル・最近使用・クリップボード・キャプチャ・ホワイトボード・新しいウィンドウを 1 つのメニューにまとめます。</value></data>
+  <data name="ToolTransformGroup" xml:space="preserve"><value>回転・反転メニュー</value></data>
+  <data name="TipTransformGroup" xml:space="preserve"><value>時計回り・反時計回りの回転と左右・上下の反転をまとめます。</value></data>
+  <data name="ToolCropGroup" xml:space="preserve"><value>切り抜き・サイズ変更メニュー</value></data>
+  <data name="TipCropGroup" xml:space="preserve"><value>切り抜き、切り抜き比率、サイズ変更を 1 つのメニューにまとめます。</value></data>
+  <data name="ToolZoomGroup" xml:space="preserve"><value>表示倍率メニュー</value></data>
+  <data name="TipZoomGroup" xml:space="preserve"><value>ウィンドウに合わせる と 実際のサイズ を 1 つのメニューにまとめます。</value></data>
+  <data name="ToolProtectGroup" xml:space="preserve"><value>情報保護メニュー</value></data>
+  <data name="TipProtectGroup" xml:space="preserve"><value>モザイク、ぼかし、目隠しを 1 つのメニューにまとめます。</value></data>
+  <data name="MenuCrop" xml:space="preserve"><value>切り抜き</value></data>
+  <data name="MenuCropRatio" xml:space="preserve"><value>切り抜き比率</value></data>
+  <data name="MenuResize" xml:space="preserve"><value>サイズ変更</value></data>
+  <data name="SettingsNavToolbarGroups" xml:space="preserve"><value>ツールバーのグループ</value></data>
+  <data name="SettingsToolbarGroups" xml:space="preserve"><value>ツールバーのボタンをドロップダウンにまとめるかどうかを選びます。</value></data>
+  <data name="SettingsToolbarGroupOpen" xml:space="preserve"><value>開くグループ (開く・最近使用・クリップボード・キャプチャ・ホワイトボード・新しいウィンドウ)</value></data>
+  <data name="SettingsToolbarGroupSelect" xml:space="preserve"><value>選択の分割ボタン (オブジェクト選択 / 範囲選択)</value></data>
+  <data name="SettingsToolbarGroupTransform" xml:space="preserve"><value>回転・反転グループ</value></data>
+  <data name="SettingsToolbarGroupCrop" xml:space="preserve"><value>切り抜き・サイズ変更グループ (切り抜き・比率・サイズ変更)</value></data>
+  <data name="SettingsToolbarGroupZoom" xml:space="preserve"><value>表示倍率グループ (ウィンドウに合わせる・実際のサイズ)</value></data>
+  <data name="SettingsToolbarGroupProtect" xml:space="preserve"><value>情報保護グループ (モザイク・ぼかし・目隠し)</value></data>
+  <data name="ToolFullScreen" xml:space="preserve"><value>全画面表示 (F11)</value></data>
+  <data name="ToolDockToggle" xml:space="preserve"><value>ツールバーの向きを切り替え</value></data>
+  <data name="ToolSendToBack" xml:space="preserve"><value>最背面へ移動 (Ctrl+Shift+[)</value></data>
+  <data name="ToolSendBackward" xml:space="preserve"><value>背面へ移動 (Ctrl+[)</value></data>
+  <data name="ToolBringForward" xml:space="preserve"><value>前面へ移動 (Ctrl+])</value></data>
+  <data name="ToolBringToFront" xml:space="preserve"><value>最前面へ移動 (Ctrl+Shift+])</value></data>
+  <data name="ToolDuplicate" xml:space="preserve"><value>選択を複製 (Ctrl+D)</value></data>
+  <data name="ToolEditText" xml:space="preserve"><value>選択したテキストを編集</value></data>
+  <data name="LayerPanel" xml:space="preserve"><value>レイヤー</value></data>
+  <data name="LayerVisible" xml:space="preserve"><value>表示</value></data>
+  <data name="LayerHidden" xml:space="preserve"><value>非表示</value></data>
+  <data name="LayerLocked" xml:space="preserve"><value>ロック中</value></data>
+  <data name="LayerUnlocked" xml:space="preserve"><value>ロック解除</value></data>
+  <data name="LayerTypeInk" xml:space="preserve"><value>ペン</value></data>
+  <data name="LayerTypeHighlighter" xml:space="preserve"><value>蛍光ペン</value></data>
+  <data name="LayerTypeLine" xml:space="preserve"><value>直線</value></data>
+  <data name="LayerTypeArrow" xml:space="preserve"><value>矢印</value></data>
+  <data name="LayerTypeRectangle" xml:space="preserve"><value>図形</value></data>
+  <data name="LayerTypeEllipse" xml:space="preserve"><value>楕円</value></data>
+  <data name="LayerTypeText" xml:space="preserve"><value>テキスト</value></data>
+  <data name="LayerTypeNumber" xml:space="preserve"><value>番号</value></data>
+  <data name="LayerTypeSpeechBubble" xml:space="preserve"><value>吹き出し</value></data>
+  <data name="LayerTypeImage" xml:space="preserve"><value>画像</value></data>
+  <data name="LayerTypeMosaic" xml:space="preserve"><value>モザイク</value></data>
+  <data name="LayerTypeBlur" xml:space="preserve"><value>ぼかし</value></data>
+  <data name="LayerTypeMask" xml:space="preserve"><value>目隠し</value></data>
+  <data name="ToolMosaic" xml:space="preserve"><value>モザイク</value></data>
+  <data name="TipMosaic" xml:space="preserve"><value>ドラッグした範囲をブロックで隠します</value></data>
+  <data name="ToolBlur" xml:space="preserve"><value>ぼかし</value></data>
+  <data name="TipBlur" xml:space="preserve"><value>ドラッグした範囲をぼかします</value></data>
+  <data name="ToolMask" xml:space="preserve"><value>目隠し</value></data>
+  <data name="TipMask" xml:space="preserve"><value>ドラッグした範囲を単色で完全に覆います</value></data>
+  <data name="StyleBlockSize" xml:space="preserve"><value>ブロックサイズ</value></data>
+  <data name="StyleBlurSigma" xml:space="preserve"><value>強さ</value></data>
+  <data name="ToolCapture" xml:space="preserve"><value>画面キャプチャ</value></data>
+  <data name="TipCapture" xml:space="preserve"><value>Windows の Snipping Tool を開き、結果を自動で取り込みます</value></data>
+  <data name="CaptureNoticeTitle" xml:space="preserve"><value>クリップボードに新しいキャプチャを検出しました</value></data>
+  <data name="CaptureNoticeOpen" xml:space="preserve"><value>開く</value></data>
+  <data name="CaptureLaunchFailed" xml:space="preserve"><value>Snipping Tool を開けませんでした — Win+Shift+S でキャプチャすると自動で取り込みます</value></data>
+  <data name="CaptureHotkeyUnavailable" xml:space="preserve"><value>グローバル キャプチャ ショートカット ({0}) は他のアプリが使用中です</value></data>
+  <data name="CaptureFailed" xml:space="preserve"><value>キャプチャが完了しませんでした</value></data>
+  <data name="ToolSave" xml:space="preserve"><value>保存 (Ctrl+S)</value></data>
+  <data name="TipSave" xml:space="preserve"><value>クイック保存 · 名前を付けて保存は Ctrl+Shift+S</value></data>
+  <data name="SaveDone" xml:space="preserve"><value>保存しました</value></data>
+  <data name="SaveDoneNoMetadata" xml:space="preserve"><value>保存しました · メタデータは除外</value></data>
+  <data name="SaveNoChanges" xml:space="preserve"><value>変更はありません</value></data>
+  <data name="SaveFailed" xml:space="preserve"><value>保存に失敗しました</value></data>
+  <data name="SaveInProgress" xml:space="preserve"><value>保存中…</value></data>
+  <data name="SaveFullResUnavailable" xml:space="preserve"><value>元の画像をフル解像度で読み直せないため、書き出せません</value></data>
+  <data name="SaveSourceChanged" xml:space="preserve"><value>元のファイルがディスク上で変更されたため保存できません。ドキュメントを開き直してください</value></data>
+  <data name="SaveDefaultName" xml:space="preserve"><value>画像</value></data>
+  <data name="CopyDone" xml:space="preserve"><value>クリップボードにコピーしました</value></data>
+  <data name="CopyRegionDone" xml:space="preserve"><value>選択範囲をクリップボードにコピーしました</value></data>
+  <data name="CopyRegionStale" xml:space="preserve"><value>切り抜き確認の範囲が無効になったためコピーしませんでした</value></data>
+  <data name="ExportOptionsTitle" xml:space="preserve"><value>書き出し設定</value></data>
+  <data name="ExportQualityLabel" xml:space="preserve"><value>品質</value></data>
+  <data name="ExportKeepMetadataLabel" xml:space="preserve"><value>メタデータを保持 (位置情報などの機微な項目は常に削除)</value></data>
+  <data name="ExportLosslessLabel" xml:space="preserve"><value>可逆圧縮</value></data>
+  <data name="OverwriteTitle" xml:space="preserve"><value>元のファイルを上書き</value></data>
+  <data name="OverwriteBody" xml:space="preserve"><value>元のファイルを編集結果で上書きします。元に戻せません。</value></data>
+  <data name="OverwriteConfirm" xml:space="preserve"><value>上書き</value></data>
+  <data name="DialogSaveButton" xml:space="preserve"><value>保存</value></data>
+  <data name="DialogDontSaveButton" xml:space="preserve"><value>保存しない</value></data>
+  <data name="ProjectTypeName" xml:space="preserve"><value>ezyImage プロジェクト</value></data>
+  <data name="TextEditTitle" xml:space="preserve"><value>テキストの編集</value></data>
+  <data name="ToolColor" xml:space="preserve"><value>描画色を選択</value></data>
+  <data name="ToolRectangle" xml:space="preserve"><value>四角形 (ドラッグで描画 · Delete で削除)</value></data>
+  <data name="ToolUndo" xml:space="preserve"><value>元に戻す (Ctrl+Z)</value></data>
+  <data name="ToolRedo" xml:space="preserve"><value>やり直し (Ctrl+Y)</value></data>
+  <data name="StateReady" xml:space="preserve"><value>準備完了</value></data>
+  <data name="StateLoading" xml:space="preserve"><value>読み込み中…</value></data>
+  <data name="StateFailed" xml:space="preserve"><value>読み込み失敗</value></data>
+  <data name="StateModified" xml:space="preserve"><value>変更あり</value></data>
+  <data name="DiscardTitle" xml:space="preserve"><value>保存されていない変更</value></data>
+  <data name="DiscardBody" xml:space="preserve"><value>このドキュメントには保存されていない変更があります。保存しないと失われます。</value></data>
+  <data name="DiscardConfirm" xml:space="preserve"><value>変更を破棄</value></data>
+  <data name="DiscardCancel" xml:space="preserve"><value>キャンセル</value></data>
+  <data name="ToolCrop" xml:space="preserve"><value>切り抜き (ドラッグ後 Enter か範囲内をダブルクリックで適用 · Esc で取り消し)</value></data>
+  <data name="ToolCropRatio" xml:space="preserve"><value>切り抜き比率の切り替え (自由 / 1:1 / 4:3 / 16:9)</value></data>
+  <data name="ToolFlipHorizontal" xml:space="preserve"><value>左右反転</value></data>
+  <data name="ToolFlipVertical" xml:space="preserve"><value>上下反転</value></data>
+  <data name="ToolResize" xml:space="preserve"><value>サイズ変更</value></data>
+  <data name="CropRatioFree" xml:space="preserve"><value>自由</value></data>
+  <data name="CropReviewHint" xml:space="preserve"><value>切り抜き確認: Enter か範囲内をダブルクリックで適用 · Esc で取り消し</value></data>
+  <data name="ColorBlack" xml:space="preserve"><value>黒</value></data>
+  <data name="ColorGray" xml:space="preserve"><value>グレー</value></data>
+  <data name="ColorSilver" xml:space="preserve"><value>シルバー</value></data>
+  <data name="ColorWhite" xml:space="preserve"><value>白</value></data>
+  <data name="ColorRed" xml:space="preserve"><value>赤</value></data>
+  <data name="ColorOrange" xml:space="preserve"><value>オレンジ</value></data>
+  <data name="ColorYellow" xml:space="preserve"><value>黄</value></data>
+  <data name="ColorLime" xml:space="preserve"><value>ライム</value></data>
+  <data name="ColorGreen" xml:space="preserve"><value>緑</value></data>
+  <data name="ColorTeal" xml:space="preserve"><value>ティール</value></data>
+  <data name="ColorSky" xml:space="preserve"><value>スカイブルー</value></data>
+  <data name="ColorBlue" xml:space="preserve"><value>青</value></data>
+  <data name="ColorNavy" xml:space="preserve"><value>ネイビー</value></data>
+  <data name="ColorPurple" xml:space="preserve"><value>紫</value></data>
+  <data name="ColorMagenta" xml:space="preserve"><value>マゼンタ</value></data>
+  <data name="ColorBrown" xml:space="preserve"><value>茶</value></data>
+  <data name="ColorSelected" xml:space="preserve"><value>選択中</value></data>
+  <data name="EditFailed" xml:space="preserve"><value>編集に失敗しました</value></data>
+  <data name="DialogApply" xml:space="preserve"><value>適用</value></data>
+  <data name="DialogCancel" xml:space="preserve"><value>キャンセル</value></data>
+  <data name="ResizeTitle" xml:space="preserve"><value>サイズ変更</value></data>
+  <data name="ResizeWidthLabel" xml:space="preserve"><value>幅 (px)</value></data>
+  <data name="ResizeHeightLabel" xml:space="preserve"><value>高さ (px)</value></data>
+  <data name="ResizePercentLabel" xml:space="preserve"><value>倍率 (%)</value></data>
+  <data name="ResizeKeepAspect" xml:space="preserve"><value>縦横比を保持</value></data>
+  <data name="ToolSelect" xml:space="preserve"><value>選択と移動</value></data>
+  <data name="ToolSelectMode" xml:space="preserve"><value>選択モードの変更</value></data>
+  <data name="TipSelectMode" xml:space="preserve"><value>選択ツールがオブジェクトを選ぶか範囲を選ぶかを決めます。</value></data>
+  <data name="SelectModeRegion" xml:space="preserve"><value>範囲選択</value></data>
+  <data name="TipRegionSelect" xml:space="preserve"><value>背景の矩形範囲を選択します。内側をドラッグすると持ち上げて移動でき、Ctrl+X で切り取れます。</value></data>
+  <data name="RegionReviewHint" xml:space="preserve"><value>選択範囲: 内側をドラッグ = 持ち上げて移動 · Ctrl+X = 切り取り · Ctrl+C = コピー · Esc = 取り消し</value></data>
+  <data name="RegionCutDone" xml:space="preserve"><value>選択範囲をクリップボードに切り取りました</value></data>
+  <data name="RegionNeedsFullRes" xml:space="preserve"><value>プレビュー解像度のドキュメントでは範囲編集を使えません</value></data>
+  <data name="ToolPen" xml:space="preserve"><value>ペン</value></data>
+  <data name="ToolHighlighter" xml:space="preserve"><value>蛍光ペン</value></data>
+  <data name="ToolLine" xml:space="preserve"><value>直線</value></data>
+  <data name="ToolArrow" xml:space="preserve"><value>矢印</value></data>
+  <data name="ToolRoundedRectangle" xml:space="preserve"><value>角丸四角形</value></data>
+  <data name="ToolEllipse" xml:space="preserve"><value>楕円</value></data>
+  <data name="ToolText" xml:space="preserve"><value>テキスト ボックス</value></data>
+  <data name="ToolNumber" xml:space="preserve"><value>番号マーカー</value></data>
+  <data name="ToolSpeechBubble" xml:space="preserve"><value>吹き出し</value></data>
+  <data name="TextTitle" xml:space="preserve"><value>テキストの追加</value></data>
+  <data name="SpeechBubbleTitle" xml:space="preserve"><value>吹き出しのテキスト</value></data>
+  <data name="TextContentLabel" xml:space="preserve"><value>内容</value></data>
+  <data name="MarkerLimitReached" xml:space="preserve"><value>番号マーカーの上限に達しました。</value></data>
+  <data name="StyleFill" xml:space="preserve"><value>塗りつぶし</value></data>
+  <data name="StyleBackground" xml:space="preserve"><value>背景</value></data>
+  <data name="StyleCornerRadius" xml:space="preserve"><value>角の半径</value></data>
+  <data name="LayerCollapse" xml:space="preserve"><value>レイヤーを折りたたむ</value></data>
+  <data name="LayerExpand" xml:space="preserve"><value>レイヤーを展開する</value></data>
+  <data name="TipLayerCollapse" xml:space="preserve"><value>レイヤー一覧を折りたたむ / 展開します。</value></data>
+  <data name="StyleStrokeWidth" xml:space="preserve"><value>線の太さ (px)</value></data>
+  <data name="StyleOpacity" xml:space="preserve"><value>不透明度 (%)</value></data>
+  <data name="StyleFontSize" xml:space="preserve"><value>文字サイズ</value></data>
+  <data name="StyleRotation" xml:space="preserve"><value>回転 (°)</value></data>
+  <data name="StyleArrowhead" xml:space="preserve"><value>矢じり</value></data>
+  <data name="StyleFontFamily" xml:space="preserve"><value>フォント</value></data>
+  <data name="StyleBold" xml:space="preserve"><value>太字</value></data>
+  <data name="StyleItalic" xml:space="preserve"><value>斜体</value></data>
+  <data name="StyleAlignment" xml:space="preserve"><value>文字の配置</value></data>
+  <data name="ArrowheadOpen" xml:space="preserve"><value>開いた矢じり</value></data>
+  <data name="ArrowheadTriangle" xml:space="preserve"><value>三角の矢じり</value></data>
+  <data name="AlignmentLeft" xml:space="preserve"><value>左揃え</value></data>
+  <data name="AlignmentCenter" xml:space="preserve"><value>中央揃え</value></data>
+  <data name="AlignmentRight" xml:space="preserve"><value>右揃え</value></data>
+  <data name="ToolNewWindow" xml:space="preserve"><value>新しいウィンドウを開く</value></data>
+  <data name="ToolRail" xml:space="preserve"><value>ツールバー</value></data>
+  <data name="ToolEyedropper" xml:space="preserve"><value>画面の画像から色を取得</value></data>
+  <data name="ToolZoomOut" xml:space="preserve"><value>縮小</value></data>
+  <data name="ToolZoomIn" xml:space="preserve"><value>拡大</value></data>
+  <data name="StatusFile" xml:space="preserve"><value>ファイル</value></data>
+  <data name="StatusPage" xml:space="preserve"><value>ページ</value></data>
+  <data name="StatusColorMode" xml:space="preserve"><value>カラーモード</value></data>
+  <data name="StatusProgress" xml:space="preserve"><value>処理の進行状況</value></data>
+  <data name="StatusZoom" xml:space="preserve"><value>表示倍率</value></data>
+  <data name="StatusDetails" xml:space="preserve"><value>画像の情報</value></data>
+  <data name="CanvasName" xml:space="preserve"><value>画像編集キャンバス</value></data>
+  <data name="ToolContext" xml:space="preserve"><value>ツールのプロパティ</value></data>
+  <data name="ColorModeRgb8" xml:space="preserve"><value>RGB 8 ビット</value></data>
+  <data name="ColorModeRgba8" xml:space="preserve"><value>RGBA 8 ビット</value></data>
+  <data name="GroupFile" xml:space="preserve"><value>ファイル ツール</value></data>
+  <data name="GroupHistory" xml:space="preserve"><value>履歴ツール</value></data>
+  <data name="GroupImage" xml:space="preserve"><value>画像ツール</value></data>
+  <data name="GroupDrawing" xml:space="preserve"><value>描画ツール</value></data>
+  <data name="GroupShapes" xml:space="preserve"><value>図形ツール</value></data>
+  <data name="GroupText" xml:space="preserve"><value>テキスト ツール</value></data>
+  <data name="GroupProtection" xml:space="preserve"><value>情報保護ツール</value></data>
+  <data name="GroupView" xml:space="preserve"><value>表示ツール</value></data>
+  <data name="LayerShow" xml:space="preserve"><value>表示する</value></data>
+  <data name="LayerHide" xml:space="preserve"><value>非表示にする</value></data>
+  <data name="LayerLock" xml:space="preserve"><value>ロックする</value></data>
+  <data name="LayerUnlock" xml:space="preserve"><value>ロックを解除する</value></data>
+  <data name="LayerDefaultName" xml:space="preserve"><value>レイヤー</value></data>
+  <data name="LayerActive" xml:space="preserve"><value>アクティブ レイヤー</value></data>
+  <data name="LayerSetActive" xml:space="preserve"><value>アクティブ レイヤーにする</value></data>
+  <data name="ToolLayerPanel" xml:space="preserve"><value>レイヤー パネル</value></data>
+  <data name="TipLayerPanel" xml:space="preserve"><value>レイヤー パネルを表示 / 非表示にします。</value></data>
+  <data name="LayerAdd" xml:space="preserve"><value>新しいレイヤー</value></data>
+  <data name="TipLayerAdd" xml:space="preserve"><value>アクティブ レイヤーの上に新しいレイヤーを追加します。</value></data>
+  <data name="LayerDelete" xml:space="preserve"><value>レイヤーの削除</value></data>
+  <data name="TipLayerDelete" xml:space="preserve"><value>アクティブ レイヤーと、その上のオブジェクトを削除します。</value></data>
+  <data name="LayerMoveUp" xml:space="preserve"><value>レイヤーを上へ</value></data>
+  <data name="TipLayerMoveUp" xml:space="preserve"><value>アクティブ レイヤーを 1 つ前面へ移動します。</value></data>
+  <data name="LayerMoveDown" xml:space="preserve"><value>レイヤーを下へ</value></data>
+  <data name="TipLayerMoveDown" xml:space="preserve"><value>アクティブ レイヤーを 1 つ背面へ移動します。</value></data>
+  <data name="LayerRename" xml:space="preserve"><value>レイヤー名の変更</value></data>
+  <data name="TipLayerRename" xml:space="preserve"><value>アクティブ レイヤーの名前を変更します。</value></data>
+  <data name="LayerMoveSelection" xml:space="preserve"><value>選択をアクティブ レイヤーへ移動</value></data>
+  <data name="TipLayerMoveSelection" xml:space="preserve"><value>選択したオブジェクトをアクティブ レイヤーの最前面へ移動します。</value></data>
+  <data name="LayerBlockedHidden" xml:space="preserve"><value>非表示のレイヤーは編集できません</value></data>
+  <data name="LayerBlockedLocked" xml:space="preserve"><value>ロックされたレイヤーは編集できません</value></data>
+  <data name="TipOpen" xml:space="preserve"><value>対応する画像ファイルを選んで、このウィンドウで開きます。</value></data>
+  <data name="TipClipboard" xml:space="preserve"><value>クリップボードの画像を新しいドキュメントとして開きます。</value></data>
+  <data name="TipNewWindow" xml:space="preserve"><value>独立した空のビューア ウィンドウをもう 1 つ開きます。</value></data>
+  <data name="TipPrevious" xml:space="preserve"><value>現在のフォルダー内の前の画像へ移動します。</value></data>
+  <data name="TipNext" xml:space="preserve"><value>現在のフォルダー内の次の画像へ移動します。</value></data>
+  <data name="TipFit" xml:space="preserve"><value>画像全体がキャンバスに収まるように合わせます。</value></data>
+  <data name="TipActualSize" xml:space="preserve"><value>画像の 1 ピクセルを画面の 1 ピクセルで表示します。</value></data>
+  <data name="TipRotate" xml:space="preserve"><value>画像または選択したオブジェクトを時計回りに回転します。</value></data>
+  <data name="TipColor" xml:space="preserve"><value>描画と選択オブジェクトに使う色を選びます。</value></data>
+  <data name="TipEyedropper" xml:space="preserve"><value>合成後の画像から 1 ピクセルの表示色を取得します。</value></data>
+  <data name="TipZoomOut" xml:space="preserve"><value>キャンバスの倍率を 1 段階下げます。</value></data>
+  <data name="TipZoomIn" xml:space="preserve"><value>キャンバスの倍率を 1 段階上げます。</value></data>
+  <data name="TipZoomSlider" xml:space="preserve"><value>スライダーまたは方向キーで倍率を調整します。</value></data>
+  <data name="TipFullScreen" xml:space="preserve"><value>全画面表示とウィンドウ表示を切り替えます。</value></data>
+  <data name="TipDockHorizontal" xml:space="preserve"><value>ツールバーをウィンドウ上部の横向きに切り替えます。</value></data>
+  <data name="TipDockVertical" xml:space="preserve"><value>ツールバーをウィンドウ左側の縦向きに切り替えます。</value></data>
+  <data name="TipSendToBack" xml:space="preserve"><value>選択したオブジェクトをすべての背面へ移動します。</value></data>
+  <data name="TipSendBackward" xml:space="preserve"><value>選択したオブジェクトを 1 つ背面へ移動します。</value></data>
+  <data name="TipBringForward" xml:space="preserve"><value>選択したオブジェクトを 1 つ前面へ移動します。</value></data>
+  <data name="TipBringToFront" xml:space="preserve"><value>選択したオブジェクトをすべての前面へ移動します。</value></data>
+  <data name="TipDuplicate" xml:space="preserve"><value>選択したオブジェクトを複製し、複製した方を選択します。</value></data>
+  <data name="TipEditText" xml:space="preserve"><value>選択したテキスト オブジェクトの内容を編集します。</value></data>
+  <data name="TipSelect" xml:space="preserve"><value>オブジェクトを選んで移動・サイズ変更・回転します。</value></data>
+  <data name="TipPen" xml:space="preserve"><value>ポインターをドラッグして自由曲線を描きます。</value></data>
+  <data name="TipHighlighter" xml:space="preserve"><value>半透明の自由曲線を描きます。</value></data>
+  <data name="TipLine" xml:space="preserve"><value>始点から終点まで直線を描きます。</value></data>
+  <data name="TipArrow" xml:space="preserve"><value>始点から終点まで矢印を描きます。</value></data>
+  <data name="TipRectangle" xml:space="preserve"><value>ポインターをドラッグして四角形を描きます。</value></data>
+  <data name="TipRoundedRectangle" xml:space="preserve"><value>ポインターをドラッグして角丸四角形を描きます。</value></data>
+  <data name="TipEllipse" xml:space="preserve"><value>ポインターをドラッグして楕円を描きます。</value></data>
+  <data name="TipText" xml:space="preserve"><value>範囲を指定してからテキストを入力します。</value></data>
+  <data name="TipNumber" xml:space="preserve"><value>順番に増える番号マーカーを配置します。</value></data>
+  <data name="TipSpeechBubble" xml:space="preserve"><value>テキストの吹き出しを描きます。しっぽのハンドルで向きを調整できます。</value></data>
+  <data name="TipUndo" xml:space="preserve"><value>直前の編集を 1 段階元に戻します。</value></data>
+  <data name="TipRedo" xml:space="preserve"><value>元に戻した編集を 1 段階やり直します。</value></data>
+  <data name="TipCrop" xml:space="preserve"><value>範囲をドラッグし、Enter で適用、Esc で取り消します。</value></data>
+  <data name="TipCropRatio" xml:space="preserve"><value>クリックのたびに 自由、1:1、4:3、16:9 の順に切り替わります。</value></data>
+  <data name="TipFlipHorizontal" xml:space="preserve"><value>画像を左右に反転します。</value></data>
+  <data name="TipFlipVertical" xml:space="preserve"><value>画像を上下に反転します。</value></data>
+  <data name="TipResize" xml:space="preserve"><value>出力サイズをピクセルまたは百分率で指定します。</value></data>
+  <data name="TipColorSwatch" xml:space="preserve"><value>Enter で決定し、方向キーでパレットを移動します。</value></data>
+  <data name="ToolPreviousPage" xml:space="preserve"><value>前のページ (Page Up)</value></data>
+  <data name="ToolNextPage" xml:space="preserve"><value>次のページ (Page Down)</value></data>
+  <data name="ToolPlayAnimation" xml:space="preserve"><value>アニメーションを再生</value></data>
+  <data name="ToolPauseAnimation" xml:space="preserve"><value>アニメーションを一時停止</value></data>
+  <data name="AnimationEditTitle" xml:space="preserve"><value>アニメーション フレームの編集</value></data>
+  <data name="AnimationEditBody" xml:space="preserve"><value>続行すると再生を停止し、現在のフレームを静止画に統合します。</value></data>
+  <data name="AnimationEditConfirm" xml:space="preserve"><value>現在のフレームを編集</value></data>
+  <data name="ToolSettings" xml:space="preserve"><value>設定</value></data>
+  <data name="TipSettings" xml:space="preserve"><value>アプリの動作とプライバシー設定を変更します。</value></data>
+  <data name="SettingsTitle" xml:space="preserve"><value>設定</value></data>
+  <data name="SettingsSave" xml:space="preserve"><value>保存</value></data>
+  <data name="SettingsSaved" xml:space="preserve"><value>設定を保存しました</value></data>
+  <data name="SettingsSaveFailed" xml:space="preserve"><value>設定を保存できませんでした</value></data>
+  <data name="SettingsTheme" xml:space="preserve"><value>テーマ</value></data>
+  <data name="SettingsThemeSystem" xml:space="preserve"><value>システム設定に従う</value></data>
+  <data name="SettingsThemeLight" xml:space="preserve"><value>ライト</value></data>
+  <data name="SettingsThemeDark" xml:space="preserve"><value>ダーク</value></data>
+  <data name="SettingsFileActivation" xml:space="preserve"><value>別のファイルを開くとき</value></data>
+  <data name="SettingsReuseWindow" xml:space="preserve"><value>現在のウィンドウで開く</value></data>
+  <data name="SettingsOpenNewWindow" xml:space="preserve"><value>新しいウィンドウで開く</value></data>
+  <data name="SettingsClipboardWatch" xml:space="preserve"><value>クリップボードのキャプチャを監視</value></data>
+  <data name="SettingsRecentFiles" xml:space="preserve"><value>最近使用したファイルの履歴</value></data>
+  <data name="SettingsPrivacySummary" xml:space="preserve"><value>ファイルや画像の内容が外部に送信されることはありません。テレメトリや自動的なネットワーク通信もありません。</value></data>
+  <data name="SettingsIncludeSubfolders" xml:space="preserve"><value>フォルダー移動にサブフォルダーを含める</value></data>
+  <data name="SettingsCaptureHotkey" xml:space="preserve"><value>グローバル キャプチャ ショートカット</value></data>
+  <data name="SettingsHotkeyInvalid" xml:space="preserve"><value>修飾キーを 1 つ以上選び、キーを指定してください。</value></data>
+  <data name="SettingsApplicationInformation" xml:space="preserve"><value>アプリ情報</value></data>
+  <data name="SettingsCurrentVersion" xml:space="preserve"><value>現在のバージョン: {0}</value></data>
+  <data name="StatusPreview" xml:space="preserve"><value>プレビュー</value></data>
+  <data name="ToolRecent" xml:space="preserve"><value>最近使用したファイル</value></data>
+  <data name="TipRecent" xml:space="preserve"><value>最近正常に開いたファイルを表示します。</value></data>
+  <data name="RecentTitle" xml:space="preserve"><value>最近使用したファイル</value></data>
+  <data name="RecentEmpty" xml:space="preserve"><value>最近使用したファイルがないか、履歴がオフです。</value></data>
+  <data name="RecentOpen" xml:space="preserve"><value>開く</value></data>
+  <data name="RecentClear" xml:space="preserve"><value>すべて消去</value></data>
+  <data name="RecentCleared" xml:space="preserve"><value>最近使用したファイルの履歴を消去しました</value></data>
+  <data name="RecentClearFailed" xml:space="preserve"><value>最近使用したファイルの履歴を消去できませんでした</value></data>
+  <data name="RecentEnableBlocked" xml:space="preserve"><value>既存の履歴を消去できなかったため、履歴をオンにしませんでした</value></data>
+  <data name="RecentDisableIncomplete" xml:space="preserve"><value>履歴はオフにしましたが、既存の履歴を消去できませんでした。次回の起動時に削除を再試行します</value></data>
+  <data name="RecoveryTitle" xml:space="preserve"><value>復元できる作業があります</value></data>
+  <data name="RecoveryBody" xml:space="preserve"><value>前回のセッションが正常に終了しませんでした。保存されていない作業を復元できます。</value></data>
+  <data name="RecoveryIncompleteWarning" xml:space="preserve"><value>一部の復元項目を読み取れませんでした。以下に表示された項目のみ処理し、それ以外は保持します。</value></data>
+  <data name="RecoveryRestoreAll" xml:space="preserve"><value>すべて復元</value></data>
+  <data name="RecoveryDiscardAll" xml:space="preserve"><value>すべて破棄</value></data>
+  <data name="RecoveryDiscardVisible" xml:space="preserve"><value>表示された項目を破棄</value></data>
+  <data name="RecoveryDiscarded" xml:space="preserve"><value>表示された復元項目を破棄しました</value></data>
+  <data name="RecoveryDiscardDeferred" xml:space="preserve"><value>表示された復元項目を破棄しました。読み取れなかった項目は次回の起動時に再確認します</value></data>
+  <data name="RecoveryLater" xml:space="preserve"><value>後で</value></data>
+  <data name="RecoveryFailed" xml:space="preserve"><value>一部の作業を復元できませんでした</value></data>
+  <data name="RecoveryRestored" xml:space="preserve"><value>前回の作業を復元しました。安全な場所に保存してください</value></data>
+  <data name="RecoveryAvailabilityTitle" xml:space="preserve"><value>自動復元の状態</value></data>
+  <data name="RecoveryUnavailablePersistent" xml:space="preserve"><value>自動復元を開始できませんでした。このセッションではこまめに手動保存してください。</value></data>
+  <data name="RecoveryDegradedPersistent" xml:space="preserve"><value>自動復元の保存に問題があります。この案内が消えるまで手動で保存してください。</value></data>
+  <data name="AppDataProtectionTitle" xml:space="preserve"><value>ローカル データの保護に失敗</value></data>
+  <data name="AppDataProtectionPersistent" xml:space="preserve"><value>プライベート データ フォルダーを保護できなかったため、設定・最近使用したファイル・自動復元をこのセッションでは無効にしました。</value></data>
+  <data name="SafeModeTitle" xml:space="preserve"><value>セーフ モードで起動しますか?</value></data>
+  <data name="SafeModeBody" xml:space="preserve"><value>同じ起動エラーが繰り返し発生しました。セーフ モードでは、クリップボード監視・グローバル キャプチャ・最近使用したファイル・サブフォルダー移動・自動復元の確認をこのセッションだけオフにします。</value></data>
+  <data name="SafeModeStart" xml:space="preserve"><value>セーフ モードで起動</value></data>
+  <data name="SafeModeContinue" xml:space="preserve"><value>通常どおり続行</value></data>
+  <data name="SafeModeLabel" xml:space="preserve"><value>セーフ モード</value></data>
+  <data name="SettingsNavGeneral" xml:space="preserve"><value>言語とその他の設定</value></data>
+  <data name="SettingsNavFileAssoc" xml:space="preserve"><value>ファイルの関連付け</value></data>
+  <data name="SettingsNavAbout" xml:space="preserve"><value>このアプリについて</value></data>
+  <data name="SettingsNavUpdate" xml:space="preserve"><value>更新</value></data>
+  <data name="SettingsNavSupport" xml:space="preserve"><value>開発者を支援</value></data>
+  <data name="SettingsLanguage" xml:space="preserve"><value>言語</value></data>
+  <data name="SettingsLanguageSystem" xml:space="preserve"><value>システム既定 (Windows の表示言語)</value></data>
+  <data name="SettingsLanguageRestartNote" xml:space="preserve"><value>アプリを再起動すると、新しい言語がすべての画面に適用されます。</value></data>
+  <data name="FileAssocWindowsSettings" xml:space="preserve"><value>Windows の既定のアプリ設定</value></data>
+  <data name="FileAssocPackagedNote" xml:space="preserve"><value>このビルドではインストール パッケージがファイルの関連付けを管理します。以下の形式は「プログラムから開く」候補として既に登録済みで、ここで適用する操作はありません。ダブルクリックの既定アプリにするには「Windows の既定のアプリ設定」で ezy Image Viewer を選んでください。</value></data>
+  <data name="FileAssocPackagedRegistered" xml:space="preserve"><value>パッケージが登録した形式</value></data>
+  <data name="FilmstripLabel" xml:space="preserve"><value>フォルダーのサムネイル一覧</value></data>
+  <data name="FilmstripCurrent" xml:space="preserve"><value>現在のファイル</value></data>
+  <data name="FilmstripShow" xml:space="preserve"><value>サムネイル一覧を表示</value></data>
+  <data name="FilmstripHide" xml:space="preserve"><value>サムネイル一覧を隠す</value></data>
+  <data name="TipFilmstrip" xml:space="preserve"><value>一覧を開いたままにすると、複数の画像を続けて選べます。</value></data>
+  <data name="AboutDescription" xml:space="preserve"><value>軽くて速い Windows 向け画像ビューア・エディター</value></data>
+  <data name="AboutLicense" xml:space="preserve"><value>MIT ライセンス · © 2026 koprodev</value></data>
+  <data name="UpdateStoreManagedNote" xml:space="preserve"><value>更新は Microsoft Store が自動的に処理します。Store ライブラリから手動で確認することもできます。</value></data>
+  <data name="SupportNote" xml:space="preserve"><value>ezy Image Viewer は無料です。役に立ったら開発の応援をご検討ください。</value></data>
+  <data name="SupportAction" xml:space="preserve"><value>開発を応援する ☕</value></data>
+  <data name="LinkOpenFailed" xml:space="preserve"><value>ページを開けませんでした</value></data>
+  <data name="ToggleOn" xml:space="preserve"><value>オン</value></data>
+  <data name="ToggleOff" xml:space="preserve"><value>オフ</value></data>
+  <data name="DeleteImageTitle" xml:space="preserve"><value>この画像を削除しますか?</value></data>
+  <data name="DeleteImageRecycleBody" xml:space="preserve"><value>'{0}' をごみ箱に移動します。Windows から元に戻せます。</value></data>
+  <data name="DeleteImagePermanentBody" xml:space="preserve"><value>この場所にはごみ箱がないため、'{0}' を完全に削除します。元に戻せません。</value></data>
+  <data name="DeleteImageUnsavedNote" xml:space="preserve"><value>保存していない変更があります。ファイルを削除しても、その内容はどこにも保存されません。</value></data>
+  <data name="DeleteImageConfirm" xml:space="preserve"><value>削除</value></data>
+  <data name="DeleteImageDone" xml:space="preserve"><value>'{0}' をごみ箱に移動しました</value></data>
+  <data name="DeleteImageDonePermanent" xml:space="preserve"><value>'{0}' を削除しました</value></data>
+  <data name="DeleteImageFailed" xml:space="preserve"><value>ファイルを削除できませんでした</value></data>
+  <data name="RenameFileLabel" xml:space="preserve"><value>ファイル名</value></data>
+  <data name="RenameFileTip" xml:space="preserve"><value>クリックするか F2 キーで名前を変更します。</value></data>
+  <data name="RenameDone" xml:space="preserve"><value>'{0}' に名前を変更しました</value></data>
+  <data name="RenameFailed" xml:space="preserve"><value>名前を変更できませんでした</value></data>
+  <data name="RenameEmpty" xml:space="preserve"><value>ファイル名を入力してください。</value></data>
+  <data name="RenameInvalidCharacters" xml:space="preserve"><value>ファイル名に \ / : * ? " &lt; &gt; | は使えません。末尾を空白やピリオドにもできません。</value></data>
+  <data name="RenameReservedName" xml:space="preserve"><value>Windows が予約している名前です。別の名前にしてください。</value></data>
+  <data name="RenameTooLong" xml:space="preserve"><value>ファイル名が長すぎます。</value></data>
+  <data name="RenameTargetExists" xml:space="preserve"><value>同じ名前のファイルがこのフォルダーに既にあります。</value></data>
+</root>

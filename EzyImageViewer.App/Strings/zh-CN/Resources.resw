@@ -1,0 +1,378 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="ToolOpen" xml:space="preserve"><value>打开 (Ctrl+O)</value></data>
+  <data name="ToolClipboard" xml:space="preserve"><value>从剪贴板打开文档</value></data>
+  <data name="ToolWhiteboard" xml:space="preserve"><value>打开白板</value></data>
+  <data name="TipWhiteboard" xml:space="preserve"><value>以网格背景的 4K 白板新建文档。</value></data>
+  <data name="WhiteboardWhite" xml:space="preserve"><value>白色白板</value></data>
+  <data name="WhiteboardBlack" xml:space="preserve"><value>黑色白板</value></data>
+  <data name="ToolPrevious" xml:space="preserve"><value>上一个文件 (←)</value></data>
+  <data name="ToolNext" xml:space="preserve"><value>下一个文件 (→)</value></data>
+  <data name="ToolFit" xml:space="preserve"><value>适应窗口 (Ctrl+0)</value></data>
+  <data name="ToolActualSize" xml:space="preserve"><value>实际大小 (Ctrl+1)</value></data>
+  <data name="ToolRotate" xml:space="preserve"><value>顺时针旋转文档</value></data>
+  <data name="ToolRotateCcw" xml:space="preserve"><value>逆时针旋转文档</value></data>
+  <data name="ToolOpenGroup" xml:space="preserve"><value>打开菜单</value></data>
+  <data name="TipOpenGroup" xml:space="preserve"><value>把文件、最近使用、剪贴板、截图、白板和新建窗口合并到一个菜单。</value></data>
+  <data name="ToolTransformGroup" xml:space="preserve"><value>旋转和翻转菜单</value></data>
+  <data name="TipTransformGroup" xml:space="preserve"><value>把顺时针、逆时针旋转与水平、垂直翻转合并在一起。</value></data>
+  <data name="ToolCropGroup" xml:space="preserve"><value>裁剪和缩放菜单</value></data>
+  <data name="TipCropGroup" xml:space="preserve"><value>把裁剪、裁剪比例和调整大小合并到一个菜单。</value></data>
+  <data name="ToolZoomGroup" xml:space="preserve"><value>缩放菜单</value></data>
+  <data name="TipZoomGroup" xml:space="preserve"><value>把适应窗口和实际大小合并到一个菜单。</value></data>
+  <data name="ToolProtectGroup" xml:space="preserve"><value>隐私遮盖菜单</value></data>
+  <data name="TipProtectGroup" xml:space="preserve"><value>把马赛克、模糊和遮盖合并到一个菜单。</value></data>
+  <data name="MenuCrop" xml:space="preserve"><value>裁剪</value></data>
+  <data name="MenuCropRatio" xml:space="preserve"><value>裁剪比例</value></data>
+  <data name="MenuResize" xml:space="preserve"><value>调整大小</value></data>
+  <data name="SettingsNavToolbarGroups" xml:space="preserve"><value>工具栏分组</value></data>
+  <data name="SettingsToolbarGroups" xml:space="preserve"><value>选择哪些工具栏按钮折叠为下拉分组。</value></data>
+  <data name="SettingsToolbarGroupOpen" xml:space="preserve"><value>打开分组 (打开、最近使用、剪贴板、截图、白板、新建窗口)</value></data>
+  <data name="SettingsToolbarGroupSelect" xml:space="preserve"><value>选择拆分按钮 (对象选择 / 框选)</value></data>
+  <data name="SettingsToolbarGroupTransform" xml:space="preserve"><value>旋转和翻转分组</value></data>
+  <data name="SettingsToolbarGroupCrop" xml:space="preserve"><value>裁剪和缩放分组 (裁剪、比例、调整大小)</value></data>
+  <data name="SettingsToolbarGroupZoom" xml:space="preserve"><value>缩放分组 (适应窗口、实际大小)</value></data>
+  <data name="SettingsToolbarGroupProtect" xml:space="preserve"><value>隐私遮盖分组 (马赛克、模糊、遮盖)</value></data>
+  <data name="ToolFullScreen" xml:space="preserve"><value>全屏 (F11)</value></data>
+  <data name="ToolDockToggle" xml:space="preserve"><value>切换工具栏方向</value></data>
+  <data name="ToolSendToBack" xml:space="preserve"><value>置于底层 (Ctrl+Shift+[)</value></data>
+  <data name="ToolSendBackward" xml:space="preserve"><value>下移一层 (Ctrl+[)</value></data>
+  <data name="ToolBringForward" xml:space="preserve"><value>上移一层 (Ctrl+])</value></data>
+  <data name="ToolBringToFront" xml:space="preserve"><value>置于顶层 (Ctrl+Shift+])</value></data>
+  <data name="ToolDuplicate" xml:space="preserve"><value>复制所选对象 (Ctrl+D)</value></data>
+  <data name="ToolEditText" xml:space="preserve"><value>编辑所选文本</value></data>
+  <data name="LayerPanel" xml:space="preserve"><value>图层</value></data>
+  <data name="LayerVisible" xml:space="preserve"><value>显示</value></data>
+  <data name="LayerHidden" xml:space="preserve"><value>隐藏</value></data>
+  <data name="LayerLocked" xml:space="preserve"><value>已锁定</value></data>
+  <data name="LayerUnlocked" xml:space="preserve"><value>已解锁</value></data>
+  <data name="LayerTypeInk" xml:space="preserve"><value>画笔</value></data>
+  <data name="LayerTypeHighlighter" xml:space="preserve"><value>荧光笔</value></data>
+  <data name="LayerTypeLine" xml:space="preserve"><value>直线</value></data>
+  <data name="LayerTypeArrow" xml:space="preserve"><value>箭头</value></data>
+  <data name="LayerTypeRectangle" xml:space="preserve"><value>形状</value></data>
+  <data name="LayerTypeEllipse" xml:space="preserve"><value>椭圆</value></data>
+  <data name="LayerTypeText" xml:space="preserve"><value>文本</value></data>
+  <data name="LayerTypeNumber" xml:space="preserve"><value>编号</value></data>
+  <data name="LayerTypeSpeechBubble" xml:space="preserve"><value>对话气泡</value></data>
+  <data name="LayerTypeImage" xml:space="preserve"><value>图像</value></data>
+  <data name="LayerTypeMosaic" xml:space="preserve"><value>马赛克</value></data>
+  <data name="LayerTypeBlur" xml:space="preserve"><value>模糊</value></data>
+  <data name="LayerTypeMask" xml:space="preserve"><value>遮盖</value></data>
+  <data name="ToolMosaic" xml:space="preserve"><value>马赛克</value></data>
+  <data name="TipMosaic" xml:space="preserve"><value>用色块遮住拖动选中的区域</value></data>
+  <data name="ToolBlur" xml:space="preserve"><value>模糊</value></data>
+  <data name="TipBlur" xml:space="preserve"><value>模糊拖动选中的区域</value></data>
+  <data name="ToolMask" xml:space="preserve"><value>遮盖</value></data>
+  <data name="TipMask" xml:space="preserve"><value>用纯色完全覆盖拖动选中的区域</value></data>
+  <data name="StyleBlockSize" xml:space="preserve"><value>色块大小</value></data>
+  <data name="StyleBlurSigma" xml:space="preserve"><value>强度</value></data>
+  <data name="ToolCapture" xml:space="preserve"><value>屏幕截图</value></data>
+  <data name="TipCapture" xml:space="preserve"><value>打开 Windows 截图工具并自动导入结果</value></data>
+  <data name="CaptureNoticeTitle" xml:space="preserve"><value>在剪贴板中检测到新截图</value></data>
+  <data name="CaptureNoticeOpen" xml:space="preserve"><value>打开</value></data>
+  <data name="CaptureLaunchFailed" xml:space="preserve"><value>无法打开截图工具 — 用 Win+Shift+S 截图后会自动导入</value></data>
+  <data name="CaptureHotkeyUnavailable" xml:space="preserve"><value>全局截图快捷键 ({0}) 已被其他应用占用</value></data>
+  <data name="CaptureFailed" xml:space="preserve"><value>截图未完成</value></data>
+  <data name="ToolSave" xml:space="preserve"><value>保存 (Ctrl+S)</value></data>
+  <data name="TipSave" xml:space="preserve"><value>快速保存 · 另存为是 Ctrl+Shift+S</value></data>
+  <data name="SaveDone" xml:space="preserve"><value>已保存</value></data>
+  <data name="SaveDoneNoMetadata" xml:space="preserve"><value>已保存 · 未包含元数据</value></data>
+  <data name="SaveNoChanges" xml:space="preserve"><value>没有需要保存的更改</value></data>
+  <data name="SaveFailed" xml:space="preserve"><value>保存失败</value></data>
+  <data name="SaveInProgress" xml:space="preserve"><value>正在保存…</value></data>
+  <data name="SaveFullResUnavailable" xml:space="preserve"><value>无法按完整分辨率重新读取原图，因此无法导出</value></data>
+  <data name="SaveSourceChanged" xml:space="preserve"><value>源文件在磁盘上已更改，无法保存。请重新打开该文档</value></data>
+  <data name="SaveDefaultName" xml:space="preserve"><value>图像</value></data>
+  <data name="CopyDone" xml:space="preserve"><value>已复制到剪贴板</value></data>
+  <data name="CopyRegionDone" xml:space="preserve"><value>已把所选区域复制到剪贴板</value></data>
+  <data name="CopyRegionStale" xml:space="preserve"><value>裁剪确认区域已失效，未执行复制</value></data>
+  <data name="ExportOptionsTitle" xml:space="preserve"><value>导出设置</value></data>
+  <data name="ExportQualityLabel" xml:space="preserve"><value>质量</value></data>
+  <data name="ExportKeepMetadataLabel" xml:space="preserve"><value>保留元数据 (位置信息等敏感项始终移除)</value></data>
+  <data name="ExportLosslessLabel" xml:space="preserve"><value>无损</value></data>
+  <data name="OverwriteTitle" xml:space="preserve"><value>覆盖原文件</value></data>
+  <data name="OverwriteBody" xml:space="preserve"><value>将用编辑结果覆盖原文件，且无法撤销。</value></data>
+  <data name="OverwriteConfirm" xml:space="preserve"><value>覆盖</value></data>
+  <data name="DialogSaveButton" xml:space="preserve"><value>保存</value></data>
+  <data name="DialogDontSaveButton" xml:space="preserve"><value>不保存</value></data>
+  <data name="ProjectTypeName" xml:space="preserve"><value>ezyImage 项目</value></data>
+  <data name="TextEditTitle" xml:space="preserve"><value>编辑文本</value></data>
+  <data name="ToolColor" xml:space="preserve"><value>选择绘制颜色</value></data>
+  <data name="ToolRectangle" xml:space="preserve"><value>矩形 (拖动绘制 · Delete 删除)</value></data>
+  <data name="ToolUndo" xml:space="preserve"><value>撤销 (Ctrl+Z)</value></data>
+  <data name="ToolRedo" xml:space="preserve"><value>重做 (Ctrl+Y)</value></data>
+  <data name="StateReady" xml:space="preserve"><value>就绪</value></data>
+  <data name="StateLoading" xml:space="preserve"><value>正在加载…</value></data>
+  <data name="StateFailed" xml:space="preserve"><value>打开失败</value></data>
+  <data name="StateModified" xml:space="preserve"><value>已修改</value></data>
+  <data name="DiscardTitle" xml:space="preserve"><value>未保存的更改</value></data>
+  <data name="DiscardBody" xml:space="preserve"><value>此文档有未保存的更改。不保存的话这些更改会丢失。</value></data>
+  <data name="DiscardConfirm" xml:space="preserve"><value>放弃更改</value></data>
+  <data name="DiscardCancel" xml:space="preserve"><value>取消</value></data>
+  <data name="ToolCrop" xml:space="preserve"><value>裁剪 (拖动后按 Enter 或在区域内双击应用 · Esc 取消)</value></data>
+  <data name="ToolCropRatio" xml:space="preserve"><value>切换裁剪比例 (自由 / 1:1 / 4:3 / 16:9)</value></data>
+  <data name="ToolFlipHorizontal" xml:space="preserve"><value>水平翻转</value></data>
+  <data name="ToolFlipVertical" xml:space="preserve"><value>垂直翻转</value></data>
+  <data name="ToolResize" xml:space="preserve"><value>调整大小</value></data>
+  <data name="CropRatioFree" xml:space="preserve"><value>自由</value></data>
+  <data name="CropReviewHint" xml:space="preserve"><value>裁剪确认: 按 Enter 或在区域内双击应用 · Esc 取消</value></data>
+  <data name="ColorBlack" xml:space="preserve"><value>黑色</value></data>
+  <data name="ColorGray" xml:space="preserve"><value>灰色</value></data>
+  <data name="ColorSilver" xml:space="preserve"><value>银色</value></data>
+  <data name="ColorWhite" xml:space="preserve"><value>白色</value></data>
+  <data name="ColorRed" xml:space="preserve"><value>红色</value></data>
+  <data name="ColorOrange" xml:space="preserve"><value>橙色</value></data>
+  <data name="ColorYellow" xml:space="preserve"><value>黄色</value></data>
+  <data name="ColorLime" xml:space="preserve"><value>青柠色</value></data>
+  <data name="ColorGreen" xml:space="preserve"><value>绿色</value></data>
+  <data name="ColorTeal" xml:space="preserve"><value>青色</value></data>
+  <data name="ColorSky" xml:space="preserve"><value>天蓝色</value></data>
+  <data name="ColorBlue" xml:space="preserve"><value>蓝色</value></data>
+  <data name="ColorNavy" xml:space="preserve"><value>藏青色</value></data>
+  <data name="ColorPurple" xml:space="preserve"><value>紫色</value></data>
+  <data name="ColorMagenta" xml:space="preserve"><value>洋红色</value></data>
+  <data name="ColorBrown" xml:space="preserve"><value>棕色</value></data>
+  <data name="ColorSelected" xml:space="preserve"><value>已选择</value></data>
+  <data name="EditFailed" xml:space="preserve"><value>编辑失败</value></data>
+  <data name="DialogApply" xml:space="preserve"><value>应用</value></data>
+  <data name="DialogCancel" xml:space="preserve"><value>取消</value></data>
+  <data name="ResizeTitle" xml:space="preserve"><value>调整大小</value></data>
+  <data name="ResizeWidthLabel" xml:space="preserve"><value>宽度 (px)</value></data>
+  <data name="ResizeHeightLabel" xml:space="preserve"><value>高度 (px)</value></data>
+  <data name="ResizePercentLabel" xml:space="preserve"><value>比例 (%)</value></data>
+  <data name="ResizeKeepAspect" xml:space="preserve"><value>保持宽高比</value></data>
+  <data name="ToolSelect" xml:space="preserve"><value>选择和移动</value></data>
+  <data name="ToolSelectMode" xml:space="preserve"><value>更改选择模式</value></data>
+  <data name="TipSelectMode" xml:space="preserve"><value>决定选择工具是选取对象还是框选区域。</value></data>
+  <data name="SelectModeRegion" xml:space="preserve"><value>框选</value></data>
+  <data name="TipRegionSelect" xml:space="preserve"><value>在背景上选择一个矩形区域。在内部拖动可抬起并移动，按 Ctrl+X 可剪切。</value></data>
+  <data name="RegionReviewHint" xml:space="preserve"><value>所选区域: 内部拖动 = 抬起移动 · Ctrl+X = 剪切 · Ctrl+C = 复制 · Esc = 取消</value></data>
+  <data name="RegionCutDone" xml:space="preserve"><value>已把所选区域剪切到剪贴板</value></data>
+  <data name="RegionNeedsFullRes" xml:space="preserve"><value>预览分辨率的文档无法使用区域编辑</value></data>
+  <data name="ToolPen" xml:space="preserve"><value>画笔</value></data>
+  <data name="ToolHighlighter" xml:space="preserve"><value>荧光笔</value></data>
+  <data name="ToolLine" xml:space="preserve"><value>直线</value></data>
+  <data name="ToolArrow" xml:space="preserve"><value>箭头</value></data>
+  <data name="ToolRoundedRectangle" xml:space="preserve"><value>圆角矩形</value></data>
+  <data name="ToolEllipse" xml:space="preserve"><value>椭圆</value></data>
+  <data name="ToolText" xml:space="preserve"><value>文本框</value></data>
+  <data name="ToolNumber" xml:space="preserve"><value>编号标记</value></data>
+  <data name="ToolSpeechBubble" xml:space="preserve"><value>对话气泡</value></data>
+  <data name="TextTitle" xml:space="preserve"><value>添加文本</value></data>
+  <data name="SpeechBubbleTitle" xml:space="preserve"><value>气泡文本</value></data>
+  <data name="TextContentLabel" xml:space="preserve"><value>内容</value></data>
+  <data name="MarkerLimitReached" xml:space="preserve"><value>已达到编号标记的上限。</value></data>
+  <data name="StyleFill" xml:space="preserve"><value>填充</value></data>
+  <data name="StyleBackground" xml:space="preserve"><value>背景</value></data>
+  <data name="StyleCornerRadius" xml:space="preserve"><value>圆角半径</value></data>
+  <data name="LayerCollapse" xml:space="preserve"><value>折叠图层</value></data>
+  <data name="LayerExpand" xml:space="preserve"><value>展开图层</value></data>
+  <data name="TipLayerCollapse" xml:space="preserve"><value>折叠或展开图层列表。</value></data>
+  <data name="StyleStrokeWidth" xml:space="preserve"><value>线条粗细 (px)</value></data>
+  <data name="StyleOpacity" xml:space="preserve"><value>不透明度 (%)</value></data>
+  <data name="StyleFontSize" xml:space="preserve"><value>字号</value></data>
+  <data name="StyleRotation" xml:space="preserve"><value>旋转 (°)</value></data>
+  <data name="StyleArrowhead" xml:space="preserve"><value>箭头样式</value></data>
+  <data name="StyleFontFamily" xml:space="preserve"><value>字体</value></data>
+  <data name="StyleBold" xml:space="preserve"><value>粗体</value></data>
+  <data name="StyleItalic" xml:space="preserve"><value>斜体</value></data>
+  <data name="StyleAlignment" xml:space="preserve"><value>文本对齐</value></data>
+  <data name="ArrowheadOpen" xml:space="preserve"><value>开放箭头</value></data>
+  <data name="ArrowheadTriangle" xml:space="preserve"><value>三角箭头</value></data>
+  <data name="AlignmentLeft" xml:space="preserve"><value>左对齐</value></data>
+  <data name="AlignmentCenter" xml:space="preserve"><value>居中</value></data>
+  <data name="AlignmentRight" xml:space="preserve"><value>右对齐</value></data>
+  <data name="ToolNewWindow" xml:space="preserve"><value>打开新窗口</value></data>
+  <data name="ToolRail" xml:space="preserve"><value>工具栏</value></data>
+  <data name="ToolEyedropper" xml:space="preserve"><value>从屏幕图像拾取颜色</value></data>
+  <data name="ToolZoomOut" xml:space="preserve"><value>缩小</value></data>
+  <data name="ToolZoomIn" xml:space="preserve"><value>放大</value></data>
+  <data name="StatusFile" xml:space="preserve"><value>文件</value></data>
+  <data name="StatusPage" xml:space="preserve"><value>页</value></data>
+  <data name="StatusColorMode" xml:space="preserve"><value>颜色模式</value></data>
+  <data name="StatusProgress" xml:space="preserve"><value>任务进度</value></data>
+  <data name="StatusZoom" xml:space="preserve"><value>缩放比例</value></data>
+  <data name="StatusDetails" xml:space="preserve"><value>图像信息</value></data>
+  <data name="CanvasName" xml:space="preserve"><value>图像编辑画布</value></data>
+  <data name="ToolContext" xml:space="preserve"><value>工具属性</value></data>
+  <data name="ColorModeRgb8" xml:space="preserve"><value>RGB 8 位</value></data>
+  <data name="ColorModeRgba8" xml:space="preserve"><value>RGBA 8 位</value></data>
+  <data name="GroupFile" xml:space="preserve"><value>文件工具</value></data>
+  <data name="GroupHistory" xml:space="preserve"><value>历史工具</value></data>
+  <data name="GroupImage" xml:space="preserve"><value>图像工具</value></data>
+  <data name="GroupDrawing" xml:space="preserve"><value>绘制工具</value></data>
+  <data name="GroupShapes" xml:space="preserve"><value>形状工具</value></data>
+  <data name="GroupText" xml:space="preserve"><value>文本工具</value></data>
+  <data name="GroupProtection" xml:space="preserve"><value>隐私遮盖工具</value></data>
+  <data name="GroupView" xml:space="preserve"><value>视图工具</value></data>
+  <data name="LayerShow" xml:space="preserve"><value>显示</value></data>
+  <data name="LayerHide" xml:space="preserve"><value>隐藏</value></data>
+  <data name="LayerLock" xml:space="preserve"><value>锁定</value></data>
+  <data name="LayerUnlock" xml:space="preserve"><value>解锁</value></data>
+  <data name="LayerDefaultName" xml:space="preserve"><value>图层</value></data>
+  <data name="LayerActive" xml:space="preserve"><value>当前图层</value></data>
+  <data name="LayerSetActive" xml:space="preserve"><value>设为当前图层</value></data>
+  <data name="ToolLayerPanel" xml:space="preserve"><value>图层面板</value></data>
+  <data name="TipLayerPanel" xml:space="preserve"><value>显示或隐藏图层面板。</value></data>
+  <data name="LayerAdd" xml:space="preserve"><value>新建图层</value></data>
+  <data name="TipLayerAdd" xml:space="preserve"><value>在当前图层上方添加一个新图层。</value></data>
+  <data name="LayerDelete" xml:space="preserve"><value>删除图层</value></data>
+  <data name="TipLayerDelete" xml:space="preserve"><value>删除当前图层及其中的所有对象。</value></data>
+  <data name="LayerMoveUp" xml:space="preserve"><value>上移图层</value></data>
+  <data name="TipLayerMoveUp" xml:space="preserve"><value>把当前图层向前移动一层。</value></data>
+  <data name="LayerMoveDown" xml:space="preserve"><value>下移图层</value></data>
+  <data name="TipLayerMoveDown" xml:space="preserve"><value>把当前图层向后移动一层。</value></data>
+  <data name="LayerRename" xml:space="preserve"><value>重命名图层</value></data>
+  <data name="TipLayerRename" xml:space="preserve"><value>更改当前图层的名称。</value></data>
+  <data name="LayerMoveSelection" xml:space="preserve"><value>把所选对象移到当前图层</value></data>
+  <data name="TipLayerMoveSelection" xml:space="preserve"><value>把所选对象移到当前图层的最上方。</value></data>
+  <data name="LayerBlockedHidden" xml:space="preserve"><value>隐藏的图层无法编辑</value></data>
+  <data name="LayerBlockedLocked" xml:space="preserve"><value>锁定的图层无法编辑</value></data>
+  <data name="TipOpen" xml:space="preserve"><value>选择受支持的图像文件并在此窗口中打开。</value></data>
+  <data name="TipClipboard" xml:space="preserve"><value>把剪贴板中的图像作为新文档打开。</value></data>
+  <data name="TipNewWindow" xml:space="preserve"><value>再打开一个独立的空白查看窗口。</value></data>
+  <data name="TipPrevious" xml:space="preserve"><value>跳到当前文件夹中的上一张图像。</value></data>
+  <data name="TipNext" xml:space="preserve"><value>跳到当前文件夹中的下一张图像。</value></data>
+  <data name="TipFit" xml:space="preserve"><value>让整张图像完整显示在画布中。</value></data>
+  <data name="TipActualSize" xml:space="preserve"><value>以一个图像像素对应一个屏幕像素显示。</value></data>
+  <data name="TipRotate" xml:space="preserve"><value>把图像或所选对象顺时针旋转。</value></data>
+  <data name="TipColor" xml:space="preserve"><value>选择用于绘制和所选对象的颜色。</value></data>
+  <data name="TipEyedropper" xml:space="preserve"><value>从合成后的图像中拾取单个像素的显示颜色。</value></data>
+  <data name="TipZoomOut" xml:space="preserve"><value>把画布缩放降低一档。</value></data>
+  <data name="TipZoomIn" xml:space="preserve"><value>把画布缩放提高一档。</value></data>
+  <data name="TipZoomSlider" xml:space="preserve"><value>用滑块或方向键调整缩放。</value></data>
+  <data name="TipFullScreen" xml:space="preserve"><value>在全屏和窗口视图之间切换。</value></data>
+  <data name="TipDockHorizontal" xml:space="preserve"><value>把工具栏切换为窗口顶部的横向排列。</value></data>
+  <data name="TipDockVertical" xml:space="preserve"><value>把工具栏切换为窗口左侧的纵向排列。</value></data>
+  <data name="TipSendToBack" xml:space="preserve"><value>把所选对象移到所有对象的后面。</value></data>
+  <data name="TipSendBackward" xml:space="preserve"><value>把所选对象向后移动一层。</value></data>
+  <data name="TipBringForward" xml:space="preserve"><value>把所选对象向前移动一层。</value></data>
+  <data name="TipBringToFront" xml:space="preserve"><value>把所选对象移到所有对象的前面。</value></data>
+  <data name="TipDuplicate" xml:space="preserve"><value>复制所选对象并选中新的副本。</value></data>
+  <data name="TipEditText" xml:space="preserve"><value>编辑所选文本对象的内容。</value></data>
+  <data name="TipSelect" xml:space="preserve"><value>选择对象以移动、调整大小和旋转。</value></data>
+  <data name="TipPen" xml:space="preserve"><value>拖动指针绘制自由曲线。</value></data>
+  <data name="TipHighlighter" xml:space="preserve"><value>绘制半透明的自由曲线。</value></data>
+  <data name="TipLine" xml:space="preserve"><value>从起点到终点绘制直线。</value></data>
+  <data name="TipArrow" xml:space="preserve"><value>从起点到终点绘制箭头。</value></data>
+  <data name="TipRectangle" xml:space="preserve"><value>拖动指针绘制矩形。</value></data>
+  <data name="TipRoundedRectangle" xml:space="preserve"><value>拖动指针绘制圆角矩形。</value></data>
+  <data name="TipEllipse" xml:space="preserve"><value>拖动指针绘制椭圆。</value></data>
+  <data name="TipText" xml:space="preserve"><value>先框出区域，然后输入文本。</value></data>
+  <data name="TipNumber" xml:space="preserve"><value>放置按顺序递增的编号标记。</value></data>
+  <data name="TipSpeechBubble" xml:space="preserve"><value>绘制文本对话气泡。用尾巴手柄调整指向位置。</value></data>
+  <data name="TipUndo" xml:space="preserve"><value>撤销最近一步编辑。</value></data>
+  <data name="TipRedo" xml:space="preserve"><value>重做一步已撤销的编辑。</value></data>
+  <data name="TipCrop" xml:space="preserve"><value>拖出区域后按 Enter 应用，或按 Esc 取消。</value></data>
+  <data name="TipCropRatio" xml:space="preserve"><value>每次点击按 自由、1:1、4:3、16:9 的顺序切换。</value></data>
+  <data name="TipFlipHorizontal" xml:space="preserve"><value>把图像左右翻转。</value></data>
+  <data name="TipFlipVertical" xml:space="preserve"><value>把图像上下翻转。</value></data>
+  <data name="TipResize" xml:space="preserve"><value>按像素或百分比设置输出尺寸。</value></data>
+  <data name="TipColorSwatch" xml:space="preserve"><value>按 Enter 确定，用方向键在色板中移动。</value></data>
+  <data name="ToolPreviousPage" xml:space="preserve"><value>上一页 (Page Up)</value></data>
+  <data name="ToolNextPage" xml:space="preserve"><value>下一页 (Page Down)</value></data>
+  <data name="ToolPlayAnimation" xml:space="preserve"><value>播放动画</value></data>
+  <data name="ToolPauseAnimation" xml:space="preserve"><value>暂停动画</value></data>
+  <data name="AnimationEditTitle" xml:space="preserve"><value>编辑动画帧</value></data>
+  <data name="AnimationEditBody" xml:space="preserve"><value>继续将停止播放，并把当前帧合并为静态图像。</value></data>
+  <data name="AnimationEditConfirm" xml:space="preserve"><value>编辑当前帧</value></data>
+  <data name="ToolSettings" xml:space="preserve"><value>设置</value></data>
+  <data name="TipSettings" xml:space="preserve"><value>更改应用行为和隐私设置。</value></data>
+  <data name="SettingsTitle" xml:space="preserve"><value>设置</value></data>
+  <data name="SettingsSave" xml:space="preserve"><value>保存</value></data>
+  <data name="SettingsSaved" xml:space="preserve"><value>设置已保存</value></data>
+  <data name="SettingsSaveFailed" xml:space="preserve"><value>无法保存设置</value></data>
+  <data name="SettingsTheme" xml:space="preserve"><value>主题</value></data>
+  <data name="SettingsThemeSystem" xml:space="preserve"><value>跟随系统设置</value></data>
+  <data name="SettingsThemeLight" xml:space="preserve"><value>浅色</value></data>
+  <data name="SettingsThemeDark" xml:space="preserve"><value>深色</value></data>
+  <data name="SettingsFileActivation" xml:space="preserve"><value>打开另一个文件时</value></data>
+  <data name="SettingsReuseWindow" xml:space="preserve"><value>在当前窗口中打开</value></data>
+  <data name="SettingsOpenNewWindow" xml:space="preserve"><value>在新窗口中打开</value></data>
+  <data name="SettingsClipboardWatch" xml:space="preserve"><value>监视剪贴板截图</value></data>
+  <data name="SettingsRecentFiles" xml:space="preserve"><value>最近使用文件的历史记录</value></data>
+  <data name="SettingsPrivacySummary" xml:space="preserve"><value>您的文件和图像内容绝不会发送到任何地方。本应用没有遥测或自动网络通信。</value></data>
+  <data name="SettingsIncludeSubfolders" xml:space="preserve"><value>浏览时包含子文件夹</value></data>
+  <data name="SettingsCaptureHotkey" xml:space="preserve"><value>全局截图快捷键</value></data>
+  <data name="SettingsHotkeyInvalid" xml:space="preserve"><value>请至少选择一个修饰键并指定一个按键。</value></data>
+  <data name="SettingsApplicationInformation" xml:space="preserve"><value>应用信息</value></data>
+  <data name="SettingsCurrentVersion" xml:space="preserve"><value>当前版本: {0}</value></data>
+  <data name="StatusPreview" xml:space="preserve"><value>预览</value></data>
+  <data name="ToolRecent" xml:space="preserve"><value>最近使用的文件</value></data>
+  <data name="TipRecent" xml:space="preserve"><value>显示最近成功打开过的文件。</value></data>
+  <data name="RecentTitle" xml:space="preserve"><value>最近使用的文件</value></data>
+  <data name="RecentEmpty" xml:space="preserve"><value>没有最近使用的文件，或历史记录已关闭。</value></data>
+  <data name="RecentOpen" xml:space="preserve"><value>打开</value></data>
+  <data name="RecentClear" xml:space="preserve"><value>全部清除</value></data>
+  <data name="RecentCleared" xml:space="preserve"><value>已清除最近使用文件的历史记录</value></data>
+  <data name="RecentClearFailed" xml:space="preserve"><value>无法清除最近使用文件的历史记录</value></data>
+  <data name="RecentEnableBlocked" xml:space="preserve"><value>由于无法清除已有的历史记录，未开启历史记录</value></data>
+  <data name="RecentDisableIncomplete" xml:space="preserve"><value>历史记录已关闭，但已有记录未能清除。下次启动时会重试删除</value></data>
+  <data name="RecoveryTitle" xml:space="preserve"><value>有可恢复的工作</value></data>
+  <data name="RecoveryBody" xml:space="preserve"><value>上次会话没有正常关闭。您可以恢复未保存的工作。</value></data>
+  <data name="RecoveryIncompleteWarning" xml:space="preserve"><value>部分恢复项无法读取。仅处理下面列出的项目，其余会被保留。</value></data>
+  <data name="RecoveryRestoreAll" xml:space="preserve"><value>全部恢复</value></data>
+  <data name="RecoveryDiscardAll" xml:space="preserve"><value>全部放弃</value></data>
+  <data name="RecoveryDiscardVisible" xml:space="preserve"><value>放弃列出的项目</value></data>
+  <data name="RecoveryDiscarded" xml:space="preserve"><value>已放弃列出的恢复项</value></data>
+  <data name="RecoveryDiscardDeferred" xml:space="preserve"><value>已放弃列出的恢复项。无法读取的项目会在下次启动时再次检查</value></data>
+  <data name="RecoveryLater" xml:space="preserve"><value>稍后</value></data>
+  <data name="RecoveryFailed" xml:space="preserve"><value>部分工作未能恢复</value></data>
+  <data name="RecoveryRestored" xml:space="preserve"><value>已恢复上次的工作。请保存到安全的位置</value></data>
+  <data name="RecoveryAvailabilityTitle" xml:space="preserve"><value>自动恢复状态</value></data>
+  <data name="RecoveryUnavailablePersistent" xml:space="preserve"><value>无法启动自动恢复。本次会话请经常手动保存。</value></data>
+  <data name="RecoveryDegradedPersistent" xml:space="preserve"><value>自动恢复保存出现问题。在此提示消失前请手动保存。</value></data>
+  <data name="AppDataProtectionTitle" xml:space="preserve"><value>本地数据保护失败</value></data>
+  <data name="AppDataProtectionPersistent" xml:space="preserve"><value>无法保护您的私有数据文件夹，因此本次会话已禁用设置、最近使用的文件和自动恢复。</value></data>
+  <data name="SafeModeTitle" xml:space="preserve"><value>要以安全模式启动吗?</value></data>
+  <data name="SafeModeBody" xml:space="preserve"><value>同样的启动错误反复出现。安全模式会在本次会话中关闭剪贴板监视、全局截图、最近使用的文件、子文件夹浏览和自动恢复提示。</value></data>
+  <data name="SafeModeStart" xml:space="preserve"><value>以安全模式启动</value></data>
+  <data name="SafeModeContinue" xml:space="preserve"><value>正常继续</value></data>
+  <data name="SafeModeLabel" xml:space="preserve"><value>安全模式</value></data>
+  <data name="SettingsNavGeneral" xml:space="preserve"><value>语言和其他设置</value></data>
+  <data name="SettingsNavFileAssoc" xml:space="preserve"><value>文件关联</value></data>
+  <data name="SettingsNavAbout" xml:space="preserve"><value>关于</value></data>
+  <data name="SettingsNavUpdate" xml:space="preserve"><value>更新</value></data>
+  <data name="SettingsNavSupport" xml:space="preserve"><value>支持开发者</value></data>
+  <data name="SettingsLanguage" xml:space="preserve"><value>语言</value></data>
+  <data name="SettingsLanguageSystem" xml:space="preserve"><value>系统默认 (Windows 显示语言)</value></data>
+  <data name="SettingsLanguageRestartNote" xml:space="preserve"><value>重启应用后，新语言会应用到所有界面。</value></data>
+  <data name="FileAssocWindowsSettings" xml:space="preserve"><value>Windows 默认应用设置</value></data>
+  <data name="FileAssocPackagedNote" xml:space="preserve"><value>此版本由安装包管理文件关联。下列格式已注册为"打开方式"候选，这里无需再应用。若要用于双击打开，请在"Windows 默认应用设置"中选择 ezy Image Viewer。</value></data>
+  <data name="FileAssocPackagedRegistered" xml:space="preserve"><value>安装包已注册的格式</value></data>
+  <data name="FilmstripLabel" xml:space="preserve"><value>文件夹缩略图列表</value></data>
+  <data name="FilmstripCurrent" xml:space="preserve"><value>当前文件</value></data>
+  <data name="FilmstripShow" xml:space="preserve"><value>显示缩略图列表</value></data>
+  <data name="FilmstripHide" xml:space="preserve"><value>隐藏缩略图列表</value></data>
+  <data name="TipFilmstrip" xml:space="preserve"><value>让列表保持打开，可以连续挑选多张图像。</value></data>
+  <data name="AboutDescription" xml:space="preserve"><value>轻快的 Windows 图像查看与编辑工具</value></data>
+  <data name="AboutLicense" xml:space="preserve"><value>MIT 许可证 · © 2026 koprodev</value></data>
+  <data name="UpdateStoreManagedNote" xml:space="preserve"><value>更新由 Microsoft Store 自动处理。您也可以在 Store 库中自行查看。</value></data>
+  <data name="SupportNote" xml:space="preserve"><value>ezy Image Viewer 是免费的。如果它帮到了您，欢迎支持它的开发。</value></data>
+  <data name="SupportAction" xml:space="preserve"><value>支持开发 ☕</value></data>
+  <data name="LinkOpenFailed" xml:space="preserve"><value>无法打开页面</value></data>
+  <data name="ToggleOn" xml:space="preserve"><value>开</value></data>
+  <data name="ToggleOff" xml:space="preserve"><value>关</value></data>
+  <data name="DeleteImageTitle" xml:space="preserve"><value>要删除这张图片吗?</value></data>
+  <data name="DeleteImageRecycleBody" xml:space="preserve"><value>'{0}' 将被移到回收站，您可以在 Windows 中还原。</value></data>
+  <data name="DeleteImagePermanentBody" xml:space="preserve"><value>此位置没有回收站，'{0}' 将被永久删除，且无法撤销。</value></data>
+  <data name="DeleteImageUnsavedNote" xml:space="preserve"><value>本文档有未保存的更改。删除文件不会把这些更改保存到任何地方。</value></data>
+  <data name="DeleteImageConfirm" xml:space="preserve"><value>删除</value></data>
+  <data name="DeleteImageDone" xml:space="preserve"><value>已将 '{0}' 移到回收站</value></data>
+  <data name="DeleteImageDonePermanent" xml:space="preserve"><value>已删除 '{0}'</value></data>
+  <data name="DeleteImageFailed" xml:space="preserve"><value>无法删除该文件</value></data>
+  <data name="RenameFileLabel" xml:space="preserve"><value>文件名</value></data>
+  <data name="RenameFileTip" xml:space="preserve"><value>点击或按 F2 重命名此文件。</value></data>
+  <data name="RenameDone" xml:space="preserve"><value>已重命名为 '{0}'</value></data>
+  <data name="RenameFailed" xml:space="preserve"><value>无法重命名该文件</value></data>
+  <data name="RenameEmpty" xml:space="preserve"><value>请输入文件名。</value></data>
+  <data name="RenameInvalidCharacters" xml:space="preserve"><value>文件名不能包含 \ / : * ? " &lt; &gt; |，也不能以空格或句点结尾。</value></data>
+  <data name="RenameReservedName" xml:space="preserve"><value>该名称是 Windows 保留名称，请换一个。</value></data>
+  <data name="RenameTooLong" xml:space="preserve"><value>文件名过长。</value></data>
+  <data name="RenameTargetExists" xml:space="preserve"><value>此文件夹中已存在同名文件。</value></data>
+</root>

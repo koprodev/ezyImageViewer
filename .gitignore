@@ -47,9 +47,6 @@ BundleArtifacts/
 *.wixobj
 *.pfx
 *.cer
-installer/generated/
-installer/out/
-installer/.staging-*/
 
 # Test results
 TestResults/

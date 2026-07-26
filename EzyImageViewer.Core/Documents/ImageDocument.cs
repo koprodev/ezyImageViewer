@@ -41,7 +41,21 @@ public sealed class ImageDocument : IDisposable
         }
         init => _frame = value ?? throw new ArgumentNullException(nameof(value));
     }
-    public required DocumentSource Source { get; init; }
+    // 이름 변경으로 경로만 갈아탈 수 있어야 해서 set을 연다. 픽셀·프레임은 그대로다.
+    public required DocumentSource Source { get; set; }
+
+    /// <summary>
+    /// 내용은 그대로고 파일 위치만 바뀐 경우(이름 변경) 원본 참조를 옮긴다.
+    /// 길이·수정시각은 유지되므로 재읽기 검증은 계속 통한다.
+    /// </summary>
+    public void RebindSourcePath(string path)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        if (Source.Kind is not (DocumentSourceKind.File or DocumentSourceKind.Project))
+            return;
+        Source = Source with { Path = Path.GetFullPath(path) };
+        FrameSource?.RebindSourcePath(path);
+    }
 
     /// <summary>EXIF 적용 뒤 원본 크기. 주석 좌표 기준이라 전체 해상도 재디코드에도 유지.</summary>
     public required PixelSize NativeSize

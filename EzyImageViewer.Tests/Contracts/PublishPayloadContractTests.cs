@@ -7,7 +7,7 @@ namespace EzyImageViewer.Tests.Contracts;
 /// WindowsAppSDK 갱신 때 슬쩍 돌아오지 못하게 막음.</summary>
 public sealed class PublishPayloadContractTests
 {
-    private const string MachineLearningPackageId = "Microsoft.Windows.AI.MachineLearning";
+    private const string MachineLearningPackageId = "Microsoft.WindowsAppSDK.ML";
 
     [Fact]
     public void MachineLearningRuntime_IsStrippedFromOutputAndPublishPayload()

@@ -26,13 +26,6 @@ public static class AppServices
     private static int _recoverySmokeConfigured;
     private static int _recoveryAvailability;
     private static int _recoveryFailureVersion;
-    private static int _automaticUpdateCheckStarted;
-    private static readonly CancellationTokenSource UpdateCheckLifetime = new();
-    private static readonly HttpClient UpdateHttpClient = new()
-    {
-        Timeout = TimeSpan.FromSeconds(8),
-    };
-    private static readonly GitHubReleaseUpdateChecker UpdateChecker;
 
     private sealed record StartupBenchmarkRequest(string ResultPath, long ProcessStartTimestamp);
 
@@ -59,9 +52,6 @@ public static class AppServices
             DataPaths = AppDataSecurity.CreateProtectedEphemeral();
         }
         AppDataProtectionFailure = protectionFailure;
-        UpdateChecker = new GitHubReleaseUpdateChecker(
-            UpdateHttpClient,
-            new UpdateCheckStateStore(DataPaths));
         SettingsStore = new AppSettingsStore(DataPaths);
         _settings = protectionFailure is null
             ? SettingsStore.Load()
@@ -72,7 +62,6 @@ public static class AppServices
             };
         _runtimeToolDefaults = _settings.ToolDefaults;
         ApplicationVersion = GetApplicationVersion();
-        ApplicationReleaseVersion = GetApplicationReleaseVersion();
         Logs = new StructuredLogService(new StructuredLocalLogger(
             DataPaths,
             new StructuredLocalLoggerOptions { ApplicationVersion = ApplicationVersion }));
@@ -152,7 +141,6 @@ public static class AppServices
     public static StartupHealthTracker StartupHealth { get; }
     public static StartupHealthStatus StartupHealthStatus { get; }
     public static string ApplicationVersion { get; }
-    public static string ApplicationReleaseVersion { get; }
     public static bool IsSafeMode { get; private set; }
     public static bool SafeModeSuggested { get; private set; }
     public static Guid RecoverySessionId { get; private set; }
@@ -204,62 +192,6 @@ public static class AppServices
 
     /// <summary>캡처 연동. 무인 실행과 마지막 창 종료 뒤에는 null.</summary>
     public static CaptureCoordinator? Capture { get; private set; }
-
-    public static void TryStartUpdateCheck(Views.ViewerWindow window)
-    {
-        ArgumentNullException.ThrowIfNull(window);
-        if (IsSafeMode
-            || SafeModeSuggested
-            || Program.DiagnosticDataRoot is not null
-            || !ReleaseVersion.TryParse(ApplicationReleaseVersion, out var current)
-            || current is null
-            || current.Major < 1
-            || Interlocked.Exchange(ref _automaticUpdateCheckStarted, 1) != 0)
-            return;
-
-        _ = RunAutomaticUpdateCheckAsync(window);
-    }
-
-    public static async Task<UpdateCheckResult> CheckForUpdatesAsync(
-        bool force,
-        CancellationToken cancellationToken = default)
-    {
-        using var linked = CancellationTokenSource.CreateLinkedTokenSource(
-            cancellationToken,
-            UpdateCheckLifetime.Token);
-        return await UpdateChecker.CheckAsync(
-            ApplicationReleaseVersion,
-            force,
-            linked.Token);
-    }
-
-    public static void ShutdownUpdateCheck()
-    {
-        if (!UpdateCheckLifetime.IsCancellationRequested)
-            UpdateCheckLifetime.Cancel();
-    }
-
-    private static async Task RunAutomaticUpdateCheckAsync(Views.ViewerWindow window)
-    {
-        try
-        {
-            // 첫 화면과 복구 안내가 자리 잡은 뒤 조용히 확인. 시작 줄에서 새치기 금지.
-            await Task.Delay(TimeSpan.FromSeconds(3), UpdateCheckLifetime.Token);
-            var result = await CheckForUpdatesAsync(
-                force: false,
-                UpdateCheckLifetime.Token);
-            if (result.Status != UpdateCheckStatus.UpdateAvailable)
-                return;
-            var target = Windows?.Contains(window) == true
-                ? window
-                : Windows?.Peek();
-            if (target is not null)
-                await target.ShowUpdateAvailableAsync(result);
-        }
-        catch (OperationCanceledException) when (UpdateCheckLifetime.IsCancellationRequested)
-        {
-        }
-    }
 
     public static void InitializeUi(Microsoft.UI.Dispatching.DispatcherQueue dispatcherQueue)
     {
@@ -750,22 +682,6 @@ public static class AppServices
         }
         return typeof(AppServices).Assembly.GetName().Version
             ?? new Version(0, 0, 0, 0);
-    }
-
-    private static string GetApplicationReleaseVersion()
-    {
-        var informational = typeof(AppServices).Assembly
-            .GetCustomAttributes(
-                typeof(System.Reflection.AssemblyInformationalVersionAttribute),
-                inherit: false)
-            .OfType<System.Reflection.AssemblyInformationalVersionAttribute>()
-            .SingleOrDefault()
-            ?.InformationalVersion;
-        if (!string.IsNullOrWhiteSpace(informational)
-            && ReleaseVersion.TryParse(informational, out var parsed)
-            && parsed is not null)
-            return parsed.Display;
-        return ApplicationVersion;
     }
 
     internal static DocumentLoader CreateDocumentLoader(InputLimits? limits = null) =>

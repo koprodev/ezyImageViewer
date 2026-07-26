@@ -31,16 +31,45 @@ namespace EzyImageViewer.Packaging
 {
     public static class BrandAssetGenerator
     {
+        // MRT가 고르는 배율·타깃 크기 한정자. 기준 크기에 배율을 곱해 반올림한다.
+        private static readonly int[] Scales = { 100, 125, 150, 200, 400 };
+        // 작업 표시줄·탐색기가 쓰는 크기. 무판(unplated) 짝까지 함께 낸다.
+        private static readonly int[] TargetSizes = { 16, 24, 32, 48, 256 };
+
         public static void Generate(string sourcePath, string assetDirectory, string iconPath)
         {
             using (Bitmap source = new Bitmap(sourcePath))
             using (Bitmap transparent = RemoveConnectedCheckerboard(source))
             {
                 Directory.CreateDirectory(assetDirectory);
-                SavePng(transparent, Path.Combine(assetDirectory, "Square44x44Logo.png"), 44);
-                SavePng(transparent, Path.Combine(assetDirectory, "StoreLogo.png"), 50);
-                SavePng(transparent, Path.Combine(assetDirectory, "Square150x150Logo.png"), 150);
+                SaveLogoSet(transparent, assetDirectory, "Square44x44Logo", 44, true);
+                SaveLogoSet(transparent, assetDirectory, "StoreLogo", 50, false);
+                SaveLogoSet(transparent, assetDirectory, "Square150x150Logo", 150, false);
                 SaveIcon(transparent, iconPath, new int[] { 16, 24, 32, 48, 64, 128, 256 });
+            }
+        }
+
+        /// <summary>기준 파일과 배율 한정자 세트를 함께 저장. 앱 아이콘만 타깃 크기까지 낸다.</summary>
+        private static void SaveLogoSet(
+            Bitmap source, string directory, string baseName, int baseSize, bool withTargetSizes)
+        {
+            SavePng(source, Path.Combine(directory, baseName + ".png"), baseSize);
+            foreach (int scale in Scales)
+            {
+                int size = (int)Math.Round(baseSize * scale / 100.0, MidpointRounding.AwayFromZero);
+                SavePng(source, Path.Combine(directory,
+                    string.Format("{0}.scale-{1}.png", baseName, scale)), size);
+            }
+            if (!withTargetSizes)
+            {
+                return;
+            }
+            foreach (int size in TargetSizes)
+            {
+                SavePng(source, Path.Combine(directory,
+                    string.Format("{0}.targetsize-{1}.png", baseName, size)), size);
+                SavePng(source, Path.Combine(directory,
+                    string.Format("{0}.targetsize-{1}_altform-unplated.png", baseName, size)), size);
             }
         }
 
@@ -207,8 +236,7 @@ $iconPath = Join-Path $repositoryRoot 'EzyImageViewer.App\Assets\ezyImageViewer.
 [EzyImageViewer.Packaging.BrandAssetGenerator]::Generate(
     $source.FullName, $assetDirectory, $iconPath)
 
-Get-ChildItem -LiteralPath $assetDirectory -File |
-    Where-Object Name -in @('Square44x44Logo.png', 'StoreLogo.png', 'Square150x150Logo.png') |
+Get-ChildItem -LiteralPath $assetDirectory -File -Filter '*.png' |
     Sort-Object Name |
     Select-Object Name, Length
 Get-Item -LiteralPath $iconPath | Select-Object Name, Length

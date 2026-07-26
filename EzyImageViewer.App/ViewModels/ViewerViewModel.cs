@@ -192,6 +192,43 @@ public sealed class ViewerViewModel : INotifyPropertyChanged, IDisposable
         }
     });
 
+    /// <summary>디스크에 실재하는 현재 파일 경로. 클립보드·생성 문서는 null.</summary>
+    public string? CurrentFilePath =>
+        Session.Current?.Source is { Kind: DocumentSourceKind.File, Path: { } path } ? path : null;
+
+    /// <summary>
+    /// 이름이 바뀐 파일로 현재 문서를 다시 묶는다. 재로드가 아니라 제자리 갱신이라
+    /// 저장하지 않은 편집이 그대로 남는다. 탐색 목록 기준점도 새 이름으로 옮긴다.
+    /// </summary>
+    public void RebindRenamedFile(string newPath)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(newPath);
+        if (!Session.RebindCurrentSourcePath(newPath))
+            return;
+        var includeSubfolders = _includeSubfoldersRequested;
+        QueueNavigatorUpdate(() =>
+        {
+            _navigator.SetIncludeSubfolders(includeSubfolders);
+            _navigator.AnchorTo(newPath);
+        });
+    }
+
+    /// <summary>원본이 사라져 보여 줄 게 없을 때 빈 화면으로 돌아간다.</summary>
+    public void CloseDocument(string? rescanAnchor = null)
+    {
+        if (!Session.CloseCurrent())
+            return;
+        Editor.Reset(null);
+        if (rescanAnchor is null)
+            return;
+        var includeSubfolders = _includeSubfoldersRequested;
+        QueueNavigatorUpdate(() =>
+        {
+            _navigator.SetIncludeSubfolders(includeSubfolders);
+            _navigator.AnchorTo(rescanAnchor);
+        });
+    }
+
     public void OpenNext()
     {
         if (_navigatorScanning)

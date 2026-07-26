@@ -55,11 +55,8 @@ Get-Item -LiteralPath $dataRoot -Force
 보존 기간과 파일 수 조건을 함께 적용해 오래된 파일부터 정리한다. 파일이 다른 프로세스에 잠겨 있거나 접근 권한이 없으면 정리가 실패할 수 있으므로, 위 수치는 정상적인 파일 접근이 가능한 경우의 보존 목표다.
 
 로그와 복구 파일을 서버로 자동 업로드하는 telemetry·원격 수집 파이프라인은 구현되어
-있지 않다. 일반 실행은 GitHub 공개 Releases API를 최대 24시간에 한 번 익명 조회하며,
-수동 `업데이트 확인`은 이 간격을 건너뛴다. 요청에는 고정 User-Agent만 넣고 파일 경로,
-이미지, 설정, 로그, 복구 데이터는 넣지 않는다. 마지막 조회 시각은
-`update-check-state.txt`에 저장한다. 새 버전을 찾으면 검증된 GitHub 릴리스 주소만
-브라우저에 전달하며 자동 다운로드·설치·재시작은 하지 않는다.
+있지 않다. 앱은 자동 업데이트 확인을 포함한 자체 네트워크 요청을 하지 않으며 설치와
+업데이트는 Microsoft Store가 관리한다.
 
 ## 3. 복구, 격리와 안전 모드
 
@@ -245,54 +242,3 @@ Get-ChildItem -LiteralPath $dataRoot -File -Recurse |
 6. 복원이 실패하거나 항목이 격리되면 같은 파일을 편집하거나 반복 복사하지 않는다. 보존한 전체 백업, 재현 시각, 필요한 구조화 로그만 지원 담당자에게 전달한다.
 
 앱은 이 자료를 자동 전송하지 않는다. 지원 공유 시 로그는 필요한 기간만 고르고, 전체 경로가 있는 최근 파일 목록과 원본 내용이 있는 복구 파일은 사용자가 필요성을 확인한 뒤 별도로 제공한다.
-
-## 6. 설치 범위와 package identity 운영
-
-지원 installer 기준은 Windows 10 build 19041 이상 x64이다. 일반 사용자는 Burn
-`ezyImageViewerSetup-<version>-x64.exe`를 사용하고, 자동화·기업 배포는 scope가 고정된
-per-user 또는 per-machine MSI를 선택한다. 하나의 MSI에서 `ALLUSERS`를 바꾸지 않는다.
-
-| 설치 범위 | 기본 경로 | identity 작업 | 제거 책임 |
-|---|---|---|---|
-| 현재 사용자 | `%LOCALAPPDATA%\Programs\ezy Image Viewer` | 현재 사용자의 main package 등록 | installer가 등록한 main만 제거. 설치 전에 존재한 package는 보존 |
-| 모든 사용자 | `%ProgramFiles%\ezy Image Viewer` | main을 전체 사용자 provisioning | installer가 provision한 main만 제거. pre-existing package는 보존 |
-
-두 MSI 모두 프로그램 파일과 같은 scope의 `App Paths\ezyImageViewer.exe`를 등록한다. Burn
-완료 화면은 이 이름을 Windows Shell에 전달하므로 per-user·per-machine 실제 경로를 추측하지
-않는다. 시작 메뉴와 지원 이미지의 Open With 후보 등록은 기본 생성하며 바탕 화면 바로가기는
-사용자 opt-in, 기본 꺼짐이다. installer는 기존 확장자의 기본 앱 값을 덮어쓰지 않는다.
-
-설치·repair·제거 실패를 조사할 때는 먼저 MSI 또는 Burn 로그, Windows 이벤트, 설치 폴더와
-다음 package inventory를 읽기 전용으로 수집한다. package 제거·재등록·provisioning 변경은
-복구 가능한 clean VM이나 사용자 승인 환경에서만 수행한다.
-
-```powershell
-Get-AppxPackage -Name 'GRTech.ezyImageViewer*' |
-  Select-Object Name, PackageFullName, Architecture, Status, InstallLocation
-
-Get-AppxProvisionedPackage -Online |
-  Where-Object DisplayName -Like 'GRTech.ezyImageViewer*' |
-  Select-Object DisplayName, PackageName
-
-Get-ItemProperty `
-  'HKCU:\Software\Microsoft\Windows\CurrentVersion\App Paths\ezyImageViewer.exe', `
-  'HKLM:\Software\Microsoft\Windows\CurrentVersion\App Paths\ezyImageViewer.exe' `
-  -ErrorAction SilentlyContinue
-```
-
-`GRTech.ezyImageViewer` 이름의 기존 full MSIX가 있고 installer ownership state가 없으면 신규
-MSI는 소유권을 추측하지 않고 설치를 중단한다. 이는 기존 package나 사용자 데이터를 자동으로
-제거하지 않기 위한 동작이다. 의도한 migration이면 먼저 기존 앱의 작업 자료를 내보내고 Windows
-설정에서 기존 packaged 설치를 제거한 다음 inventory가 비었는지 확인하고 다시 설치한다. 사용자
-PC에서 진단 편의를 위해 `Remove-AppxPackage`를 자동 실행하지 않는다.
-
-정상 MSI 제거에서 `identity-state.json`이 손상됐거나 scope·설치 폴더와 맞지 않으면 ownership을
-확인할 수 없으므로 package 제거만 건너뛰고 프로그램 제거를 계속한다. MSI 로그의
-`Identity ownership state` 경고와 AppxDeployment-Server Operational 이벤트를 보존한다. 이후 위
-inventory에서 main package의 external location이 이미 제거된 설치 폴더를 가리키는 고아 상태로
-확인될 때만, 복원 가능한 snapshot 또는 승인된 유지보수 창에서 main을 수동 정리한다.
-실제 Appx remove/deprovision 명령은 scope와 ownership 확인 없이 실행하지 않는다.
-
-현재 자동 gate는 fake adapter와 설치 파일의 MSI database/Burn manifest를 검증한 것이다.
-실제 UAC, package provisioning, Snipping Tool callback, repair·upgrade·rollback·다중 사용자 제거는
-production 서명 후보의 clean VM lifecycle 증거가 생기기 전까지 운영 완료로 판정하지 않는다.

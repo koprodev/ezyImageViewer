@@ -8,21 +8,22 @@
     <RootNamespace>EzyImageViewer.App</RootNamespace>
     <AssemblyName>ezyImageViewer</AssemblyName>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <!-- 외부 위치 릴리스는 서명 ID 패키지의 게시자와 맞춘 퓨전 매니페스트 주입. 일반·MSIX 빌드는 app.manifest 유지. -->
-    <ApplicationManifest Condition="'$(ExternalApplicationManifest)' != ''">$(ExternalApplicationManifest)</ApplicationManifest>
     <ApplicationIcon>Assets\ezyImageViewer.ico</ApplicationIcon>
     <Platforms>x64</Platforms>
     <PlatformTarget>x64</PlatformTarget>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <UseWinUI>true</UseWinUI>
-    <!-- 중립 리소스 언어 지정. 빠지면 MRT 대체 후보가 없어 ko-KR 문자열마다 PRI263 경고 발생. -->
-    <DefaultLanguage>ko-KR</DefaultLanguage>
+    <!-- 중립 리소스 언어 = 최종 폴백. LanguagePolicy.FallbackTag와 반드시 같아야 한다. -->
+    <DefaultLanguage>en-US</DefaultLanguage>
     <!-- 단일 인스턴스 판단은 창보다 먼저 실행(사용자 Program.Main). -->
     <DefineConstants>$(DefineConstants);DISABLE_XAML_GENERATED_MAIN</DefineConstants>
-    <!-- 개발은 비패키지로 실행. -p:Packaged=true면 pack-msix.ps1이 배치·서명할 MSIX 빌드(Q7=b). -->
+    <!-- 개발은 비패키지로 실행. -p:Packaged=true면 pack-msix.ps1이 Store 제출용 MSIX를 빌드. -->
     <WindowsPackageType Condition="'$(Packaged)' != 'true'">None</WindowsPackageType>
-    <!-- 실험용 UserChoice 기본 앱 기록기는 Microsoft 미지원. Store·패키지·무레지스트리 포터블에서 제외하고 MSI에만 포함. -->
-    <DefineConstants Condition="'$(Packaged)' != 'true' and '$(Portable)' != 'true'">$(DefineConstants);EZY_UNPACKAGED</DefineConstants>
+    <!-- MSIX 빌드. 파일 연결은 매니페스트가 선언적으로 쥐고 있어 앱이 레지스트리를 덧쓰면 ProgId만 둘로 늘어난다. -->
+    <DefineConstants Condition="'$(Packaged)' == 'true'">$(DefineConstants);EZY_PACKAGED</DefineConstants>
+    <!-- 제목 표시줄은 InformationalVersion에서 커밋을 읽어 붙인다. Store 앱 제목에 git 해시는 사족. -->
+    <IncludeSourceRevisionInInformationalVersion
+        Condition="'$(StoreChannel)' == 'true'">false</IncludeSourceRevisionInInformationalVersion>
     <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
   </PropertyGroup>
 
@@ -47,26 +48,42 @@
              CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(ExternalIdentity)' == 'true'">
-    <Content Include="..\packaging\Assets\StoreLogo.png"
-             Link="Assets\StoreLogo.png"
-             CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="..\packaging\Assets\Square44x44Logo.png"
-             Link="Assets\Square44x44Logo.png"
-             CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="..\packaging\Assets\Square150x150Logo.png"
-             Link="Assets\Square150x150Logo.png"
+  <!-- 패키지 빌드만 타일 로고를 싣는다. 배율 한정자 파일까지 Content로 넣어야 PRI에 색인되고,
+       색인돼야 고DPI에서 흐린 44px 원본 대신 제 크기가 뽑힌다. -->
+  <ItemGroup Condition="'$(Packaged)' == 'true'">
+    <Content Include="..\packaging\Assets\*.png"
+             Link="Assets\%(Filename)%(Extension)"
              CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <!-- WindowsAppSDK가 끌고 오는 미사용 ML 런타임(ONNX Runtime + DirectML, win-x64 약 39MB) 제거.
        관련 WinRT 클래스를 쓰지 않으며 패키지 ID로 찾아 버전이 바뀌어도 따라감. -->
   <PropertyGroup>
-    <EzyMachineLearningPackageId>Microsoft.Windows.AI.MachineLearning</EzyMachineLearningPackageId>
+    <EzyMachineLearningPackageId>Microsoft.WindowsAppSDK.ML</EzyMachineLearningPackageId>
     <!-- 훗날 WindowsAppSDK가 ML 런타임을 필수로 만들면 true로 탈출. -->
     <EzyIncludeMachineLearningRuntime
         Condition="'$(EzyIncludeMachineLearningRuntime)' == ''">false</EzyIncludeMachineLearningRuntime>
   </PropertyGroup>
+
+  <!-- 네이티브 페이로드는 참조가 아니라 SelfContained targets가 직접 퍼 나르므로,
+       그쪽이 열어 둔 제외 목록에 얹는다. 파일명 하드코딩 대신 ML 패키지가 싣고 다니는 목록에서 이름을 따와
+       버전이 바뀌어도 따라감. MsixContent 경로는 GetExtract...Inputs가 정해 주니 그 뒤에 붙는다. -->
+  <Target Name="EzyExcludeMachineLearningPayload"
+          AfterTargets="GetExtractMicrosoftWindowsAppSDKMsixFilesInputs"
+          BeforeTargets="AddMicrosoftWindowsAppSDKPayloadFilesFromComponents"
+          Condition="'$(EzyIncludeMachineLearningRuntime)' != 'true'">
+    <ItemGroup>
+      <EzyMachineLearningPackageRoot
+          Include="@(WindowsAppSdkComponentPackages)"
+          Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('%(Identity)', '(?i)[\\/]microsoft\.windowsappsdk\.ml[\\/]'))" />
+      <EzyMachineLearningPayload Include="%(EzyMachineLearningPackageRoot.Identity)runtimes-framework\**\*" />
+      <EzyMachineLearningPayload Include="%(EzyMachineLearningPackageRoot.Identity)metadata\**\*" />
+      <!-- 컴포넌트 직접 복사 경로와 MSIX 추출 경로 양쪽을 같은 이름으로 막는다. -->
+      <MicrosoftWindowsAppSDKFilesExcluded Include="@(EzyMachineLearningPayload)" />
+      <MicrosoftWindowsAppSDKFilesExcluded
+          Include="@(EzyMachineLearningPayload->'$(MicrosoftWindowsAppSDKMsixContent)\%(Filename)%(Extension)')" />
+    </ItemGroup>
+  </Target>
 
   <Target Name="EzyRemoveUnusedMachineLearningRuntime"
           AfterTargets="ResolveReferences"
@@ -88,18 +105,9 @@
     </ItemGroup>
   </Target>
 
-  <Target Name="ValidateExternalIdentityBuild" BeforeTargets="PrepareForBuild">
-    <Error Condition="'$(ExternalIdentity)' == 'true' and '$(Packaged)' == 'true'"
-           Text="ExternalIdentity and Packaged build flavors are mutually exclusive." />
-    <Error Condition="'$(ExternalIdentity)' == 'true' and '$(ExternalApplicationManifest)' == ''"
-           Text="ExternalIdentity requires a generated ExternalApplicationManifest." />
-  </Target>
-
-  <Target Name="ValidatePortableBuild" BeforeTargets="PrepareForBuild">
-    <Error Condition="'$(Portable)' == 'true' and ('$(Packaged)' == 'true' or '$(ExternalIdentity)' == 'true')"
-           Text="Portable, Packaged, and ExternalIdentity build flavors are mutually exclusive." />
-    <Error Condition="'$(Portable)' == 'true' and '$(WindowsPackageType)' != 'None'"
-           Text="Portable builds must remain identity-free with WindowsPackageType=None." />
+  <Target Name="ValidateStoreChannelBuild" BeforeTargets="PrepareForBuild">
+    <Error Condition="'$(StoreChannel)' == 'true' and '$(Packaged)' != 'true'"
+           Text="StoreChannel requires the Packaged build flavor." />
   </Target>
 
 </Project>

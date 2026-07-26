@@ -52,7 +52,8 @@ public sealed record ToolDefaults
     public float BlurSigma { get; init; } = 8f;
     public float CornerRadius { get; init; } = 8f;
     public ArrowheadKind Arrowhead { get; init; } = ArrowheadKind.Triangle;
-    public string FontFamily { get; init; } = "Malgun Gothic";
+    // 새 설정만 UI 언어를 따라간다. 이미 저장된 값은 사용자 선택이라 건드리지 않는다.
+    public string FontFamily { get; init; } = LanguagePolicy.CurrentAnnotationFont;
     public bool FontBold { get; init; }
     public bool FontItalic { get; init; }
     public AnnotationTextAlignment TextAlignment { get; init; }
@@ -63,7 +64,18 @@ public sealed record AppSettings
 {
     public const int CurrentSchemaVersion = 5;
 
+    private readonly string _language = LanguagePolicy.SystemDefault;
+
     public int SchemaVersion { get; init; } = CurrentSchemaVersion;
+    /// <summary>UI 언어. 빈 문자열이면 Windows 표시 언어를 따른다(LanguagePolicy.SystemDefault).
+    /// 스키마 버전은 올리지 않는다 — 구버전 설정 파일이 그대로 살아야 한다.
+    /// init에서 null을 걸러 내는 이유: 소스 생성 역직렬화는 JSON에 키가 없으면 프로퍼티
+    /// 초기값을 적용하지 않고 null을 남긴다. 그대로 두면 첫 사용처에서 앱이 죽는다.</summary>
+    public string Language
+    {
+        get => _language;
+        init => _language = value ?? LanguagePolicy.SystemDefault;
+    }
     public ToolRailDock ToolRailDock { get; init; } = ToolRailDock.Vertical;
     public bool ClipboardWatchEnabled { get; init; } = true;
     public bool RecentFilesEnabled { get; init; } = true;
@@ -96,6 +108,9 @@ public static class AppSettingsMerger
         ArgumentNullException.ThrowIfNull(current);
         return current with
         {
+            Language = Changed(baseline.Language, edited.Language)
+                ? edited.Language
+                : current.Language,
             Theme = Changed(baseline.Theme, edited.Theme) ? edited.Theme : current.Theme,
             SingleInstanceBehavior = Changed(
                 baseline.SingleInstanceBehavior,
@@ -491,6 +506,7 @@ public sealed class AppSettingsStore
     private static bool IsValid(AppSettings settings)
     {
         return settings.SchemaVersion == AppSettings.CurrentSchemaVersion
+            && LanguagePolicy.IsSelectable(settings.Language)
             && Enum.IsDefined(settings.ToolRailDock)
             && Enum.IsDefined(settings.SingleInstanceBehavior)
             && Enum.IsDefined(settings.Theme)

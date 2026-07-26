@@ -4,8 +4,9 @@
     <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
   <ItemGroup>
-    <!-- 2026-07-16 기준 최신 안정 버전(dotnet package search 실측). -->
-    <PackageVersion Include="Microsoft.WindowsAppSDK" Version="2.2.0" />
+    <!-- 2.x WinUI는 Engineering Preview 라이선스(live operating environment 금지)라 Store 배포 불가.
+         1.8 라인은 정식 라이선스이며 WinUI를 [1.8.260709004]로 정확히 고정한다. 올리기 전 license.txt 확인 필수. -->
+    <PackageVersion Include="Microsoft.WindowsAppSDK" Version="1.8.260710003" />
     <PackageVersion Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.2270" />
     <PackageVersion Include="SkiaSharp" Version="4.150.1" />
     <PackageVersion Include="SkiaSharp.HarfBuzz" Version="4.150.1" />
@@ -18,9 +19,5 @@
     <PackageVersion Include="Magick.NET-Q8-AnyCPU" Version="14.15.0" />
     <!-- ADR-0005에서 채택한 M0-B 포맷 스파이크 후보. -->
     <PackageVersion Include="Svg.Skia" Version="5.1.1" />
-    <!-- WiX v7 사용과 wix7 EULA 명시적 동의는 2026-07-19 승인됨. -->
-    <PackageVersion Include="WixToolset.UI.wixext" Version="7.0.0" />
-    <PackageVersion Include="WixToolset.Util.wixext" Version="7.0.0" />
-    <PackageVersion Include="WixToolset.BootstrapperApplications.wixext" Version="7.0.0" />
   </ItemGroup>
 </Project>

@@ -14,7 +14,7 @@
     <InvariantGlobalization>false</InvariantGlobalization>
   </PropertyGroup>
 
-  <!-- 제품과 설치 프로그램은 win-x64 전용. RID 그래프를 통일해 외부 게시 복원이 CI 잠금 파일을 망치지 않게 함. -->
+  <!-- 제품은 win-x64 전용. RID 그래프를 통일해 CI 복원이 잠금 파일을 망치지 않게 함. -->
   <PropertyGroup Condition="'$(MSBuildProjectExtension)' == '.csproj'">
     <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
   </PropertyGroup>
@@ -26,17 +26,4 @@
     <DefaultItemExcludes>$(DefaultItemExcludes);bin\**;obj\**</DefaultItemExcludes>
   </PropertyGroup>
 
-  <!-- 외부 위치 ID는 게시자 결합 퓨전 매니페스트를 포함하므로 개발·MSIX 출력과 분리. -->
-  <PropertyGroup Condition="'$(ExternalIdentity)' == 'true'">
-    <BaseOutputPath>bin\external\</BaseOutputPath>
-    <BaseIntermediateOutputPath>obj\external\</BaseIntermediateOutputPath>
-    <DefaultItemExcludes>$(DefaultItemExcludes);bin\**;obj\**</DefaultItemExcludes>
-  </PropertyGroup>
-
-  <!-- ID 없는 포터블 미리보기는 전용 출력 사용. 패키지 ID·설치 매니페스트·개발 찌꺼기 상속 금지. -->
-  <PropertyGroup Condition="'$(Portable)' == 'true'">
-    <BaseOutputPath>bin\portable\</BaseOutputPath>
-    <BaseIntermediateOutputPath>obj\portable\</BaseIntermediateOutputPath>
-    <DefaultItemExcludes>$(DefaultItemExcludes);bin\**;obj\**</DefaultItemExcludes>
-  </PropertyGroup>
 </Project>

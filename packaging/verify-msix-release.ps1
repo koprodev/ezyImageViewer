@@ -10,8 +10,11 @@ param(
     [Parameter(Mandatory = $true)]
     [string]$Publisher,
 
-    [string]$HashesFile,
-    [string]$AppInstallerFile,
+    # 기본값은 개발 서명 ID. Store 패키지를 검증할 땐 호출자가 Partner Center 값을 넘겨야 하고,
+    # 안 넘기면 매니페스트와 어긋나 검증이 실패하므로 조용히 통과할 길은 없다.
+    [string]$IdentityName = 'GRTech.ezyImageViewer',
+    [string]$PublisherDisplayName = 'grtech-devpro',
+
     [string]$BuildToolsRoot,
     [switch]$RequireSignature,
     [switch]$RequireBuildOutputMatch
@@ -179,59 +182,6 @@ function Assert-ContainsFile {
     }
 }
 
-function Test-Hashes {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]$Path,
-
-        [Parameter(Mandatory = $true)]
-        [Collections.Generic.IDictionary[string, string]]$ArtifactsByName
-    )
-
-    $hashPath = Resolve-ExistingFile -Path $Path -Label 'HashesFile'
-    $names = New-Object 'System.Collections.Generic.List[string]'
-    $seen = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
-
-    foreach ($line in Get-Content -LiteralPath $hashPath) {
-        if ([string]::IsNullOrWhiteSpace($line)) {
-            continue
-        }
-        if ($line -notmatch '^([0-9A-Fa-f]{64})  ([^\\/]+)$') {
-            throw "Invalid SHA256SUMS line: '$line'."
-        }
-
-        $expected = $Matches[1].ToUpperInvariant()
-        $name = $Matches[2]
-        if (-not $seen.Add($name)) {
-            throw "Duplicate SHA256SUMS entry: '$name'."
-        }
-        $names.Add($name)
-
-        if (-not $ArtifactsByName.ContainsKey($name)) {
-            throw "SHA256SUMS contains an unspecified artifact: '$name'."
-        }
-        $artifact = [string]$ArtifactsByName[$name]
-        $actual = (Get-FileHash -LiteralPath $artifact -Algorithm SHA256).Hash.ToUpperInvariant()
-        if (-not [string]::Equals($actual, $expected, [StringComparison]::Ordinal)) {
-            throw "SHA-256 mismatch for '$name'."
-        }
-    }
-
-    $sorted = $names.ToArray()
-    [Array]::Sort($sorted, [StringComparer]::Ordinal)
-    if ([string]::Join("`n", $names) -cne [string]::Join("`n", $sorted)) {
-        throw 'SHA256SUMS entries are not sorted by artifact name.'
-    }
-    if ($seen.Count -ne $ArtifactsByName.Count) {
-        throw "SHA256SUMS entry count mismatch: expected $($ArtifactsByName.Count), actual $($seen.Count)."
-    }
-    foreach ($name in $ArtifactsByName.Keys) {
-        if (-not $seen.Contains($name)) {
-            throw "SHA256SUMS does not contain required package '$name'."
-        }
-    }
-}
-
 Assert-MsixVersion -Value $Version -Label 'Version'
 if ([string]::IsNullOrWhiteSpace($Publisher) -or $Publisher.Contains('{{')) {
     throw "Publisher is empty or unresolved: '$Publisher'."
@@ -251,31 +201,6 @@ $mainPath = Resolve-ExistingFile -Path $MainPackage -Label 'MainPackage'
 if ([IO.Path]::GetExtension($mainPath) -ine '.msix') {
     throw 'MainPackage must use the .msix extension.'
 }
-$mainName = Split-Path $mainPath -Leaf
-
-if (-not [string]::IsNullOrWhiteSpace($AppInstallerFile) -and
-    [string]::IsNullOrWhiteSpace($HashesFile)) {
-    throw 'AppInstallerFile requires HashesFile so the third artifact is actually verified.'
-}
-if (-not [string]::IsNullOrWhiteSpace($HashesFile)) {
-    $artifactsByName = [Collections.Generic.Dictionary[string, string]]::new(
-        [StringComparer]::Ordinal)
-    $artifactsByName.Add($mainName, $mainPath)
-    if (-not [string]::IsNullOrWhiteSpace($AppInstallerFile)) {
-        $appInstallerPath = Resolve-ExistingFile `
-            -Path $AppInstallerFile -Label 'AppInstallerFile'
-        if ([IO.Path]::GetExtension($appInstallerPath) -ine '.appinstaller') {
-            throw 'AppInstallerFile must use the .appinstaller extension.'
-        }
-        $appInstallerName = Split-Path $appInstallerPath -Leaf
-        if ($artifactsByName.ContainsKey($appInstallerName)) {
-            throw "AppInstallerFile basename collides with another artifact: '$appInstallerName'."
-        }
-        $artifactsByName.Add($appInstallerName, $appInstallerPath)
-    }
-    Test-Hashes -Path $HashesFile -ArtifactsByName $artifactsByName
-}
-
 $projectAssetsPaths = @(
     (Join-Path $repo 'EzyImageViewer.App\obj\packaged\project.assets.json'))
 $toolsRoot = Get-EzyPinnedBuildToolsRoot -RepositoryRoot $repo `
@@ -301,23 +226,24 @@ try {
         $mainBuildOutput = Join-Path $repo 'EzyImageViewer.App\bin\packaged\x64\Release\net10.0-windows10.0.26100.0\win-x64'
         $mainIntermediate = Join-Path $repo 'EzyImageViewer.App\obj\packaged\x64\Release\net10.0-windows10.0.26100.0\win-x64'
         $mainFileList = Get-EzyFileListPath -IntermediateRoot $mainIntermediate
-        $mainAdditionalFiles = @{
-            'Assets/Square44x44Logo.png' = Join-Path $PSScriptRoot 'Assets\Square44x44Logo.png'
-            'Assets/Square150x150Logo.png' = Join-Path $PSScriptRoot 'Assets\Square150x150Logo.png'
-            'Assets/StoreLogo.png' = Join-Path $PSScriptRoot 'Assets\StoreLogo.png'
-        }
+        # 타일 로고는 이제 Content라 빌드 출력 목록에 들어 있다. 밖에서 끌어올 파일이 없음.
         Assert-EzyPackageMatchesBuildOutput -UnpackedRoot $mainRoot `
             -BuildOutput $mainBuildOutput -FileListPath $mainFileList `
-            -AdditionalSourceFiles $mainAdditionalFiles -PackageLabel 'Main MSIX'
+            -AdditionalSourceFiles @{} -PackageLabel 'Main MSIX'
     }
 
     [xml]$mainManifest = Get-Content -LiteralPath (Join-Path $mainRoot 'AppxManifest.xml')
     $mainIdentity = Get-ManifestNode -Manifest $mainManifest `
         -XPath "/*[local-name()='Package']/*[local-name()='Identity']" -Label 'main Identity'
-    Assert-Equal $mainIdentity.GetAttribute('Name') 'GRTech.ezyImageViewer' 'main identity name'
+    Assert-Equal $mainIdentity.GetAttribute('Name') $IdentityName 'main identity name'
     Assert-Equal $mainIdentity.GetAttribute('Version') $Version 'main identity version'
     Assert-Equal $mainIdentity.GetAttribute('Publisher') $Publisher 'main publisher'
     Assert-Equal $mainIdentity.GetAttribute('ProcessorArchitecture') 'x64' 'main architecture'
+    # Partner Center 표시 이름과 한 글자라도 다르면 제출이 거절된다.
+    $mainPublisherDisplay = Get-ManifestNode -Manifest $mainManifest `
+        -XPath ("/*[local-name()='Package']/*[local-name()='Properties']" +
+            "/*[local-name()='PublisherDisplayName']") -Label 'main PublisherDisplayName'
+    Assert-Equal $mainPublisherDisplay.InnerText $PublisherDisplayName 'main publisher display name'
 
     $dependencies = @($mainManifest.SelectNodes(
         "/*[local-name()='Package']/*[local-name()='Dependencies']/*[local-name()='PackageDependency']"))
@@ -337,18 +263,45 @@ try {
         'Windows.FullTrustApplication' 'main application entry point'
 
     $extensions = @($mainManifest.SelectNodes("//*[local-name()='Extension']"))
-    if ($extensions.Count -ne 1) {
-        throw "Main manifest must contain exactly one extension; found $($extensions.Count)."
+    if ($extensions.Count -ne 2) {
+        throw "Main manifest must contain exactly two extensions; found $($extensions.Count)."
     }
-    Assert-Equal $extensions[0].NamespaceURI `
-        'http://schemas.microsoft.com/appx/manifest/uap/windows10' 'main extension namespace'
-    Assert-Equal $extensions[0].GetAttribute('Category') `
-        'windows.protocol' 'main extension category'
-    $protocols = @($extensions[0].SelectNodes("*[local-name()='Protocol']"))
+    foreach ($extension in $extensions) {
+        Assert-Equal $extension.NamespaceURI `
+            'http://schemas.microsoft.com/appx/manifest/uap/windows10' 'main extension namespace'
+    }
+
+    $protocolExtensions = @($extensions | Where-Object { $_.GetAttribute('Category') -ceq 'windows.protocol' })
+    if ($protocolExtensions.Count -ne 1) {
+        throw "Main manifest must contain exactly one protocol extension; found $($protocolExtensions.Count)."
+    }
+    $protocols = @($protocolExtensions[0].SelectNodes("*[local-name()='Protocol']"))
     if ($protocols.Count -ne 1) {
         throw "Main protocol extension must contain exactly one Protocol; found $($protocols.Count)."
     }
     Assert-Equal $protocols[0].GetAttribute('Name') 'ezyimageviewer' 'main protocol name'
+
+    # 매니페스트 연결 목록은 FileAssociationPolicy와 계약 테스트로 함께 고정.
+    $associationExtensions = @($extensions | Where-Object {
+            $_.GetAttribute('Category') -ceq 'windows.fileTypeAssociation'
+        })
+    if ($associationExtensions.Count -ne 1) {
+        throw ('Main manifest must contain exactly one file type association extension; ' +
+            "found $($associationExtensions.Count).")
+    }
+    $associations = @($associationExtensions[0].SelectNodes("*[local-name()='FileTypeAssociation']"))
+    if ($associations.Count -ne 1) {
+        throw "Main association extension must contain exactly one FileTypeAssociation; found $($associations.Count)."
+    }
+    Assert-Equal $associations[0].GetAttribute('Name') 'ezyimageviewer.image' 'main association name'
+    $fileTypes = @($associations[0].SelectNodes(
+            "*[local-name()='SupportedFileTypes']/*[local-name()='FileType']") |
+        ForEach-Object { $_.InnerText })
+    $expectedFileTypes = @('.png', '.jpg', '.jpeg', '.bmp', '.gif', '.webp', '.tif', '.tiff')
+    if (Compare-Object $fileTypes $expectedFileTypes -SyncWindow 0) {
+        throw ("Main association file types must equal '$($expectedFileTypes -join ', ')'; " +
+            "found '$($fileTypes -join ', ')'.")
+    }
 
     $capabilities = @($mainManifest.SelectNodes(
         "/*[local-name()='Package']/*[local-name()='Capabilities']/*"))
@@ -399,7 +352,7 @@ try {
     Assert-Equal $packagedFontLicenseHash $sourceFontLicenseHash 'Material Symbols license SHA-256'
 
     Write-Output "verified: $mainPath"
-    Write-Output "identity: GRTech.ezyImageViewer $Version x64"
+    Write-Output "identity: $IdentityName $Version x64"
 }
 finally {
     if (Test-Path -LiteralPath $scratch) {

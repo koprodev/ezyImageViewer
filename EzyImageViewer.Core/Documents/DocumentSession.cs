@@ -122,6 +122,49 @@ public sealed class DocumentSession : IDisposable
             RaiseChanged();
     }
 
+    /// <summary>
+    /// 이름 변경처럼 내용은 그대로고 경로만 달라졌을 때 현재 문서의 원본 위치를 옮긴다.
+    /// 재로드가 아니라 제자리 갱신이므로 저장하지 않은 편집이 살아남는다.
+    /// </summary>
+    public bool RebindCurrentSourcePath(string path)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        lock (_gate)
+        {
+            if (_state == SessionState.Disposed || _current is null)
+                return false;
+            _current.RebindSourcePath(path);
+        }
+        RaiseChanged();
+        return true;
+    }
+
+    /// <summary>
+    /// 현재 문서만 놓고 세션은 살려 둔다(원본 파일이 사라진 경우).
+    /// Dispose와 달리 이후 로드를 계속 받을 수 있어 빈 화면에서 다시 열 수 있다.
+    /// </summary>
+    public bool CloseCurrent()
+    {
+        ImageDocument? toDispose;
+        lock (_gate)
+        {
+            if (_state == SessionState.Disposed || _current is null)
+                return false;
+            // 진행 중인 로드가 닫은 뒤에 되살아나지 않게 세대를 올린다.
+            _generation++;
+            _activeCts?.Cancel();
+            _activeCts?.Dispose();
+            _activeCts = null;
+            toDispose = _current;
+            _current = null;
+            _lastError = null;
+            _state = SessionState.Idle;
+        }
+        toDispose?.Dispose();
+        RaiseChanged();
+        return true;
+    }
+
     public void Dispose()
     {
         ImageDocument? document;

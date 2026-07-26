@@ -1,157 +1,87 @@
-# 릴리스 절차
+# Microsoft Store 릴리스 절차
 
-> 현재 계약: `v1.0.47-preview.1` / 앱 `1.0.38.0` / Portable `1.0.47-portable.1`
+> Store ID: `9P82BRPVKC5N`
 >
-> 공개 저장소: `koprodev/ezyImageViewer`
+> 현재 상태: Microsoft Store 인증 대기
 
-공개 자산은 개인 평가·테스트용 unsigned preview다. production 서명본으로 표현하거나
-신뢰된 설치 파일로 재배포하지 않는다.
+애플리케이션 바이너리는 Microsoft Store만 배포한다. GitHub는 공개 소스·문서·이슈
+운영에만 사용하며 Releases, Portable, MSI/Setup, App Installer 파일을 게시하지 않는다.
 
-## 1. 채널
+## 1. 제출 전 확인
 
-### Installer + Portable preview
+- 작업 트리와 제출 버전을 확인한다.
+- Store 버전은 네 부분 숫자이며 네 번째 값은 `0`이어야 한다.
+- Partner Center 값은 아래 세 항목과 정확히 일치해야 한다.
 
-`packaging/preview-release.json`이 버전과 태그의 단일 기준이다.
+| 항목 | 값 |
+|---|---|
+| Identity Name | `koProDev.ezyImageViewer` |
+| Publisher | `CN=C90B63D5-FCFF-4640-91DB-5547A8D3ECDA` |
+| Publisher Display Name | `koProDev` |
 
-공개 파일:
+## 2. 복원·빌드·테스트
 
-- `ezyImageViewerSetup-1.0.47-x64-dev-unsigned.exe`
-- `ezyImageViewer.exe`
-- `EzyRtfLargeTheme.xml`
-- `LICENSE-MRL.txt`
-- `preview-release-manifest.json`
-- `SHA256SUMS.txt`
-
-Setup은 per-user·per-machine MSI 중 하나를 고르는 WiX Burn 번들이다. 개발용 unsigned
-빌드에서는 Windows package identity 등록을 끄며 앱 파일, App Paths, 바로가기, Open With
-등록만 설치한다. Portable은 설치·레지스트리·바로가기를 만들지 않는다.
-
-로컬에서 같은 묶음을 만들고 검증하려면 다음 명령을 쓴다.
+프로젝트 규칙에 따라 실행 중인 앱을 먼저 종료하고 로컬 .NET SDK 경로를 적용한다.
 
 ```powershell
-powershell -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass `
-  -File packaging/build-preview-release.ps1 `
-  -OutputDirectory packaging/out/preview-1.0.47
+Get-Process ezyImageViewer -ErrorAction SilentlyContinue | Stop-Process -Force
+$env:DOTNET_ROOT="$env:LOCALAPPDATA\Microsoft\dotnet"
+$env:PATH="$env:DOTNET_ROOT;$env:PATH"
 
-powershell -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass `
-  -File packaging/verify-preview-release.ps1 `
-  -OutputDirectory packaging/out/preview-1.0.47
+dotnet restore EzyImageViewer.slnx --locked-mode
+dotnet build EzyImageViewer.slnx -c Release --no-restore
+dotnet test EzyImageViewer.Tests/EzyImageViewer.Tests.csproj `
+  -c Release --no-build
 ```
 
-### Basic Portable preview
+## 3. Store MSIX 생성·검증
 
-초기 비교용 계약은 `packaging/portable-release.json`의 `0.1.0-portable.1`이다.
-공개 파일은 ZIP, `SHA256SUMS.txt`, `portable-release-manifest.json`이다.
+아래의 `1.0.0.0`은 실제 제출 버전으로 바꾼다. `pack-msix.ps1`은 Store 전용 출력에서
+MSIX를 만들고 패키지 내용·매니페스트·빌드 provenance를 검증한다.
 
 ```powershell
 powershell -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass `
-  -File packaging/build-portable-release.ps1 `
-  -Version 0.1.0-portable.1 -OutputDirectory packaging/out/portable
+  -File packaging/pack-msix.ps1 `
+  -Version 1.0.0.0 `
+  -ReleaseVersion 1.0.0 `
+  -IdentityName "koProDev.ezyImageViewer" `
+  -Publisher "CN=C90B63D5-FCFF-4640-91DB-5547A8D3ECDA" `
+  -PublisherDisplayName "koProDev" `
+  -SkipSign -StoreChannel
 
 powershell -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass `
-  -File packaging/verify-portable-release.ps1 `
-  -Version 0.1.0-portable.1 -OutputDirectory packaging/out/portable
+  -File packaging/verify-msix-release.ps1 `
+  -MainPackage packaging/out/ezyImageViewer.msix `
+  -Version 1.0.0.0 `
+  -IdentityName "koProDev.ezyImageViewer" `
+  -Publisher "CN=C90B63D5-FCFF-4640-91DB-5547A8D3ECDA" `
+  -PublisherDisplayName "koProDev" `
+  -RequireBuildOutputMatch
 ```
 
-## 2. 공개 소스
+`-SkipSign` 산출물은 Store 제출 전 구조 검증용이다. Store 서명과 설치·업데이트 동작은
+Partner Center 제출 및 인증 결과로 확인한다.
 
-공개 소스는 개발 저장소 전체가 아니라
-`packaging/public-source-allowlist.txt`의 allowlist로 만든 검토용 snapshot이다.
-`packaging/new-public-source-snapshot.ps1`이 `git archive` 결과에서 허용 경로만 복사하고
-`PUBLIC-SOURCE-MANIFEST.json`에 원본 commit과 파일 hash를 기록한다.
+## 4. 공개 소스 동기화
 
-내부 협업 문서, 로컬 설계 자료, Git 이력, 개인 설정, 인증 정보는 공개 snapshot에 넣지 않는다.
-공개 작업 트리는 기본적으로 형제 폴더 `ezyImageViewer-public`을 사용한다.
-
-게시 전 계약:
+공개 소스 snapshot은 `packaging/public-source-allowlist.txt`만 포함한다.
 
 ```powershell
-powershell -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass `
-  -File packaging/test-publication-readiness-contract.ps1
-
 powershell -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass `
   -File packaging/test-public-source-snapshot-contract.ps1
+
+powershell -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass `
+  -File packaging/sync-public-source.ps1
 ```
 
-## 3. 로컬 빌드
+동기화는 로컬 공개 작업 트리만 갱신한다. 개발 저장소와 공개 저장소의 commit·push는
+각각 명시적으로 승인받은 뒤 별도 수행한다.
 
-버전·commit·GitHub 상태를 바꾸지 않는 개발 진입점:
+## 5. 완료 판정
 
-```powershell
-tools\build-portable.cmd
-tools\build-installer.cmd
-```
+- solution restore/build/test 성공
+- Store MSIX의 identity, 언어, 파일 연결, protocol, capability, license, payload 검증 성공
+- Microsoft Store 인증 성공과 실제 Store 설치·기동·업데이트 경로 확인
+- 공개 소스 snapshot 계약 성공
 
-- Portable: 현재 작업 트리를 단일 EXE로 만들고 실행 스모크까지 확인한다.
-- Installer: 개발용 unsigned MSI 2종과 Setup을 만들고 번들 구조를 확인한다.
-- 산출물: gitignore된 `packaging/out`·`installer/out` 아래에만 둔다.
-- 설치: 스크립트가 자동으로 실행하지 않는다.
-
-자세한 옵션은 [`tools/README.md`](../tools/README.md)를 따른다.
-
-## 4. 게시 절차
-
-릴리스 노트를 먼저 갱신한다.
-
-- `docs/preview-release-notes.md`
-- 기능·제약·파일 이름·unsigned 경고를 실제 결과와 맞춘다.
-- 이전 버전에서 달라진 내용을 사용자 관점으로 적는다.
-
-전체 게시 진입점:
-
-```powershell
-tools\release.cmd
-```
-
-실행 순서:
-
-1. preview 버전 결정과 문서 토큰 갱신
-2. locked restore, Release build, 테스트, 패키징 계약 실행
-3. 개발 저장소 릴리스 commit 생성
-4. 공개 snapshot 동기화·push
-5. `.github/workflows/release-preview.yml` 실행
-6. 게시 자산 다운로드
-7. `SHA256SUMS.txt` 전건 대조와 Portable 실행 검증
-
-주요 보조 명령:
-
-```powershell
-tools\release.cmd -DryRun
-tools\release.cmd -Bump none
-tools\release.cmd -Version 1.2.0
-tools\release.cmd -EditNotes
-tools\release.cmd -Watch
-```
-
-`-Watch`는 push 뒤 로컬 감시가 끊겼을 때 실행 중 workflow에 다시 붙는다. 게시한 태그는
-덮어쓰지 않는다. 실패를 고친 뒤 preview 번호를 올려 새 태그로 게시한다.
-
-## 5. 필수 검증
-
-CI와 로컬 게시 게이트는 다음을 구분해 확인한다.
-
-- solution restore/build/test
-- public snapshot allowlist와 민감 파일 이름 차단
-- Portable exact payload, 추출, 실행 스모크, `NotSigned`
-- MSI database와 Burn payload, scope 선택, Open With 계약
-- release manifest의 tag·version·source commit·파일 hash
-- 공개 자산 이름과 개수
-- `SHA256SUMS.txt` 정렬·누락·hash 일치
-- WiX theme source와 MS-RL 원문 동봉
-
-unsigned preview 성공은 production signing, SmartScreen 신뢰, package identity 등록, clean VM
-install/repair/upgrade/rollback/remove 검증을 대신하지 않는다.
-
-## 6. production 보류 조건
-
-다음 항목은 아직 완료되지 않았다.
-
-- Windows App SDK Engineering Preview 배포 조건 해소
-- SignPath Foundation 승인과 실제 signing workflow
-- production Publisher, signer, RFC 3161 timestamp
-- clean VM의 CurrentUser·AllUsers lifecycle
-- 실제 package identity에서 Snipping Tool callback
-- 최종 라이선스·개인정보·SBOM 검토
-
-자세한 판정은 [코드 서명 정책](code-signing-policy.md)과
-[SignPath 준비 점검](signpath-readiness.md)을 따른다.
+로컬 MSIX 생성 성공만으로 Store 배포 완료라고 판정하지 않는다.

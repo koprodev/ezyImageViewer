@@ -1,0 +1,378 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="ToolOpen" xml:space="preserve"><value>Open (Ctrl+O)</value></data>
+  <data name="ToolClipboard" xml:space="preserve"><value>Open document from clipboard</value></data>
+  <data name="ToolWhiteboard" xml:space="preserve"><value>Open whiteboard</value></data>
+  <data name="TipWhiteboard" xml:space="preserve"><value>Opens a 4K whiteboard with a grid background as a new document.</value></data>
+  <data name="WhiteboardWhite" xml:space="preserve"><value>White whiteboard</value></data>
+  <data name="WhiteboardBlack" xml:space="preserve"><value>Black whiteboard</value></data>
+  <data name="ToolPrevious" xml:space="preserve"><value>Previous file (←)</value></data>
+  <data name="ToolNext" xml:space="preserve"><value>Next file (→)</value></data>
+  <data name="ToolFit" xml:space="preserve"><value>Fit to window (Ctrl+0)</value></data>
+  <data name="ToolActualSize" xml:space="preserve"><value>Actual size (Ctrl+1)</value></data>
+  <data name="ToolRotate" xml:space="preserve"><value>Rotate document clockwise</value></data>
+  <data name="ToolRotateCcw" xml:space="preserve"><value>Rotate document counterclockwise</value></data>
+  <data name="ToolOpenGroup" xml:space="preserve"><value>Open menu</value></data>
+  <data name="TipOpenGroup" xml:space="preserve"><value>Groups file, recent, clipboard, capture, whiteboard, and new window into one menu.</value></data>
+  <data name="ToolTransformGroup" xml:space="preserve"><value>Rotate and flip menu</value></data>
+  <data name="TipTransformGroup" xml:space="preserve"><value>Groups clockwise and counterclockwise rotation with horizontal and vertical flips.</value></data>
+  <data name="ToolCropGroup" xml:space="preserve"><value>Crop and resize menu</value></data>
+  <data name="TipCropGroup" xml:space="preserve"><value>Groups crop, crop ratio, and resize into one menu.</value></data>
+  <data name="ToolZoomGroup" xml:space="preserve"><value>Zoom menu</value></data>
+  <data name="TipZoomGroup" xml:space="preserve"><value>Groups fit to window and actual size into one menu.</value></data>
+  <data name="ToolProtectGroup" xml:space="preserve"><value>Redaction menu</value></data>
+  <data name="TipProtectGroup" xml:space="preserve"><value>Groups pixelate, blur, and blackout into one menu.</value></data>
+  <data name="MenuCrop" xml:space="preserve"><value>Crop</value></data>
+  <data name="MenuCropRatio" xml:space="preserve"><value>Crop ratio</value></data>
+  <data name="MenuResize" xml:space="preserve"><value>Resize</value></data>
+  <data name="SettingsNavToolbarGroups" xml:space="preserve"><value>Toolbar groups</value></data>
+  <data name="SettingsToolbarGroups" xml:space="preserve"><value>Choose which toolbar buttons are collapsed into dropdown groups.</value></data>
+  <data name="SettingsToolbarGroupOpen" xml:space="preserve"><value>Open group (open, recent, clipboard, capture, whiteboard, new window)</value></data>
+  <data name="SettingsToolbarGroupSelect" xml:space="preserve"><value>Select split button (object / box selection)</value></data>
+  <data name="SettingsToolbarGroupTransform" xml:space="preserve"><value>Rotate and flip group</value></data>
+  <data name="SettingsToolbarGroupCrop" xml:space="preserve"><value>Crop and resize group (crop, ratio, resize)</value></data>
+  <data name="SettingsToolbarGroupZoom" xml:space="preserve"><value>Zoom group (fit to window, actual size)</value></data>
+  <data name="SettingsToolbarGroupProtect" xml:space="preserve"><value>Redaction group (pixelate, blur, blackout)</value></data>
+  <data name="ToolFullScreen" xml:space="preserve"><value>Full screen (F11)</value></data>
+  <data name="ToolDockToggle" xml:space="preserve"><value>Switch tool rail orientation</value></data>
+  <data name="ToolSendToBack" xml:space="preserve"><value>Send to back (Ctrl+Shift+[)</value></data>
+  <data name="ToolSendBackward" xml:space="preserve"><value>Send backward (Ctrl+[)</value></data>
+  <data name="ToolBringForward" xml:space="preserve"><value>Bring forward (Ctrl+])</value></data>
+  <data name="ToolBringToFront" xml:space="preserve"><value>Bring to front (Ctrl+Shift+])</value></data>
+  <data name="ToolDuplicate" xml:space="preserve"><value>Duplicate selection (Ctrl+D)</value></data>
+  <data name="ToolEditText" xml:space="preserve"><value>Edit selected text</value></data>
+  <data name="LayerPanel" xml:space="preserve"><value>Layers</value></data>
+  <data name="LayerVisible" xml:space="preserve"><value>Visible</value></data>
+  <data name="LayerHidden" xml:space="preserve"><value>Hidden</value></data>
+  <data name="LayerLocked" xml:space="preserve"><value>Locked</value></data>
+  <data name="LayerUnlocked" xml:space="preserve"><value>Unlocked</value></data>
+  <data name="LayerTypeInk" xml:space="preserve"><value>Pen</value></data>
+  <data name="LayerTypeHighlighter" xml:space="preserve"><value>Highlighter</value></data>
+  <data name="LayerTypeLine" xml:space="preserve"><value>Line</value></data>
+  <data name="LayerTypeArrow" xml:space="preserve"><value>Arrow</value></data>
+  <data name="LayerTypeRectangle" xml:space="preserve"><value>Shape</value></data>
+  <data name="LayerTypeEllipse" xml:space="preserve"><value>Ellipse</value></data>
+  <data name="LayerTypeText" xml:space="preserve"><value>Text</value></data>
+  <data name="LayerTypeNumber" xml:space="preserve"><value>Number</value></data>
+  <data name="LayerTypeSpeechBubble" xml:space="preserve"><value>Speech bubble</value></data>
+  <data name="LayerTypeImage" xml:space="preserve"><value>Image</value></data>
+  <data name="LayerTypeMosaic" xml:space="preserve"><value>Pixelate</value></data>
+  <data name="LayerTypeBlur" xml:space="preserve"><value>Blur</value></data>
+  <data name="LayerTypeMask" xml:space="preserve"><value>Blackout</value></data>
+  <data name="ToolMosaic" xml:space="preserve"><value>Pixelate</value></data>
+  <data name="TipMosaic" xml:space="preserve"><value>Hides the dragged area behind blocks</value></data>
+  <data name="ToolBlur" xml:space="preserve"><value>Blur</value></data>
+  <data name="TipBlur" xml:space="preserve"><value>Blurs the dragged area</value></data>
+  <data name="ToolMask" xml:space="preserve"><value>Blackout</value></data>
+  <data name="TipMask" xml:space="preserve"><value>Covers the dragged area completely with a solid colour</value></data>
+  <data name="StyleBlockSize" xml:space="preserve"><value>Block size</value></data>
+  <data name="StyleBlurSigma" xml:space="preserve"><value>Strength</value></data>
+  <data name="ToolCapture" xml:space="preserve"><value>Screen capture</value></data>
+  <data name="TipCapture" xml:space="preserve"><value>Opens the Windows snipping tool and imports the result automatically</value></data>
+  <data name="CaptureNoticeTitle" xml:space="preserve"><value>A new capture was detected on the clipboard</value></data>
+  <data name="CaptureNoticeOpen" xml:space="preserve"><value>Open</value></data>
+  <data name="CaptureLaunchFailed" xml:space="preserve"><value>Could not open the snipping tool — capture with Win+Shift+S and it will be imported automatically</value></data>
+  <data name="CaptureHotkeyUnavailable" xml:space="preserve"><value>The global capture shortcut ({0}) is already in use by another app</value></data>
+  <data name="CaptureFailed" xml:space="preserve"><value>The capture was not completed</value></data>
+  <data name="ToolSave" xml:space="preserve"><value>Save (Ctrl+S)</value></data>
+  <data name="TipSave" xml:space="preserve"><value>Quick save · Save as is Ctrl+Shift+S</value></data>
+  <data name="SaveDone" xml:space="preserve"><value>Saved</value></data>
+  <data name="SaveDoneNoMetadata" xml:space="preserve"><value>Saved · metadata excluded</value></data>
+  <data name="SaveNoChanges" xml:space="preserve"><value>No changes to save</value></data>
+  <data name="SaveFailed" xml:space="preserve"><value>Save failed</value></data>
+  <data name="SaveInProgress" xml:space="preserve"><value>Saving…</value></data>
+  <data name="SaveFullResUnavailable" xml:space="preserve"><value>The original could not be reloaded at full resolution, so it cannot be exported</value></data>
+  <data name="SaveSourceChanged" xml:space="preserve"><value>The source file changed on disk, so it cannot be saved. Please reopen the document</value></data>
+  <data name="SaveDefaultName" xml:space="preserve"><value>Image</value></data>
+  <data name="CopyDone" xml:space="preserve"><value>Copied to the clipboard</value></data>
+  <data name="CopyRegionDone" xml:space="preserve"><value>Copied the selected area to the clipboard</value></data>
+  <data name="CopyRegionStale" xml:space="preserve"><value>The crop review area is no longer valid, so nothing was copied</value></data>
+  <data name="ExportOptionsTitle" xml:space="preserve"><value>Export options</value></data>
+  <data name="ExportQualityLabel" xml:space="preserve"><value>Quality</value></data>
+  <data name="ExportKeepMetadataLabel" xml:space="preserve"><value>Keep metadata (sensitive entries such as location are always removed)</value></data>
+  <data name="ExportLosslessLabel" xml:space="preserve"><value>Lossless</value></data>
+  <data name="OverwriteTitle" xml:space="preserve"><value>Overwrite the original</value></data>
+  <data name="OverwriteBody" xml:space="preserve"><value>The original file will be overwritten with your edits. This cannot be undone.</value></data>
+  <data name="OverwriteConfirm" xml:space="preserve"><value>Overwrite</value></data>
+  <data name="DialogSaveButton" xml:space="preserve"><value>Save</value></data>
+  <data name="DialogDontSaveButton" xml:space="preserve"><value>Don't save</value></data>
+  <data name="ProjectTypeName" xml:space="preserve"><value>ezyImage project</value></data>
+  <data name="TextEditTitle" xml:space="preserve"><value>Edit text</value></data>
+  <data name="ToolColor" xml:space="preserve"><value>Choose drawing colour</value></data>
+  <data name="ToolRectangle" xml:space="preserve"><value>Rectangle (drag to draw · Delete to remove)</value></data>
+  <data name="ToolUndo" xml:space="preserve"><value>Undo (Ctrl+Z)</value></data>
+  <data name="ToolRedo" xml:space="preserve"><value>Redo (Ctrl+Y)</value></data>
+  <data name="StateReady" xml:space="preserve"><value>Ready</value></data>
+  <data name="StateLoading" xml:space="preserve"><value>Loading…</value></data>
+  <data name="StateFailed" xml:space="preserve"><value>Open failed</value></data>
+  <data name="StateModified" xml:space="preserve"><value>Modified</value></data>
+  <data name="DiscardTitle" xml:space="preserve"><value>Unsaved changes</value></data>
+  <data name="DiscardBody" xml:space="preserve"><value>This document has unsaved changes. If you don't save, they will be lost.</value></data>
+  <data name="DiscardConfirm" xml:space="preserve"><value>Discard changes</value></data>
+  <data name="DiscardCancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="ToolCrop" xml:space="preserve"><value>Crop (drag, then press Enter or double-click inside to apply · Esc to cancel)</value></data>
+  <data name="ToolCropRatio" xml:space="preserve"><value>Switch crop ratio (free / 1:1 / 4:3 / 16:9)</value></data>
+  <data name="ToolFlipHorizontal" xml:space="preserve"><value>Flip horizontally</value></data>
+  <data name="ToolFlipVertical" xml:space="preserve"><value>Flip vertically</value></data>
+  <data name="ToolResize" xml:space="preserve"><value>Resize</value></data>
+  <data name="CropRatioFree" xml:space="preserve"><value>Free</value></data>
+  <data name="CropReviewHint" xml:space="preserve"><value>Crop review: press Enter or double-click inside to apply · Esc to cancel</value></data>
+  <data name="ColorBlack" xml:space="preserve"><value>Black</value></data>
+  <data name="ColorGray" xml:space="preserve"><value>Grey</value></data>
+  <data name="ColorSilver" xml:space="preserve"><value>Silver</value></data>
+  <data name="ColorWhite" xml:space="preserve"><value>White</value></data>
+  <data name="ColorRed" xml:space="preserve"><value>Red</value></data>
+  <data name="ColorOrange" xml:space="preserve"><value>Orange</value></data>
+  <data name="ColorYellow" xml:space="preserve"><value>Yellow</value></data>
+  <data name="ColorLime" xml:space="preserve"><value>Lime</value></data>
+  <data name="ColorGreen" xml:space="preserve"><value>Green</value></data>
+  <data name="ColorTeal" xml:space="preserve"><value>Teal</value></data>
+  <data name="ColorSky" xml:space="preserve"><value>Sky</value></data>
+  <data name="ColorBlue" xml:space="preserve"><value>Blue</value></data>
+  <data name="ColorNavy" xml:space="preserve"><value>Navy</value></data>
+  <data name="ColorPurple" xml:space="preserve"><value>Purple</value></data>
+  <data name="ColorMagenta" xml:space="preserve"><value>Magenta</value></data>
+  <data name="ColorBrown" xml:space="preserve"><value>Brown</value></data>
+  <data name="ColorSelected" xml:space="preserve"><value>Selected</value></data>
+  <data name="EditFailed" xml:space="preserve"><value>Edit failed</value></data>
+  <data name="DialogApply" xml:space="preserve"><value>Apply</value></data>
+  <data name="DialogCancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="ResizeTitle" xml:space="preserve"><value>Resize</value></data>
+  <data name="ResizeWidthLabel" xml:space="preserve"><value>Width (px)</value></data>
+  <data name="ResizeHeightLabel" xml:space="preserve"><value>Height (px)</value></data>
+  <data name="ResizePercentLabel" xml:space="preserve"><value>Scale (%)</value></data>
+  <data name="ResizeKeepAspect" xml:space="preserve"><value>Keep aspect ratio</value></data>
+  <data name="ToolSelect" xml:space="preserve"><value>Select and move</value></data>
+  <data name="ToolSelectMode" xml:space="preserve"><value>Change selection mode</value></data>
+  <data name="TipSelectMode" xml:space="preserve"><value>Chooses whether the select tool picks objects or draws a box selection.</value></data>
+  <data name="SelectModeRegion" xml:space="preserve"><value>Box selection</value></data>
+  <data name="TipRegionSelect" xml:space="preserve"><value>Selects a rectangular area of the background. Drag inside to lift and move it, or press Ctrl+X to cut.</value></data>
+  <data name="RegionReviewHint" xml:space="preserve"><value>Selected area: drag inside = lift and move · Ctrl+X = cut · Ctrl+C = copy · Esc = cancel</value></data>
+  <data name="RegionCutDone" xml:space="preserve"><value>Cut the selected area to the clipboard</value></data>
+  <data name="RegionNeedsFullRes" xml:space="preserve"><value>Area editing is not available on a preview-resolution document</value></data>
+  <data name="ToolPen" xml:space="preserve"><value>Pen</value></data>
+  <data name="ToolHighlighter" xml:space="preserve"><value>Highlighter</value></data>
+  <data name="ToolLine" xml:space="preserve"><value>Line</value></data>
+  <data name="ToolArrow" xml:space="preserve"><value>Arrow</value></data>
+  <data name="ToolRoundedRectangle" xml:space="preserve"><value>Rounded rectangle</value></data>
+  <data name="ToolEllipse" xml:space="preserve"><value>Ellipse</value></data>
+  <data name="ToolText" xml:space="preserve"><value>Text box</value></data>
+  <data name="ToolNumber" xml:space="preserve"><value>Number marker</value></data>
+  <data name="ToolSpeechBubble" xml:space="preserve"><value>Speech bubble</value></data>
+  <data name="TextTitle" xml:space="preserve"><value>Add text</value></data>
+  <data name="SpeechBubbleTitle" xml:space="preserve"><value>Speech bubble text</value></data>
+  <data name="TextContentLabel" xml:space="preserve"><value>Content</value></data>
+  <data name="MarkerLimitReached" xml:space="preserve"><value>The number marker limit has been reached.</value></data>
+  <data name="StyleFill" xml:space="preserve"><value>Fill</value></data>
+  <data name="StyleBackground" xml:space="preserve"><value>Background</value></data>
+  <data name="StyleCornerRadius" xml:space="preserve"><value>Corner radius</value></data>
+  <data name="LayerCollapse" xml:space="preserve"><value>Collapse layers</value></data>
+  <data name="LayerExpand" xml:space="preserve"><value>Expand layers</value></data>
+  <data name="TipLayerCollapse" xml:space="preserve"><value>Collapses or expands the layer list.</value></data>
+  <data name="StyleStrokeWidth" xml:space="preserve"><value>Stroke width (px)</value></data>
+  <data name="StyleOpacity" xml:space="preserve"><value>Opacity (%)</value></data>
+  <data name="StyleFontSize" xml:space="preserve"><value>Font size</value></data>
+  <data name="StyleRotation" xml:space="preserve"><value>Rotation (°)</value></data>
+  <data name="StyleArrowhead" xml:space="preserve"><value>Arrowhead</value></data>
+  <data name="StyleFontFamily" xml:space="preserve"><value>Font</value></data>
+  <data name="StyleBold" xml:space="preserve"><value>Bold</value></data>
+  <data name="StyleItalic" xml:space="preserve"><value>Italic</value></data>
+  <data name="StyleAlignment" xml:space="preserve"><value>Text alignment</value></data>
+  <data name="ArrowheadOpen" xml:space="preserve"><value>Open arrowhead</value></data>
+  <data name="ArrowheadTriangle" xml:space="preserve"><value>Triangle arrowhead</value></data>
+  <data name="AlignmentLeft" xml:space="preserve"><value>Left</value></data>
+  <data name="AlignmentCenter" xml:space="preserve"><value>Centre</value></data>
+  <data name="AlignmentRight" xml:space="preserve"><value>Right</value></data>
+  <data name="ToolNewWindow" xml:space="preserve"><value>Open new window</value></data>
+  <data name="ToolRail" xml:space="preserve"><value>Toolbar</value></data>
+  <data name="ToolEyedropper" xml:space="preserve"><value>Pick a colour from the image on screen</value></data>
+  <data name="ToolZoomOut" xml:space="preserve"><value>Zoom out</value></data>
+  <data name="ToolZoomIn" xml:space="preserve"><value>Zoom in</value></data>
+  <data name="StatusFile" xml:space="preserve"><value>File</value></data>
+  <data name="StatusPage" xml:space="preserve"><value>Page</value></data>
+  <data name="StatusColorMode" xml:space="preserve"><value>Colour mode</value></data>
+  <data name="StatusProgress" xml:space="preserve"><value>Task progress</value></data>
+  <data name="StatusZoom" xml:space="preserve"><value>Zoom level</value></data>
+  <data name="StatusDetails" xml:space="preserve"><value>Image details</value></data>
+  <data name="CanvasName" xml:space="preserve"><value>Image editing canvas</value></data>
+  <data name="ToolContext" xml:space="preserve"><value>Tool properties</value></data>
+  <data name="ColorModeRgb8" xml:space="preserve"><value>RGB 8-bit</value></data>
+  <data name="ColorModeRgba8" xml:space="preserve"><value>RGBA 8-bit</value></data>
+  <data name="GroupFile" xml:space="preserve"><value>File tools</value></data>
+  <data name="GroupHistory" xml:space="preserve"><value>History tools</value></data>
+  <data name="GroupImage" xml:space="preserve"><value>Image tools</value></data>
+  <data name="GroupDrawing" xml:space="preserve"><value>Drawing tools</value></data>
+  <data name="GroupShapes" xml:space="preserve"><value>Shape tools</value></data>
+  <data name="GroupText" xml:space="preserve"><value>Text tools</value></data>
+  <data name="GroupProtection" xml:space="preserve"><value>Redaction tools</value></data>
+  <data name="GroupView" xml:space="preserve"><value>View tools</value></data>
+  <data name="LayerShow" xml:space="preserve"><value>Show</value></data>
+  <data name="LayerHide" xml:space="preserve"><value>Hide</value></data>
+  <data name="LayerLock" xml:space="preserve"><value>Lock</value></data>
+  <data name="LayerUnlock" xml:space="preserve"><value>Unlock</value></data>
+  <data name="LayerDefaultName" xml:space="preserve"><value>Layer</value></data>
+  <data name="LayerActive" xml:space="preserve"><value>Active layer</value></data>
+  <data name="LayerSetActive" xml:space="preserve"><value>Set as active layer</value></data>
+  <data name="ToolLayerPanel" xml:space="preserve"><value>Layer panel</value></data>
+  <data name="TipLayerPanel" xml:space="preserve"><value>Shows or hides the layer panel.</value></data>
+  <data name="LayerAdd" xml:space="preserve"><value>New layer</value></data>
+  <data name="TipLayerAdd" xml:space="preserve"><value>Adds a new layer above the active layer.</value></data>
+  <data name="LayerDelete" xml:space="preserve"><value>Delete layer</value></data>
+  <data name="TipLayerDelete" xml:space="preserve"><value>Deletes the active layer and everything on it.</value></data>
+  <data name="LayerMoveUp" xml:space="preserve"><value>Move layer up</value></data>
+  <data name="TipLayerMoveUp" xml:space="preserve"><value>Moves the active layer one step forward.</value></data>
+  <data name="LayerMoveDown" xml:space="preserve"><value>Move layer down</value></data>
+  <data name="TipLayerMoveDown" xml:space="preserve"><value>Moves the active layer one step backward.</value></data>
+  <data name="LayerRename" xml:space="preserve"><value>Rename layer</value></data>
+  <data name="TipLayerRename" xml:space="preserve"><value>Changes the name of the active layer.</value></data>
+  <data name="LayerMoveSelection" xml:space="preserve"><value>Move selection to active layer</value></data>
+  <data name="TipLayerMoveSelection" xml:space="preserve"><value>Moves the selected objects to the top of the active layer.</value></data>
+  <data name="LayerBlockedHidden" xml:space="preserve"><value>A hidden layer cannot be edited</value></data>
+  <data name="LayerBlockedLocked" xml:space="preserve"><value>A locked layer cannot be edited</value></data>
+  <data name="TipOpen" xml:space="preserve"><value>Choose a supported image file and open it in this window.</value></data>
+  <data name="TipClipboard" xml:space="preserve"><value>Opens the clipboard image as a new document.</value></data>
+  <data name="TipNewWindow" xml:space="preserve"><value>Opens one more independent empty viewer window.</value></data>
+  <data name="TipPrevious" xml:space="preserve"><value>Goes to the previous image in the current folder.</value></data>
+  <data name="TipNext" xml:space="preserve"><value>Goes to the next image in the current folder.</value></data>
+  <data name="TipFit" xml:space="preserve"><value>Fits the whole image inside the canvas.</value></data>
+  <data name="TipActualSize" xml:space="preserve"><value>Shows one image pixel as one screen pixel.</value></data>
+  <data name="TipRotate" xml:space="preserve"><value>Rotates the image or the selected objects clockwise.</value></data>
+  <data name="TipColor" xml:space="preserve"><value>Picks the colour used for drawing and for selected objects.</value></data>
+  <data name="TipEyedropper" xml:space="preserve"><value>Picks the displayed colour of a single pixel from the composed image.</value></data>
+  <data name="TipZoomOut" xml:space="preserve"><value>Lowers the canvas zoom by one step.</value></data>
+  <data name="TipZoomIn" xml:space="preserve"><value>Raises the canvas zoom by one step.</value></data>
+  <data name="TipZoomSlider" xml:space="preserve"><value>Adjusts the zoom with the slider or the arrow keys.</value></data>
+  <data name="TipFullScreen" xml:space="preserve"><value>Switches between full screen and windowed view.</value></data>
+  <data name="TipDockHorizontal" xml:space="preserve"><value>Moves the tool rail to a horizontal bar at the top of the window.</value></data>
+  <data name="TipDockVertical" xml:space="preserve"><value>Moves the tool rail to a vertical bar on the left of the window.</value></data>
+  <data name="TipSendToBack" xml:space="preserve"><value>Moves the selected objects behind all others.</value></data>
+  <data name="TipSendBackward" xml:space="preserve"><value>Moves the selected objects back one step.</value></data>
+  <data name="TipBringForward" xml:space="preserve"><value>Moves the selected objects forward one step.</value></data>
+  <data name="TipBringToFront" xml:space="preserve"><value>Moves the selected objects in front of all others.</value></data>
+  <data name="TipDuplicate" xml:space="preserve"><value>Duplicates the selected objects and selects the new copies.</value></data>
+  <data name="TipEditText" xml:space="preserve"><value>Edits the content of the selected text object.</value></data>
+  <data name="TipSelect" xml:space="preserve"><value>Select objects to move, resize, and rotate them.</value></data>
+  <data name="TipPen" xml:space="preserve"><value>Drag the pointer to draw a freehand curve.</value></data>
+  <data name="TipHighlighter" xml:space="preserve"><value>Draws a translucent freehand curve.</value></data>
+  <data name="TipLine" xml:space="preserve"><value>Draws a straight line from the start point to the end point.</value></data>
+  <data name="TipArrow" xml:space="preserve"><value>Draws an arrow from the start point to the end point.</value></data>
+  <data name="TipRectangle" xml:space="preserve"><value>Drag the pointer to draw a rectangle.</value></data>
+  <data name="TipRoundedRectangle" xml:space="preserve"><value>Drag the pointer to draw a rounded rectangle.</value></data>
+  <data name="TipEllipse" xml:space="preserve"><value>Drag the pointer to draw an ellipse.</value></data>
+  <data name="TipText" xml:space="preserve"><value>Mark out an area, then type your text.</value></data>
+  <data name="TipNumber" xml:space="preserve"><value>Places number markers that count up in order.</value></data>
+  <data name="TipSpeechBubble" xml:space="preserve"><value>Draws a text speech bubble. Use the tail handle to adjust where the tail points.</value></data>
+  <data name="TipUndo" xml:space="preserve"><value>Reverts the most recent edit by one step.</value></data>
+  <data name="TipRedo" xml:space="preserve"><value>Reapplies one reverted edit.</value></data>
+  <data name="TipCrop" xml:space="preserve"><value>Drag an area, then press Enter to apply or Esc to cancel.</value></data>
+  <data name="TipCropRatio" xml:space="preserve"><value>Each click cycles through free, 1:1, 4:3, and 16:9.</value></data>
+  <data name="TipFlipHorizontal" xml:space="preserve"><value>Flips the image left to right.</value></data>
+  <data name="TipFlipVertical" xml:space="preserve"><value>Flips the image top to bottom.</value></data>
+  <data name="TipResize" xml:space="preserve"><value>Sets the output size in pixels or as a percentage.</value></data>
+  <data name="TipColorSwatch" xml:space="preserve"><value>Press Enter to choose and use the arrow keys to move through the palette.</value></data>
+  <data name="ToolPreviousPage" xml:space="preserve"><value>Previous page (Page Up)</value></data>
+  <data name="ToolNextPage" xml:space="preserve"><value>Next page (Page Down)</value></data>
+  <data name="ToolPlayAnimation" xml:space="preserve"><value>Play animation</value></data>
+  <data name="ToolPauseAnimation" xml:space="preserve"><value>Pause animation</value></data>
+  <data name="AnimationEditTitle" xml:space="preserve"><value>Edit animation frame</value></data>
+  <data name="AnimationEditBody" xml:space="preserve"><value>Continuing will stop playback and flatten the current frame into a still image.</value></data>
+  <data name="AnimationEditConfirm" xml:space="preserve"><value>Edit current frame</value></data>
+  <data name="ToolSettings" xml:space="preserve"><value>Settings</value></data>
+  <data name="TipSettings" xml:space="preserve"><value>Changes app behaviour and privacy settings.</value></data>
+  <data name="SettingsTitle" xml:space="preserve"><value>Settings</value></data>
+  <data name="SettingsSave" xml:space="preserve"><value>Save</value></data>
+  <data name="SettingsSaved" xml:space="preserve"><value>Settings saved</value></data>
+  <data name="SettingsSaveFailed" xml:space="preserve"><value>Could not save settings</value></data>
+  <data name="SettingsTheme" xml:space="preserve"><value>Theme</value></data>
+  <data name="SettingsThemeSystem" xml:space="preserve"><value>Use system setting</value></data>
+  <data name="SettingsThemeLight" xml:space="preserve"><value>Light</value></data>
+  <data name="SettingsThemeDark" xml:space="preserve"><value>Dark</value></data>
+  <data name="SettingsFileActivation" xml:space="preserve"><value>When opening another file</value></data>
+  <data name="SettingsReuseWindow" xml:space="preserve"><value>Open in the current window</value></data>
+  <data name="SettingsOpenNewWindow" xml:space="preserve"><value>Open in a new window</value></data>
+  <data name="SettingsClipboardWatch" xml:space="preserve"><value>Watch clipboard for captures</value></data>
+  <data name="SettingsRecentFiles" xml:space="preserve"><value>Recent file history</value></data>
+  <data name="SettingsPrivacySummary" xml:space="preserve"><value>Your files and image content are never sent anywhere. There is no telemetry or automatic network communication.</value></data>
+  <data name="SettingsIncludeSubfolders" xml:space="preserve"><value>Include subfolders when browsing</value></data>
+  <data name="SettingsCaptureHotkey" xml:space="preserve"><value>Global capture shortcut</value></data>
+  <data name="SettingsHotkeyInvalid" xml:space="preserve"><value>Choose at least one modifier key and assign a key.</value></data>
+  <data name="SettingsApplicationInformation" xml:space="preserve"><value>App info</value></data>
+  <data name="SettingsCurrentVersion" xml:space="preserve"><value>Current version: {0}</value></data>
+  <data name="StatusPreview" xml:space="preserve"><value>Preview</value></data>
+  <data name="ToolRecent" xml:space="preserve"><value>Recent files</value></data>
+  <data name="TipRecent" xml:space="preserve"><value>Shows files you recently opened successfully.</value></data>
+  <data name="RecentTitle" xml:space="preserve"><value>Recent files</value></data>
+  <data name="RecentEmpty" xml:space="preserve"><value>There are no recent files, or history is turned off.</value></data>
+  <data name="RecentOpen" xml:space="preserve"><value>Open</value></data>
+  <data name="RecentClear" xml:space="preserve"><value>Clear all</value></data>
+  <data name="RecentCleared" xml:space="preserve"><value>Recent file history cleared</value></data>
+  <data name="RecentClearFailed" xml:space="preserve"><value>Could not clear recent file history</value></data>
+  <data name="RecentEnableBlocked" xml:space="preserve"><value>History was not turned on because the existing recent file history could not be cleared</value></data>
+  <data name="RecentDisableIncomplete" xml:space="preserve"><value>Recent file history is off, but the existing history could not be cleared. Deletion will be retried the next time the app starts</value></data>
+  <data name="RecoveryTitle" xml:space="preserve"><value>There is work to recover</value></data>
+  <data name="RecoveryBody" xml:space="preserve"><value>The previous session did not close normally. You can recover unsaved work.</value></data>
+  <data name="RecoveryIncompleteWarning" xml:space="preserve"><value>Some recovery items could not be read. Only the items listed below are handled; the rest are preserved.</value></data>
+  <data name="RecoveryRestoreAll" xml:space="preserve"><value>Recover all</value></data>
+  <data name="RecoveryDiscardAll" xml:space="preserve"><value>Discard all</value></data>
+  <data name="RecoveryDiscardVisible" xml:space="preserve"><value>Discard listed items</value></data>
+  <data name="RecoveryDiscarded" xml:space="preserve"><value>Discarded the listed recovery items</value></data>
+  <data name="RecoveryDiscardDeferred" xml:space="preserve"><value>Discarded the listed recovery items. Items that could not be read will be checked again at the next start</value></data>
+  <data name="RecoveryLater" xml:space="preserve"><value>Later</value></data>
+  <data name="RecoveryFailed" xml:space="preserve"><value>Some work could not be recovered</value></data>
+  <data name="RecoveryRestored" xml:space="preserve"><value>Your previous work was recovered. Please save it somewhere safe</value></data>
+  <data name="RecoveryAvailabilityTitle" xml:space="preserve"><value>Autorecovery status</value></data>
+  <data name="RecoveryUnavailablePersistent" xml:space="preserve"><value>Autorecovery could not be started. Please save your work often during this session.</value></data>
+  <data name="RecoveryDegradedPersistent" xml:space="preserve"><value>Autorecovery saving is having trouble. Please save your work manually until this notice disappears.</value></data>
+  <data name="AppDataProtectionTitle" xml:space="preserve"><value>Local data protection failed</value></data>
+  <data name="AppDataProtectionPersistent" xml:space="preserve"><value>Your private data folder could not be secured, so settings, recent files, and autorecovery are disabled for this session.</value></data>
+  <data name="SafeModeTitle" xml:space="preserve"><value>Start in safe mode?</value></data>
+  <data name="SafeModeBody" xml:space="preserve"><value>The same startup error happened repeatedly. Safe mode turns off clipboard watching, global capture, recent files, subfolder browsing, and autorecovery prompts for this session.</value></data>
+  <data name="SafeModeStart" xml:space="preserve"><value>Start in safe mode</value></data>
+  <data name="SafeModeContinue" xml:space="preserve"><value>Continue normally</value></data>
+  <data name="SafeModeLabel" xml:space="preserve"><value>Safe mode</value></data>
+  <data name="SettingsNavGeneral" xml:space="preserve"><value>Language and other settings</value></data>
+  <data name="SettingsNavFileAssoc" xml:space="preserve"><value>File associations</value></data>
+  <data name="SettingsNavAbout" xml:space="preserve"><value>About</value></data>
+  <data name="SettingsNavUpdate" xml:space="preserve"><value>Updates</value></data>
+  <data name="SettingsNavSupport" xml:space="preserve"><value>Support the developer</value></data>
+  <data name="SettingsLanguage" xml:space="preserve"><value>Language</value></data>
+  <data name="SettingsLanguageSystem" xml:space="preserve"><value>System default (Windows display language)</value></data>
+  <data name="SettingsLanguageRestartNote" xml:space="preserve"><value>Restart the app to apply the new language everywhere.</value></data>
+  <data name="FileAssocWindowsSettings" xml:space="preserve"><value>Windows default apps settings</value></data>
+  <data name="FileAssocPackagedNote" xml:space="preserve"><value>In this build the installation package manages file associations. The formats below are already registered as open-with candidates, so there is nothing to apply here. To use the app for double-clicks, select ezy Image Viewer under 'Windows default apps settings'.</value></data>
+  <data name="FileAssocPackagedRegistered" xml:space="preserve"><value>Formats registered by the package</value></data>
+  <data name="FilmstripLabel" xml:space="preserve"><value>Folder thumbnail list</value></data>
+  <data name="FilmstripCurrent" xml:space="preserve"><value>Current file</value></data>
+  <data name="FilmstripShow" xml:space="preserve"><value>Show thumbnail list</value></data>
+  <data name="FilmstripHide" xml:space="preserve"><value>Hide thumbnail list</value></data>
+  <data name="TipFilmstrip" xml:space="preserve"><value>Leave the list open to pick several images one after another.</value></data>
+  <data name="AboutDescription" xml:space="preserve"><value>A light, fast image viewer and editor for Windows</value></data>
+  <data name="AboutLicense" xml:space="preserve"><value>MIT License · © 2026 koprodev</value></data>
+  <data name="UpdateStoreManagedNote" xml:space="preserve"><value>Updates are handled automatically by the Microsoft Store. You can also check your Store library yourself.</value></data>
+  <data name="SupportNote" xml:space="preserve"><value>ezy Image Viewer is free. If it helped you, consider supporting its development.</value></data>
+  <data name="SupportAction" xml:space="preserve"><value>Support development ☕</value></data>
+  <data name="LinkOpenFailed" xml:space="preserve"><value>Could not open the page</value></data>
+  <data name="ToggleOn" xml:space="preserve"><value>On</value></data>
+  <data name="ToggleOff" xml:space="preserve"><value>Off</value></data>
+  <data name="DeleteImageTitle" xml:space="preserve"><value>Delete this image?</value></data>
+  <data name="DeleteImageRecycleBody" xml:space="preserve"><value>'{0}' will be moved to the Recycle Bin. You can restore it from Windows.</value></data>
+  <data name="DeleteImagePermanentBody" xml:space="preserve"><value>This location has no Recycle Bin, so '{0}' will be deleted permanently. This cannot be undone.</value></data>
+  <data name="DeleteImageUnsavedNote" xml:space="preserve"><value>This document has unsaved changes. They are not saved anywhere by deleting the file.</value></data>
+  <data name="DeleteImageConfirm" xml:space="preserve"><value>Delete</value></data>
+  <data name="DeleteImageDone" xml:space="preserve"><value>Moved '{0}' to the Recycle Bin</value></data>
+  <data name="DeleteImageDonePermanent" xml:space="preserve"><value>Deleted '{0}'</value></data>
+  <data name="DeleteImageFailed" xml:space="preserve"><value>Could not delete the file</value></data>
+  <data name="RenameFileLabel" xml:space="preserve"><value>File name</value></data>
+  <data name="RenameFileTip" xml:space="preserve"><value>Click or press F2 to rename this file.</value></data>
+  <data name="RenameDone" xml:space="preserve"><value>Renamed to '{0}'</value></data>
+  <data name="RenameFailed" xml:space="preserve"><value>Could not rename the file</value></data>
+  <data name="RenameEmpty" xml:space="preserve"><value>Enter a file name.</value></data>
+  <data name="RenameInvalidCharacters" xml:space="preserve"><value>A file name cannot contain \ / : * ? " &lt; &gt; | or end with a space or a period.</value></data>
+  <data name="RenameReservedName" xml:space="preserve"><value>That name is reserved by Windows. Choose another one.</value></data>
+  <data name="RenameTooLong" xml:space="preserve"><value>That file name is too long.</value></data>
+  <data name="RenameTargetExists" xml:space="preserve"><value>A file with that name already exists in this folder.</value></data>
+</root>

@@ -594,6 +594,16 @@
                                 <IconSourceElement x:Name="AnimationPlaybackIcon" Style="{StaticResource ToolIconStyle}" />
                             </Button>
                         </StackPanel>
+                        <Grid x:Name="StatusFileNameGroup" VerticalAlignment="Center" Visibility="Collapsed">
+                            <Button x:Name="StatusFileNameButton" MaxWidth="240" Height="28" Padding="6,0"
+                                    Background="Transparent" BorderThickness="0" CornerRadius="4"
+                                    HorizontalContentAlignment="Left" Click="OnRenameFileClicked">
+                                <TextBlock x:Name="StatusFileName" FontSize="12" TextTrimming="CharacterEllipsis" />
+                            </Button>
+                            <TextBox x:Name="StatusFileNameBox" MinWidth="180" MaxWidth="320" Height="28"
+                                     FontSize="12" Padding="6,0" Visibility="Collapsed"
+                                     KeyDown="OnRenameBoxKeyDown" LostFocus="OnRenameBoxLostFocus" />
+                        </Grid>
                         <TextBlock x:Name="StatusDimensions" FontSize="12" />
                         <TextBlock x:Name="StatusFormat" FontSize="12" />
                         <TextBlock x:Name="StatusColorMode" FontSize="12" />

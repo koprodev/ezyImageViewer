@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
   <resheader name="version"><value>2.0</value></resheader>
@@ -296,15 +296,13 @@
   <data name="SettingsOpenNewWindow" xml:space="preserve"><value>새 창에서 열기</value></data>
   <data name="SettingsClipboardWatch" xml:space="preserve"><value>클립보드 캡처 감시</value></data>
   <data name="SettingsRecentFiles" xml:space="preserve"><value>최근 파일 기록</value></data>
-  <data name="SettingsPrivacySummary" xml:space="preserve"><value>파일과 이미지 내용은 외부로 전송하지 않습니다. 원격 분석은 사용하지 않으며, 버전 확인은 GitHub 공개 정보만 조회합니다.</value></data>
+  <data name="SettingsPrivacySummary" xml:space="preserve"><value>파일과 이미지 내용은 어디에도 전송되지 않습니다. 원격 분석이나 자동 네트워크 통신도 없습니다.</value></data>
   <data name="SettingsIncludeSubfolders" xml:space="preserve"><value>폴더 탐색에 하위 폴더 포함</value></data>
   <data name="SettingsCaptureHotkey" xml:space="preserve"><value>전역 캡처 단축키</value></data>
   <data name="SettingsHotkeyInvalid" xml:space="preserve"><value>보조 키를 하나 이상 선택하고 키를 지정하세요.</value></data>
   <data name="SettingsApplicationInformation" xml:space="preserve"><value>앱 정보</value></data>
   <data name="SettingsCurrentVersion" xml:space="preserve"><value>현재 버전: {0}</value></data>
-  <data name="SettingsCheckForUpdates" xml:space="preserve"><value>업데이트 확인</value></data>
   <data name="StatusPreview" xml:space="preserve"><value>미리보기</value></data>
-  <data name="UpdateOpenFailed" xml:space="preserve"><value>릴리스 페이지를 열 수 없습니다</value></data>
   <data name="ToolRecent" xml:space="preserve"><value>최근 파일</value></data>
   <data name="TipRecent" xml:space="preserve"><value>최근에 정상적으로 연 파일을 표시합니다.</value></data>
   <data name="RecentTitle" xml:space="preserve"><value>최근 파일</value></data>
@@ -342,25 +340,11 @@
   <data name="SettingsNavUpdate" xml:space="preserve"><value>프로그램 업데이트</value></data>
   <data name="SettingsNavSupport" xml:space="preserve"><value>개발자 지원</value></data>
   <data name="SettingsLanguage" xml:space="preserve"><value>언어</value></data>
-  <data name="SettingsLanguageKorean" xml:space="preserve"><value>한국어</value></data>
-  <data name="SettingsLanguageNote" xml:space="preserve"><value>현재 버전은 한국어를 제공합니다. 영어는 이후 버전에서 지원할 예정입니다.</value></data>
-  <data name="FileAssocDescription" xml:space="preserve"><value>선택한 확장자를 이 앱의 기본 프로그램으로 지정합니다. 저장하거나 '지금 적용'을 누르면 연결 프로그램 후보 등록과 더블클릭 기본 앱 전환이 함께 적용됩니다. Windows가 전환을 막으면 아래 'Windows 기본 프로그램 설정'에서 직접 선택하세요.</value></data>
+  <data name="SettingsLanguageSystem" xml:space="preserve"><value>시스템 기본 (Windows 표시 언어)</value></data>
+  <data name="SettingsLanguageRestartNote" xml:space="preserve"><value>새 언어는 앱을 다시 시작하면 모든 화면에 적용됩니다.</value></data>
   <data name="FileAssocWindowsSettings" xml:space="preserve"><value>Windows 기본 프로그램 설정</value></data>
-  <data name="FileAssocSelectEssential" xml:space="preserve"><value>필수 파일 선택</value></data>
-  <data name="FileAssocSelectAll" xml:space="preserve"><value>전부 선택</value></data>
-  <data name="FileAssocSelectNone" xml:space="preserve"><value>선택 안 함</value></data>
-  <data name="FileAssocApply" xml:space="preserve"><value>지금 적용</value></data>
-  <data name="FileAssocApplied" xml:space="preserve"><value>파일 연결을 적용했습니다. 더블클릭 기본 앱으로 쓰려면 'Windows 기본 프로그램 설정'에서 ezy Image Viewer를 선택하세요</value></data>
-  <data name="FileAssocCleared" xml:space="preserve"><value>선택한 확장자가 없어 이 앱의 파일 연결을 모두 해제했습니다</value></data>
-  <data name="FileAssocApplyFailed" xml:space="preserve"><value>파일 연결을 적용하지 못했습니다</value></data>
-  <data name="FileAssocUnavailable" xml:space="preserve"><value>파일 연결 정보를 읽지 못해 이 페이지를 사용할 수 없습니다</value></data>
-  <data name="FileAssocSetDefaultAll" xml:space="preserve"><value>선택한 확장자를 이 앱의 기본 프로그램으로 지정했습니다</value></data>
-  <data name="FileAssocSetDefaultPartial" xml:space="preserve"><value>{0}/{1}개 확장자만 기본 프로그램으로 지정했습니다. 나머지는 Windows 설정에서 직접 선택하세요</value></data>
-  <data name="FileAssocSetDefaultUnsupported" xml:space="preserve"><value>이 Windows에서는 앱이 기본 프로그램을 바꿀 수 없습니다. Windows 설정에서 직접 선택하세요</value></data>
-  <data name="FileAssocSetDefaultRestoreFailed" xml:space="preserve"><value>일부 확장자는 이전 기본 앱 복원에도 실패했습니다. Windows 설정에서 확인하세요.</value></data>
-  <data name="FileAssocGroupRaster" xml:space="preserve"><value>래스터 이미지</value></data>
-  <data name="FileAssocGroupCodec" xml:space="preserve"><value>코덱 확장 형식 (AVIF·HEIC)</value></data>
-  <data name="FileAssocGroupVector" xml:space="preserve"><value>벡터 이미지</value></data>
+  <data name="FileAssocPackagedNote" xml:space="preserve"><value>이 버전은 설치 패키지가 파일 연결을 관리합니다. 아래 형식은 이미 '연결 프로그램' 후보로 등록되어 있어 따로 적용할 것이 없습니다. 더블클릭 기본 앱으로 쓰려면 'Windows 기본 프로그램 설정'에서 ezy Image Viewer를 선택하세요.</value></data>
+  <data name="FileAssocPackagedRegistered" xml:space="preserve"><value>패키지가 등록한 형식</value></data>
   <data name="FilmstripLabel" xml:space="preserve"><value>폴더 파일 썸네일 목록</value></data>
   <data name="FilmstripCurrent" xml:space="preserve"><value>현재 파일</value></data>
   <data name="FilmstripShow" xml:space="preserve"><value>썸네일 목록 열기</value></data>
@@ -368,17 +352,27 @@
   <data name="TipFilmstrip" xml:space="preserve"><value>목록은 열어 둔 채로 여러 이미지를 이어서 선택할 수 있습니다.</value></data>
   <data name="AboutDescription" xml:space="preserve"><value>가볍고 빠른 Windows 이미지 뷰어·편집기</value></data>
   <data name="AboutLicense" xml:space="preserve"><value>MIT 라이선스 · © 2026 koprodev</value></data>
-  <data name="AboutProjectPage" xml:space="preserve"><value>GitHub에서 릴리스 보기</value></data>
-  <data name="UpdatePolicyNote" xml:space="preserve"><value>실행 시 하루에 한 번 GitHub 공개 릴리스를 확인합니다. 프리뷰도 포함하며 다운로드와 설치는 직접 선택합니다.</value></data>
-  <data name="UpdateChecking" xml:space="preserve"><value>최신 버전을 확인하는 중입니다…</value></data>
-  <data name="UpdateCurrent" xml:space="preserve"><value>현재 최신 버전입니다. ({0})</value></data>
-  <data name="UpdateUnavailable" xml:space="preserve"><value>업데이트 정보를 확인하지 못했습니다. 인터넷 연결을 확인한 뒤 다시 시도해 주세요.</value></data>
-  <data name="UpdateAvailableTitle" xml:space="preserve"><value>새 버전이 있습니다</value></data>
-  <data name="UpdateAvailableBody" xml:space="preserve"><value>현재 버전: {0}
-최신 버전: {1}</value></data>
-  <data name="UpdateOpenRelease" xml:space="preserve"><value>릴리스 페이지 열기</value></data>
-  <data name="UpdateLater" xml:space="preserve"><value>나중에</value></data>
+  <data name="UpdateStoreManagedNote" xml:space="preserve"><value>업데이트는 Microsoft Store가 자동으로 처리합니다. Store 라이브러리에서 직접 확인할 수도 있습니다.</value></data>
   <data name="SupportNote" xml:space="preserve"><value>ezy Image Viewer는 무료로 제공됩니다. 도움이 되었다면 개발을 응원해 주세요.</value></data>
   <data name="SupportAction" xml:space="preserve"><value>개발 응원하기 ☕</value></data>
   <data name="LinkOpenFailed" xml:space="preserve"><value>페이지를 열 수 없습니다</value></data>
+  <data name="ToggleOn" xml:space="preserve"><value>켬</value></data>
+  <data name="ToggleOff" xml:space="preserve"><value>끔</value></data>
+  <data name="DeleteImageTitle" xml:space="preserve"><value>이 이미지를 삭제할까요?</value></data>
+  <data name="DeleteImageRecycleBody" xml:space="preserve"><value>'{0}'을(를) 휴지통으로 보냅니다. Windows에서 다시 꺼낼 수 있습니다.</value></data>
+  <data name="DeleteImagePermanentBody" xml:space="preserve"><value>이 위치에는 휴지통이 없어 '{0}'을(를) 완전히 삭제합니다. 되돌릴 수 없습니다.</value></data>
+  <data name="DeleteImageUnsavedNote" xml:space="preserve"><value>저장하지 않은 변경 사항이 있습니다. 파일을 지워도 그 내용은 어디에도 저장되지 않습니다.</value></data>
+  <data name="DeleteImageConfirm" xml:space="preserve"><value>삭제</value></data>
+  <data name="DeleteImageDone" xml:space="preserve"><value>'{0}'을(를) 휴지통으로 보냈습니다</value></data>
+  <data name="DeleteImageDonePermanent" xml:space="preserve"><value>'{0}'을(를) 삭제했습니다</value></data>
+  <data name="DeleteImageFailed" xml:space="preserve"><value>파일을 삭제하지 못했습니다</value></data>
+  <data name="RenameFileLabel" xml:space="preserve"><value>파일 이름</value></data>
+  <data name="RenameFileTip" xml:space="preserve"><value>클릭하거나 F2를 누르면 이름을 바꿉니다.</value></data>
+  <data name="RenameDone" xml:space="preserve"><value>'{0}'(으)로 이름을 바꿨습니다</value></data>
+  <data name="RenameFailed" xml:space="preserve"><value>이름을 바꾸지 못했습니다</value></data>
+  <data name="RenameEmpty" xml:space="preserve"><value>파일 이름을 입력하세요.</value></data>
+  <data name="RenameInvalidCharacters" xml:space="preserve"><value>파일 이름에는 \ / : * ? " &lt; &gt; | 를 쓸 수 없고, 공백이나 마침표로 끝날 수 없습니다.</value></data>
+  <data name="RenameReservedName" xml:space="preserve"><value>Windows가 예약한 이름입니다. 다른 이름을 쓰세요.</value></data>
+  <data name="RenameTooLong" xml:space="preserve"><value>파일 이름이 너무 깁니다.</value></data>
+  <data name="RenameTargetExists" xml:space="preserve"><value>같은 이름의 파일이 이 폴더에 이미 있습니다.</value></data>
 </root>

@@ -111,6 +111,10 @@ public static class Program
                 });
             }
 
+            // XAML이 뜨기 전에 언어를 못 박는다. WinUI는 첫 리소스 조회 때 자기 컨트롤
+            // 문자열을 확정해서, 창이 생긴 뒤에 바꾸면 토글의 켬/끔만 OS 언어로 남는다.
+            AppStrings.ApplyLanguage(StartupLanguagePreference.Read());
+
             Microsoft.UI.Xaml.Application.Start(p =>
             {
                 _ = p;

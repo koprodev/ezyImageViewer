@@ -18,7 +18,6 @@ public interface IAppDataPaths
     string RecoveryQuarantineDirectory { get; }
     string CrashMarkersDirectory { get; }
     string StartupHealthFile { get; }
-    string UpdateCheckStateFile { get; }
 }
 
 public sealed class AppDataPaths : IAppDataPaths
@@ -34,7 +33,6 @@ public sealed class AppDataPaths : IAppDataPaths
         RecoveryQuarantineDirectory = UnderRoot("recovery-quarantine");
         CrashMarkersDirectory = UnderRoot("crash-markers");
         StartupHealthFile = UnderRoot("startup-health.json");
-        UpdateCheckStateFile = UnderRoot("update-check-state.txt");
     }
 
     public string RootDirectory { get; }
@@ -45,16 +43,26 @@ public sealed class AppDataPaths : IAppDataPaths
     public string RecoveryQuarantineDirectory { get; }
     public string CrashMarkersDirectory { get; }
     public string StartupHealthFile { get; }
-    public string UpdateCheckStateFile { get; }
+
+    private const string DefaultFolderName = "ezyImageViewer";
 
     public static AppDataPaths CreateDefault()
     {
-        var localAppData = Environment.GetFolderPath(
-            Environment.SpecialFolder.LocalApplicationData);
-        var paths = new AppDataPaths(Path.Combine(localAppData, "ezyImageViewer"));
+        var paths = new AppDataPaths(DefaultRootDirectory);
         AppDataSecurity.EnsureProtected(paths);
         return paths;
     }
+
+    /// <summary>
+    /// 보호 설정 없이 경로만 계산한다. UI 언어는 창보다 먼저 정해야 하는데
+    /// DACL 정비까지 끌고 오면 콜드 스타트가 그만큼 늦어진다.
+    /// </summary>
+    public static string DefaultRootDirectory => Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        DefaultFolderName);
+
+    public static string DefaultSettingsFile =>
+        Path.Combine(DefaultRootDirectory, "settings.json");
 
     private string UnderRoot(string name)
     {

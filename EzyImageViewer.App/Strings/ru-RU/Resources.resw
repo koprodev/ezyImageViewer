@@ -1,0 +1,378 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="ToolOpen" xml:space="preserve"><value>Открыть (Ctrl+O)</value></data>
+  <data name="ToolClipboard" xml:space="preserve"><value>Открыть документ из буфера обмена</value></data>
+  <data name="ToolWhiteboard" xml:space="preserve"><value>Открыть доску</value></data>
+  <data name="TipWhiteboard" xml:space="preserve"><value>Открывает доску 4K с сеткой в качестве нового документа.</value></data>
+  <data name="WhiteboardWhite" xml:space="preserve"><value>Белая доска</value></data>
+  <data name="WhiteboardBlack" xml:space="preserve"><value>Чёрная доска</value></data>
+  <data name="ToolPrevious" xml:space="preserve"><value>Предыдущий файл (←)</value></data>
+  <data name="ToolNext" xml:space="preserve"><value>Следующий файл (→)</value></data>
+  <data name="ToolFit" xml:space="preserve"><value>Вписать в окно (Ctrl+0)</value></data>
+  <data name="ToolActualSize" xml:space="preserve"><value>Реальный размер (Ctrl+1)</value></data>
+  <data name="ToolRotate" xml:space="preserve"><value>Повернуть документ по часовой стрелке</value></data>
+  <data name="ToolRotateCcw" xml:space="preserve"><value>Повернуть документ против часовой стрелки</value></data>
+  <data name="ToolOpenGroup" xml:space="preserve"><value>Меню «Открыть»</value></data>
+  <data name="TipOpenGroup" xml:space="preserve"><value>Объединяет файл, недавние, буфер обмена, снимок, доску и новое окно в одно меню.</value></data>
+  <data name="ToolTransformGroup" xml:space="preserve"><value>Меню поворота и отражения</value></data>
+  <data name="TipTransformGroup" xml:space="preserve"><value>Объединяет поворот по и против часовой стрелки с отражением по горизонтали и вертикали.</value></data>
+  <data name="ToolCropGroup" xml:space="preserve"><value>Меню обрезки и размера</value></data>
+  <data name="TipCropGroup" xml:space="preserve"><value>Объединяет обрезку, пропорции обрезки и изменение размера в одно меню.</value></data>
+  <data name="ToolZoomGroup" xml:space="preserve"><value>Меню масштаба</value></data>
+  <data name="TipZoomGroup" xml:space="preserve"><value>Объединяет «Вписать в окно» и «Реальный размер» в одно меню.</value></data>
+  <data name="ToolProtectGroup" xml:space="preserve"><value>Меню сокрытия данных</value></data>
+  <data name="TipProtectGroup" xml:space="preserve"><value>Объединяет пикселизацию, размытие и заливку в одно меню.</value></data>
+  <data name="MenuCrop" xml:space="preserve"><value>Обрезать</value></data>
+  <data name="MenuCropRatio" xml:space="preserve"><value>Пропорции обрезки</value></data>
+  <data name="MenuResize" xml:space="preserve"><value>Изменить размер</value></data>
+  <data name="SettingsNavToolbarGroups" xml:space="preserve"><value>Группы панели инструментов</value></data>
+  <data name="SettingsToolbarGroups" xml:space="preserve"><value>Выберите, какие кнопки панели инструментов сворачиваются в раскрывающиеся группы.</value></data>
+  <data name="SettingsToolbarGroupOpen" xml:space="preserve"><value>Группа «Открыть» (открыть, недавние, буфер обмена, снимок, доска, новое окно)</value></data>
+  <data name="SettingsToolbarGroupSelect" xml:space="preserve"><value>Раздельная кнопка выделения (объекты / область)</value></data>
+  <data name="SettingsToolbarGroupTransform" xml:space="preserve"><value>Группа поворота и отражения</value></data>
+  <data name="SettingsToolbarGroupCrop" xml:space="preserve"><value>Группа обрезки и размера (обрезка, пропорции, размер)</value></data>
+  <data name="SettingsToolbarGroupZoom" xml:space="preserve"><value>Группа масштаба (вписать в окно, реальный размер)</value></data>
+  <data name="SettingsToolbarGroupProtect" xml:space="preserve"><value>Группа сокрытия данных (пикселизация, размытие, заливка)</value></data>
+  <data name="ToolFullScreen" xml:space="preserve"><value>Полный экран (F11)</value></data>
+  <data name="ToolDockToggle" xml:space="preserve"><value>Сменить ориентацию панели инструментов</value></data>
+  <data name="ToolSendToBack" xml:space="preserve"><value>На задний план (Ctrl+Shift+[)</value></data>
+  <data name="ToolSendBackward" xml:space="preserve"><value>Переместить назад (Ctrl+[)</value></data>
+  <data name="ToolBringForward" xml:space="preserve"><value>Переместить вперёд (Ctrl+])</value></data>
+  <data name="ToolBringToFront" xml:space="preserve"><value>На передний план (Ctrl+Shift+])</value></data>
+  <data name="ToolDuplicate" xml:space="preserve"><value>Продублировать выделение (Ctrl+D)</value></data>
+  <data name="ToolEditText" xml:space="preserve"><value>Изменить выделенный текст</value></data>
+  <data name="LayerPanel" xml:space="preserve"><value>Слои</value></data>
+  <data name="LayerVisible" xml:space="preserve"><value>Виден</value></data>
+  <data name="LayerHidden" xml:space="preserve"><value>Скрыт</value></data>
+  <data name="LayerLocked" xml:space="preserve"><value>Заблокирован</value></data>
+  <data name="LayerUnlocked" xml:space="preserve"><value>Разблокирован</value></data>
+  <data name="LayerTypeInk" xml:space="preserve"><value>Перо</value></data>
+  <data name="LayerTypeHighlighter" xml:space="preserve"><value>Маркер</value></data>
+  <data name="LayerTypeLine" xml:space="preserve"><value>Линия</value></data>
+  <data name="LayerTypeArrow" xml:space="preserve"><value>Стрелка</value></data>
+  <data name="LayerTypeRectangle" xml:space="preserve"><value>Фигура</value></data>
+  <data name="LayerTypeEllipse" xml:space="preserve"><value>Эллипс</value></data>
+  <data name="LayerTypeText" xml:space="preserve"><value>Текст</value></data>
+  <data name="LayerTypeNumber" xml:space="preserve"><value>Номер</value></data>
+  <data name="LayerTypeSpeechBubble" xml:space="preserve"><value>Выноска</value></data>
+  <data name="LayerTypeImage" xml:space="preserve"><value>Изображение</value></data>
+  <data name="LayerTypeMosaic" xml:space="preserve"><value>Пикселизация</value></data>
+  <data name="LayerTypeBlur" xml:space="preserve"><value>Размытие</value></data>
+  <data name="LayerTypeMask" xml:space="preserve"><value>Заливка</value></data>
+  <data name="ToolMosaic" xml:space="preserve"><value>Пикселизация</value></data>
+  <data name="TipMosaic" xml:space="preserve"><value>Скрывает выделенную область под блоками</value></data>
+  <data name="ToolBlur" xml:space="preserve"><value>Размытие</value></data>
+  <data name="TipBlur" xml:space="preserve"><value>Размывает выделенную область</value></data>
+  <data name="ToolMask" xml:space="preserve"><value>Заливка</value></data>
+  <data name="TipMask" xml:space="preserve"><value>Полностью закрывает выделенную область сплошным цветом</value></data>
+  <data name="StyleBlockSize" xml:space="preserve"><value>Размер блока</value></data>
+  <data name="StyleBlurSigma" xml:space="preserve"><value>Интенсивность</value></data>
+  <data name="ToolCapture" xml:space="preserve"><value>Снимок экрана</value></data>
+  <data name="TipCapture" xml:space="preserve"><value>Открывает «Ножницы» Windows и автоматически импортирует результат</value></data>
+  <data name="CaptureNoticeTitle" xml:space="preserve"><value>В буфере обмена обнаружен новый снимок</value></data>
+  <data name="CaptureNoticeOpen" xml:space="preserve"><value>Открыть</value></data>
+  <data name="CaptureLaunchFailed" xml:space="preserve"><value>Не удалось открыть «Ножницы» — сделайте снимок сочетанием Win+Shift+S, и он будет импортирован автоматически</value></data>
+  <data name="CaptureHotkeyUnavailable" xml:space="preserve"><value>Глобальное сочетание клавиш для снимка ({0}) уже занято другим приложением</value></data>
+  <data name="CaptureFailed" xml:space="preserve"><value>Снимок не был завершён</value></data>
+  <data name="ToolSave" xml:space="preserve"><value>Сохранить (Ctrl+S)</value></data>
+  <data name="TipSave" xml:space="preserve"><value>Быстрое сохранение · «Сохранить как» — Ctrl+Shift+S</value></data>
+  <data name="SaveDone" xml:space="preserve"><value>Сохранено</value></data>
+  <data name="SaveDoneNoMetadata" xml:space="preserve"><value>Сохранено · без метаданных</value></data>
+  <data name="SaveNoChanges" xml:space="preserve"><value>Нет изменений для сохранения</value></data>
+  <data name="SaveFailed" xml:space="preserve"><value>Не удалось сохранить</value></data>
+  <data name="SaveInProgress" xml:space="preserve"><value>Сохранение…</value></data>
+  <data name="SaveFullResUnavailable" xml:space="preserve"><value>Не удалось перечитать оригинал в полном разрешении, поэтому экспорт невозможен</value></data>
+  <data name="SaveSourceChanged" xml:space="preserve"><value>Исходный файл изменился на диске, сохранение невозможно. Откройте документ заново</value></data>
+  <data name="SaveDefaultName" xml:space="preserve"><value>Изображение</value></data>
+  <data name="CopyDone" xml:space="preserve"><value>Скопировано в буфер обмена</value></data>
+  <data name="CopyRegionDone" xml:space="preserve"><value>Выделенная область скопирована в буфер обмена</value></data>
+  <data name="CopyRegionStale" xml:space="preserve"><value>Область проверки обрезки больше недействительна, копирование не выполнено</value></data>
+  <data name="ExportOptionsTitle" xml:space="preserve"><value>Параметры экспорта</value></data>
+  <data name="ExportQualityLabel" xml:space="preserve"><value>Качество</value></data>
+  <data name="ExportKeepMetadataLabel" xml:space="preserve"><value>Сохранять метаданные (конфиденциальные сведения, например геоданные, удаляются всегда)</value></data>
+  <data name="ExportLosslessLabel" xml:space="preserve"><value>Без потерь</value></data>
+  <data name="OverwriteTitle" xml:space="preserve"><value>Перезаписать оригинал</value></data>
+  <data name="OverwriteBody" xml:space="preserve"><value>Исходный файл будет перезаписан вашими изменениями. Отменить это нельзя.</value></data>
+  <data name="OverwriteConfirm" xml:space="preserve"><value>Перезаписать</value></data>
+  <data name="DialogSaveButton" xml:space="preserve"><value>Сохранить</value></data>
+  <data name="DialogDontSaveButton" xml:space="preserve"><value>Не сохранять</value></data>
+  <data name="ProjectTypeName" xml:space="preserve"><value>Проект ezyImage</value></data>
+  <data name="TextEditTitle" xml:space="preserve"><value>Изменение текста</value></data>
+  <data name="ToolColor" xml:space="preserve"><value>Выбрать цвет рисования</value></data>
+  <data name="ToolRectangle" xml:space="preserve"><value>Прямоугольник (перетащите, чтобы нарисовать · Delete — удалить)</value></data>
+  <data name="ToolUndo" xml:space="preserve"><value>Отменить (Ctrl+Z)</value></data>
+  <data name="ToolRedo" xml:space="preserve"><value>Вернуть (Ctrl+Y)</value></data>
+  <data name="StateReady" xml:space="preserve"><value>Готово</value></data>
+  <data name="StateLoading" xml:space="preserve"><value>Загрузка…</value></data>
+  <data name="StateFailed" xml:space="preserve"><value>Не удалось открыть</value></data>
+  <data name="StateModified" xml:space="preserve"><value>Изменено</value></data>
+  <data name="DiscardTitle" xml:space="preserve"><value>Несохранённые изменения</value></data>
+  <data name="DiscardBody" xml:space="preserve"><value>В этом документе есть несохранённые изменения. Если не сохранить, они будут потеряны.</value></data>
+  <data name="DiscardConfirm" xml:space="preserve"><value>Отклонить изменения</value></data>
+  <data name="DiscardCancel" xml:space="preserve"><value>Отмена</value></data>
+  <data name="ToolCrop" xml:space="preserve"><value>Обрезка (перетащите, затем Enter или двойной щелчок внутри — применить · Esc — отмена)</value></data>
+  <data name="ToolCropRatio" xml:space="preserve"><value>Сменить пропорции обрезки (свободно / 1:1 / 4:3 / 16:9)</value></data>
+  <data name="ToolFlipHorizontal" xml:space="preserve"><value>Отразить по горизонтали</value></data>
+  <data name="ToolFlipVertical" xml:space="preserve"><value>Отразить по вертикали</value></data>
+  <data name="ToolResize" xml:space="preserve"><value>Изменить размер</value></data>
+  <data name="CropRatioFree" xml:space="preserve"><value>Свободно</value></data>
+  <data name="CropReviewHint" xml:space="preserve"><value>Проверка обрезки: Enter или двойной щелчок внутри — применить · Esc — отмена</value></data>
+  <data name="ColorBlack" xml:space="preserve"><value>Чёрный</value></data>
+  <data name="ColorGray" xml:space="preserve"><value>Серый</value></data>
+  <data name="ColorSilver" xml:space="preserve"><value>Серебристый</value></data>
+  <data name="ColorWhite" xml:space="preserve"><value>Белый</value></data>
+  <data name="ColorRed" xml:space="preserve"><value>Красный</value></data>
+  <data name="ColorOrange" xml:space="preserve"><value>Оранжевый</value></data>
+  <data name="ColorYellow" xml:space="preserve"><value>Жёлтый</value></data>
+  <data name="ColorLime" xml:space="preserve"><value>Лаймовый</value></data>
+  <data name="ColorGreen" xml:space="preserve"><value>Зелёный</value></data>
+  <data name="ColorTeal" xml:space="preserve"><value>Бирюзовый</value></data>
+  <data name="ColorSky" xml:space="preserve"><value>Голубой</value></data>
+  <data name="ColorBlue" xml:space="preserve"><value>Синий</value></data>
+  <data name="ColorNavy" xml:space="preserve"><value>Тёмно-синий</value></data>
+  <data name="ColorPurple" xml:space="preserve"><value>Фиолетовый</value></data>
+  <data name="ColorMagenta" xml:space="preserve"><value>Пурпурный</value></data>
+  <data name="ColorBrown" xml:space="preserve"><value>Коричневый</value></data>
+  <data name="ColorSelected" xml:space="preserve"><value>Выбрано</value></data>
+  <data name="EditFailed" xml:space="preserve"><value>Не удалось изменить</value></data>
+  <data name="DialogApply" xml:space="preserve"><value>Применить</value></data>
+  <data name="DialogCancel" xml:space="preserve"><value>Отмена</value></data>
+  <data name="ResizeTitle" xml:space="preserve"><value>Изменение размера</value></data>
+  <data name="ResizeWidthLabel" xml:space="preserve"><value>Ширина (px)</value></data>
+  <data name="ResizeHeightLabel" xml:space="preserve"><value>Высота (px)</value></data>
+  <data name="ResizePercentLabel" xml:space="preserve"><value>Масштаб (%)</value></data>
+  <data name="ResizeKeepAspect" xml:space="preserve"><value>Сохранять пропорции</value></data>
+  <data name="ToolSelect" xml:space="preserve"><value>Выделение и перемещение</value></data>
+  <data name="ToolSelectMode" xml:space="preserve"><value>Сменить режим выделения</value></data>
+  <data name="TipSelectMode" xml:space="preserve"><value>Определяет, выбирает ли инструмент объекты или выделяет прямоугольную область.</value></data>
+  <data name="SelectModeRegion" xml:space="preserve"><value>Выделение области</value></data>
+  <data name="TipRegionSelect" xml:space="preserve"><value>Выделяет прямоугольную область фона. Перетащите внутри, чтобы приподнять и переместить её, или нажмите Ctrl+X, чтобы вырезать.</value></data>
+  <data name="RegionReviewHint" xml:space="preserve"><value>Выделенная область: перетаскивание внутри = приподнять и переместить · Ctrl+X = вырезать · Ctrl+C = копировать · Esc = отмена</value></data>
+  <data name="RegionCutDone" xml:space="preserve"><value>Выделенная область вырезана в буфер обмена</value></data>
+  <data name="RegionNeedsFullRes" xml:space="preserve"><value>Правка области недоступна в документе с разрешением предпросмотра</value></data>
+  <data name="ToolPen" xml:space="preserve"><value>Перо</value></data>
+  <data name="ToolHighlighter" xml:space="preserve"><value>Маркер</value></data>
+  <data name="ToolLine" xml:space="preserve"><value>Линия</value></data>
+  <data name="ToolArrow" xml:space="preserve"><value>Стрелка</value></data>
+  <data name="ToolRoundedRectangle" xml:space="preserve"><value>Скруглённый прямоугольник</value></data>
+  <data name="ToolEllipse" xml:space="preserve"><value>Эллипс</value></data>
+  <data name="ToolText" xml:space="preserve"><value>Текстовое поле</value></data>
+  <data name="ToolNumber" xml:space="preserve"><value>Нумерованный маркер</value></data>
+  <data name="ToolSpeechBubble" xml:space="preserve"><value>Выноска</value></data>
+  <data name="TextTitle" xml:space="preserve"><value>Добавление текста</value></data>
+  <data name="SpeechBubbleTitle" xml:space="preserve"><value>Текст выноски</value></data>
+  <data name="TextContentLabel" xml:space="preserve"><value>Содержимое</value></data>
+  <data name="MarkerLimitReached" xml:space="preserve"><value>Достигнут предел нумерованных маркеров.</value></data>
+  <data name="StyleFill" xml:space="preserve"><value>Заливка</value></data>
+  <data name="StyleBackground" xml:space="preserve"><value>Фон</value></data>
+  <data name="StyleCornerRadius" xml:space="preserve"><value>Радиус скругления</value></data>
+  <data name="LayerCollapse" xml:space="preserve"><value>Свернуть слои</value></data>
+  <data name="LayerExpand" xml:space="preserve"><value>Развернуть слои</value></data>
+  <data name="TipLayerCollapse" xml:space="preserve"><value>Сворачивает или разворачивает список слоёв.</value></data>
+  <data name="StyleStrokeWidth" xml:space="preserve"><value>Толщина линии (px)</value></data>
+  <data name="StyleOpacity" xml:space="preserve"><value>Непрозрачность (%)</value></data>
+  <data name="StyleFontSize" xml:space="preserve"><value>Размер шрифта</value></data>
+  <data name="StyleRotation" xml:space="preserve"><value>Поворот (°)</value></data>
+  <data name="StyleArrowhead" xml:space="preserve"><value>Наконечник стрелки</value></data>
+  <data name="StyleFontFamily" xml:space="preserve"><value>Шрифт</value></data>
+  <data name="StyleBold" xml:space="preserve"><value>Полужирный</value></data>
+  <data name="StyleItalic" xml:space="preserve"><value>Курсив</value></data>
+  <data name="StyleAlignment" xml:space="preserve"><value>Выравнивание текста</value></data>
+  <data name="ArrowheadOpen" xml:space="preserve"><value>Открытый наконечник</value></data>
+  <data name="ArrowheadTriangle" xml:space="preserve"><value>Треугольный наконечник</value></data>
+  <data name="AlignmentLeft" xml:space="preserve"><value>По левому краю</value></data>
+  <data name="AlignmentCenter" xml:space="preserve"><value>По центру</value></data>
+  <data name="AlignmentRight" xml:space="preserve"><value>По правому краю</value></data>
+  <data name="ToolNewWindow" xml:space="preserve"><value>Открыть новое окно</value></data>
+  <data name="ToolRail" xml:space="preserve"><value>Панель инструментов</value></data>
+  <data name="ToolEyedropper" xml:space="preserve"><value>Взять цвет с изображения на экране</value></data>
+  <data name="ToolZoomOut" xml:space="preserve"><value>Уменьшить</value></data>
+  <data name="ToolZoomIn" xml:space="preserve"><value>Увеличить</value></data>
+  <data name="StatusFile" xml:space="preserve"><value>Файл</value></data>
+  <data name="StatusPage" xml:space="preserve"><value>Страница</value></data>
+  <data name="StatusColorMode" xml:space="preserve"><value>Цветовой режим</value></data>
+  <data name="StatusProgress" xml:space="preserve"><value>Ход выполнения</value></data>
+  <data name="StatusZoom" xml:space="preserve"><value>Масштаб</value></data>
+  <data name="StatusDetails" xml:space="preserve"><value>Сведения об изображении</value></data>
+  <data name="CanvasName" xml:space="preserve"><value>Холст редактирования изображения</value></data>
+  <data name="ToolContext" xml:space="preserve"><value>Свойства инструмента</value></data>
+  <data name="ColorModeRgb8" xml:space="preserve"><value>RGB, 8 бит</value></data>
+  <data name="ColorModeRgba8" xml:space="preserve"><value>RGBA, 8 бит</value></data>
+  <data name="GroupFile" xml:space="preserve"><value>Файловые инструменты</value></data>
+  <data name="GroupHistory" xml:space="preserve"><value>Инструменты журнала</value></data>
+  <data name="GroupImage" xml:space="preserve"><value>Инструменты изображения</value></data>
+  <data name="GroupDrawing" xml:space="preserve"><value>Инструменты рисования</value></data>
+  <data name="GroupShapes" xml:space="preserve"><value>Инструменты фигур</value></data>
+  <data name="GroupText" xml:space="preserve"><value>Текстовые инструменты</value></data>
+  <data name="GroupProtection" xml:space="preserve"><value>Инструменты сокрытия данных</value></data>
+  <data name="GroupView" xml:space="preserve"><value>Инструменты просмотра</value></data>
+  <data name="LayerShow" xml:space="preserve"><value>Показать</value></data>
+  <data name="LayerHide" xml:space="preserve"><value>Скрыть</value></data>
+  <data name="LayerLock" xml:space="preserve"><value>Заблокировать</value></data>
+  <data name="LayerUnlock" xml:space="preserve"><value>Разблокировать</value></data>
+  <data name="LayerDefaultName" xml:space="preserve"><value>Слой</value></data>
+  <data name="LayerActive" xml:space="preserve"><value>Активный слой</value></data>
+  <data name="LayerSetActive" xml:space="preserve"><value>Сделать активным слоем</value></data>
+  <data name="ToolLayerPanel" xml:space="preserve"><value>Панель слоёв</value></data>
+  <data name="TipLayerPanel" xml:space="preserve"><value>Показывает или скрывает панель слоёв.</value></data>
+  <data name="LayerAdd" xml:space="preserve"><value>Новый слой</value></data>
+  <data name="TipLayerAdd" xml:space="preserve"><value>Добавляет новый слой над активным.</value></data>
+  <data name="LayerDelete" xml:space="preserve"><value>Удалить слой</value></data>
+  <data name="TipLayerDelete" xml:space="preserve"><value>Удаляет активный слой и всё, что на нём находится.</value></data>
+  <data name="LayerMoveUp" xml:space="preserve"><value>Слой выше</value></data>
+  <data name="TipLayerMoveUp" xml:space="preserve"><value>Перемещает активный слой на шаг вперёд.</value></data>
+  <data name="LayerMoveDown" xml:space="preserve"><value>Слой ниже</value></data>
+  <data name="TipLayerMoveDown" xml:space="preserve"><value>Перемещает активный слой на шаг назад.</value></data>
+  <data name="LayerRename" xml:space="preserve"><value>Переименовать слой</value></data>
+  <data name="TipLayerRename" xml:space="preserve"><value>Изменяет имя активного слоя.</value></data>
+  <data name="LayerMoveSelection" xml:space="preserve"><value>Переместить выделение на активный слой</value></data>
+  <data name="TipLayerMoveSelection" xml:space="preserve"><value>Перемещает выделенные объекты в начало активного слоя.</value></data>
+  <data name="LayerBlockedHidden" xml:space="preserve"><value>Скрытый слой нельзя редактировать</value></data>
+  <data name="LayerBlockedLocked" xml:space="preserve"><value>Заблокированный слой нельзя редактировать</value></data>
+  <data name="TipOpen" xml:space="preserve"><value>Выберите поддерживаемый файл изображения и откройте его в этом окне.</value></data>
+  <data name="TipClipboard" xml:space="preserve"><value>Открывает изображение из буфера обмена как новый документ.</value></data>
+  <data name="TipNewWindow" xml:space="preserve"><value>Открывает ещё одно независимое пустое окно просмотра.</value></data>
+  <data name="TipPrevious" xml:space="preserve"><value>Переходит к предыдущему изображению в текущей папке.</value></data>
+  <data name="TipNext" xml:space="preserve"><value>Переходит к следующему изображению в текущей папке.</value></data>
+  <data name="TipFit" xml:space="preserve"><value>Вписывает изображение целиком в холст.</value></data>
+  <data name="TipActualSize" xml:space="preserve"><value>Показывает один пиксель изображения как один пиксель экрана.</value></data>
+  <data name="TipRotate" xml:space="preserve"><value>Поворачивает изображение или выделенные объекты по часовой стрелке.</value></data>
+  <data name="TipColor" xml:space="preserve"><value>Выбирает цвет для рисования и для выделенных объектов.</value></data>
+  <data name="TipEyedropper" xml:space="preserve"><value>Берёт отображаемый цвет одного пикселя из сведённого изображения.</value></data>
+  <data name="TipZoomOut" xml:space="preserve"><value>Уменьшает масштаб холста на один шаг.</value></data>
+  <data name="TipZoomIn" xml:space="preserve"><value>Увеличивает масштаб холста на один шаг.</value></data>
+  <data name="TipZoomSlider" xml:space="preserve"><value>Регулирует масштаб ползунком или клавишами со стрелками.</value></data>
+  <data name="TipFullScreen" xml:space="preserve"><value>Переключает между полноэкранным и оконным режимом.</value></data>
+  <data name="TipDockHorizontal" xml:space="preserve"><value>Переносит панель инструментов в горизонтальную полосу вверху окна.</value></data>
+  <data name="TipDockVertical" xml:space="preserve"><value>Переносит панель инструментов в вертикальную полосу слева от окна.</value></data>
+  <data name="TipSendToBack" xml:space="preserve"><value>Помещает выделенные объекты позади всех остальных.</value></data>
+  <data name="TipSendBackward" xml:space="preserve"><value>Перемещает выделенные объекты на шаг назад.</value></data>
+  <data name="TipBringForward" xml:space="preserve"><value>Перемещает выделенные объекты на шаг вперёд.</value></data>
+  <data name="TipBringToFront" xml:space="preserve"><value>Помещает выделенные объекты перед всеми остальными.</value></data>
+  <data name="TipDuplicate" xml:space="preserve"><value>Дублирует выделенные объекты и выделяет новые копии.</value></data>
+  <data name="TipEditText" xml:space="preserve"><value>Изменяет содержимое выделенного текстового объекта.</value></data>
+  <data name="TipSelect" xml:space="preserve"><value>Выделяйте объекты, чтобы перемещать, изменять размер и поворачивать их.</value></data>
+  <data name="TipPen" xml:space="preserve"><value>Перетаскивайте указатель, чтобы рисовать произвольную кривую.</value></data>
+  <data name="TipHighlighter" xml:space="preserve"><value>Рисует полупрозрачную произвольную кривую.</value></data>
+  <data name="TipLine" xml:space="preserve"><value>Рисует прямую линию от начальной точки к конечной.</value></data>
+  <data name="TipArrow" xml:space="preserve"><value>Рисует стрелку от начальной точки к конечной.</value></data>
+  <data name="TipRectangle" xml:space="preserve"><value>Перетаскивайте указатель, чтобы нарисовать прямоугольник.</value></data>
+  <data name="TipRoundedRectangle" xml:space="preserve"><value>Перетаскивайте указатель, чтобы нарисовать скруглённый прямоугольник.</value></data>
+  <data name="TipEllipse" xml:space="preserve"><value>Перетаскивайте указатель, чтобы нарисовать эллипс.</value></data>
+  <data name="TipText" xml:space="preserve"><value>Обозначьте область, затем введите текст.</value></data>
+  <data name="TipNumber" xml:space="preserve"><value>Расставляет нумерованные маркеры, возрастающие по порядку.</value></data>
+  <data name="TipSpeechBubble" xml:space="preserve"><value>Рисует текстовую выноску. Маркер хвостика задаёт его направление.</value></data>
+  <data name="TipUndo" xml:space="preserve"><value>Отменяет последнее изменение на один шаг.</value></data>
+  <data name="TipRedo" xml:space="preserve"><value>Повторно применяет отменённое изменение.</value></data>
+  <data name="TipCrop" xml:space="preserve"><value>Выделите область и нажмите Enter, чтобы применить, или Esc, чтобы отменить.</value></data>
+  <data name="TipCropRatio" xml:space="preserve"><value>Каждый щелчок перебирает «свободно», 1:1, 4:3 и 16:9.</value></data>
+  <data name="TipFlipHorizontal" xml:space="preserve"><value>Отражает изображение слева направо.</value></data>
+  <data name="TipFlipVertical" xml:space="preserve"><value>Отражает изображение сверху вниз.</value></data>
+  <data name="TipResize" xml:space="preserve"><value>Задаёт размер вывода в пикселях или в процентах.</value></data>
+  <data name="TipColorSwatch" xml:space="preserve"><value>Нажмите Enter, чтобы выбрать, и перемещайтесь по палитре клавишами со стрелками.</value></data>
+  <data name="ToolPreviousPage" xml:space="preserve"><value>Предыдущая страница (Page Up)</value></data>
+  <data name="ToolNextPage" xml:space="preserve"><value>Следующая страница (Page Down)</value></data>
+  <data name="ToolPlayAnimation" xml:space="preserve"><value>Воспроизвести анимацию</value></data>
+  <data name="ToolPauseAnimation" xml:space="preserve"><value>Приостановить анимацию</value></data>
+  <data name="AnimationEditTitle" xml:space="preserve"><value>Правка кадра анимации</value></data>
+  <data name="AnimationEditBody" xml:space="preserve"><value>Если продолжить, воспроизведение остановится, а текущий кадр будет сведён в неподвижное изображение.</value></data>
+  <data name="AnimationEditConfirm" xml:space="preserve"><value>Изменить текущий кадр</value></data>
+  <data name="ToolSettings" xml:space="preserve"><value>Параметры</value></data>
+  <data name="TipSettings" xml:space="preserve"><value>Изменяет поведение приложения и параметры конфиденциальности.</value></data>
+  <data name="SettingsTitle" xml:space="preserve"><value>Параметры</value></data>
+  <data name="SettingsSave" xml:space="preserve"><value>Сохранить</value></data>
+  <data name="SettingsSaved" xml:space="preserve"><value>Параметры сохранены</value></data>
+  <data name="SettingsSaveFailed" xml:space="preserve"><value>Не удалось сохранить параметры</value></data>
+  <data name="SettingsTheme" xml:space="preserve"><value>Тема</value></data>
+  <data name="SettingsThemeSystem" xml:space="preserve"><value>Использовать системную настройку</value></data>
+  <data name="SettingsThemeLight" xml:space="preserve"><value>Светлая</value></data>
+  <data name="SettingsThemeDark" xml:space="preserve"><value>Тёмная</value></data>
+  <data name="SettingsFileActivation" xml:space="preserve"><value>При открытии другого файла</value></data>
+  <data name="SettingsReuseWindow" xml:space="preserve"><value>Открывать в текущем окне</value></data>
+  <data name="SettingsOpenNewWindow" xml:space="preserve"><value>Открывать в новом окне</value></data>
+  <data name="SettingsClipboardWatch" xml:space="preserve"><value>Следить за снимками в буфере обмена</value></data>
+  <data name="SettingsRecentFiles" xml:space="preserve"><value>Журнал недавних файлов</value></data>
+  <data name="SettingsPrivacySummary" xml:space="preserve"><value>Ваши файлы и содержимое изображений никуда не отправляются. Телеметрия и автоматический сетевой обмен отсутствуют.</value></data>
+  <data name="SettingsIncludeSubfolders" xml:space="preserve"><value>Включать вложенные папки при просмотре</value></data>
+  <data name="SettingsCaptureHotkey" xml:space="preserve"><value>Глобальное сочетание клавиш для снимка</value></data>
+  <data name="SettingsHotkeyInvalid" xml:space="preserve"><value>Выберите хотя бы одну клавишу-модификатор и назначьте клавишу.</value></data>
+  <data name="SettingsApplicationInformation" xml:space="preserve"><value>Сведения о приложении</value></data>
+  <data name="SettingsCurrentVersion" xml:space="preserve"><value>Текущая версия: {0}</value></data>
+  <data name="StatusPreview" xml:space="preserve"><value>Предпросмотр</value></data>
+  <data name="ToolRecent" xml:space="preserve"><value>Недавние файлы</value></data>
+  <data name="TipRecent" xml:space="preserve"><value>Показывает файлы, которые вы недавно успешно открывали.</value></data>
+  <data name="RecentTitle" xml:space="preserve"><value>Недавние файлы</value></data>
+  <data name="RecentEmpty" xml:space="preserve"><value>Недавних файлов нет либо журнал отключён.</value></data>
+  <data name="RecentOpen" xml:space="preserve"><value>Открыть</value></data>
+  <data name="RecentClear" xml:space="preserve"><value>Очистить всё</value></data>
+  <data name="RecentCleared" xml:space="preserve"><value>Журнал недавних файлов очищен</value></data>
+  <data name="RecentClearFailed" xml:space="preserve"><value>Не удалось очистить журнал недавних файлов</value></data>
+  <data name="RecentEnableBlocked" xml:space="preserve"><value>Журнал не включён, так как не удалось очистить существующий журнал недавних файлов</value></data>
+  <data name="RecentDisableIncomplete" xml:space="preserve"><value>Журнал недавних файлов отключён, но существующие записи очистить не удалось. Удаление будет повторено при следующем запуске</value></data>
+  <data name="RecoveryTitle" xml:space="preserve"><value>Есть работа для восстановления</value></data>
+  <data name="RecoveryBody" xml:space="preserve"><value>Предыдущий сеанс завершился некорректно. Вы можете восстановить несохранённую работу.</value></data>
+  <data name="RecoveryIncompleteWarning" xml:space="preserve"><value>Некоторые элементы восстановления не удалось прочитать. Обрабатываются только перечисленные ниже элементы, остальные сохраняются.</value></data>
+  <data name="RecoveryRestoreAll" xml:space="preserve"><value>Восстановить всё</value></data>
+  <data name="RecoveryDiscardAll" xml:space="preserve"><value>Отклонить всё</value></data>
+  <data name="RecoveryDiscardVisible" xml:space="preserve"><value>Отклонить перечисленные элементы</value></data>
+  <data name="RecoveryDiscarded" xml:space="preserve"><value>Перечисленные элементы восстановления отклонены</value></data>
+  <data name="RecoveryDiscardDeferred" xml:space="preserve"><value>Перечисленные элементы восстановления отклонены. Нечитаемые элементы будут проверены при следующем запуске</value></data>
+  <data name="RecoveryLater" xml:space="preserve"><value>Позже</value></data>
+  <data name="RecoveryFailed" xml:space="preserve"><value>Часть работы восстановить не удалось</value></data>
+  <data name="RecoveryRestored" xml:space="preserve"><value>Предыдущая работа восстановлена. Сохраните её в надёжном месте</value></data>
+  <data name="RecoveryAvailabilityTitle" xml:space="preserve"><value>Состояние автовосстановления</value></data>
+  <data name="RecoveryUnavailablePersistent" xml:space="preserve"><value>Не удалось запустить автовосстановление. В этом сеансе почаще сохраняйте работу вручную.</value></data>
+  <data name="RecoveryDegradedPersistent" xml:space="preserve"><value>С сохранением автовосстановления возникли проблемы. Сохраняйте работу вручную, пока это уведомление не исчезнет.</value></data>
+  <data name="AppDataProtectionTitle" xml:space="preserve"><value>Не удалось защитить локальные данные</value></data>
+  <data name="AppDataProtectionPersistent" xml:space="preserve"><value>Не удалось защитить папку личных данных, поэтому параметры, недавние файлы и автовосстановление отключены в этом сеансе.</value></data>
+  <data name="SafeModeTitle" xml:space="preserve"><value>Запустить в безопасном режиме?</value></data>
+  <data name="SafeModeBody" xml:space="preserve"><value>Одна и та же ошибка запуска повторилась несколько раз. Безопасный режим отключает в этом сеансе слежение за буфером обмена, глобальный снимок, недавние файлы, просмотр вложенных папок и запросы автовосстановления.</value></data>
+  <data name="SafeModeStart" xml:space="preserve"><value>Запустить в безопасном режиме</value></data>
+  <data name="SafeModeContinue" xml:space="preserve"><value>Продолжить обычно</value></data>
+  <data name="SafeModeLabel" xml:space="preserve"><value>Безопасный режим</value></data>
+  <data name="SettingsNavGeneral" xml:space="preserve"><value>Язык и другие параметры</value></data>
+  <data name="SettingsNavFileAssoc" xml:space="preserve"><value>Сопоставления файлов</value></data>
+  <data name="SettingsNavAbout" xml:space="preserve"><value>О программе</value></data>
+  <data name="SettingsNavUpdate" xml:space="preserve"><value>Обновления</value></data>
+  <data name="SettingsNavSupport" xml:space="preserve"><value>Поддержать разработчика</value></data>
+  <data name="SettingsLanguage" xml:space="preserve"><value>Язык</value></data>
+  <data name="SettingsLanguageSystem" xml:space="preserve"><value>Системный по умолчанию (язык интерфейса Windows)</value></data>
+  <data name="SettingsLanguageRestartNote" xml:space="preserve"><value>Перезапустите приложение, чтобы новый язык применился ко всем экранам.</value></data>
+  <data name="FileAssocWindowsSettings" xml:space="preserve"><value>Параметры приложений по умолчанию Windows</value></data>
+  <data name="FileAssocPackagedNote" xml:space="preserve"><value>В этой сборке сопоставлениями файлов управляет установочный пакет. Форматы ниже уже зарегистрированы в списке «Открыть с помощью», поэтому применять здесь нечего. Чтобы двойной щелчок открывал приложение, выберите ezy Image Viewer в разделе «Параметры приложений по умолчанию Windows».</value></data>
+  <data name="FileAssocPackagedRegistered" xml:space="preserve"><value>Форматы, зарегистрированные пакетом</value></data>
+  <data name="FilmstripLabel" xml:space="preserve"><value>Список эскизов папки</value></data>
+  <data name="FilmstripCurrent" xml:space="preserve"><value>Текущий файл</value></data>
+  <data name="FilmstripShow" xml:space="preserve"><value>Показать список эскизов</value></data>
+  <data name="FilmstripHide" xml:space="preserve"><value>Скрыть список эскизов</value></data>
+  <data name="TipFilmstrip" xml:space="preserve"><value>Оставьте список открытым, чтобы выбирать несколько изображений подряд.</value></data>
+  <data name="AboutDescription" xml:space="preserve"><value>Лёгкий и быстрый просмотрщик и редактор изображений для Windows</value></data>
+  <data name="AboutLicense" xml:space="preserve"><value>Лицензия MIT · © 2026 koprodev</value></data>
+  <data name="UpdateStoreManagedNote" xml:space="preserve"><value>Обновления выполняет Microsoft Store автоматически. Вы также можете проверить их в своей библиотеке Store.</value></data>
+  <data name="SupportNote" xml:space="preserve"><value>ezy Image Viewer бесплатен. Если он вам помог, поддержите его разработку.</value></data>
+  <data name="SupportAction" xml:space="preserve"><value>Поддержать разработку ☕</value></data>
+  <data name="LinkOpenFailed" xml:space="preserve"><value>Не удалось открыть страницу</value></data>
+  <data name="ToggleOn" xml:space="preserve"><value>Вкл</value></data>
+  <data name="ToggleOff" xml:space="preserve"><value>Выкл</value></data>
+  <data name="DeleteImageTitle" xml:space="preserve"><value>Удалить это изображение?</value></data>
+  <data name="DeleteImageRecycleBody" xml:space="preserve"><value>'{0}' будет перемещён в корзину. Восстановить можно средствами Windows.</value></data>
+  <data name="DeleteImagePermanentBody" xml:space="preserve"><value>В этом расположении нет корзины, поэтому '{0}' будет удалён безвозвратно. Отменить это нельзя.</value></data>
+  <data name="DeleteImageUnsavedNote" xml:space="preserve"><value>В документе есть несохранённые изменения. Удаление файла никуда их не сохраняет.</value></data>
+  <data name="DeleteImageConfirm" xml:space="preserve"><value>Удалить</value></data>
+  <data name="DeleteImageDone" xml:space="preserve"><value>'{0}' перемещён в корзину</value></data>
+  <data name="DeleteImageDonePermanent" xml:space="preserve"><value>'{0}' удалён</value></data>
+  <data name="DeleteImageFailed" xml:space="preserve"><value>Не удалось удалить файл</value></data>
+  <data name="RenameFileLabel" xml:space="preserve"><value>Имя файла</value></data>
+  <data name="RenameFileTip" xml:space="preserve"><value>Щёлкните или нажмите F2, чтобы переименовать файл.</value></data>
+  <data name="RenameDone" xml:space="preserve"><value>Переименован в '{0}'</value></data>
+  <data name="RenameFailed" xml:space="preserve"><value>Не удалось переименовать файл</value></data>
+  <data name="RenameEmpty" xml:space="preserve"><value>Введите имя файла.</value></data>
+  <data name="RenameInvalidCharacters" xml:space="preserve"><value>Имя файла не может содержать \ / : * ? " &lt; &gt; | и не может заканчиваться пробелом или точкой.</value></data>
+  <data name="RenameReservedName" xml:space="preserve"><value>Это имя зарезервировано Windows. Выберите другое.</value></data>
+  <data name="RenameTooLong" xml:space="preserve"><value>Слишком длинное имя файла.</value></data>
+  <data name="RenameTargetExists" xml:space="preserve"><value>Файл с таким именем уже есть в этой папке.</value></data>
+</root>

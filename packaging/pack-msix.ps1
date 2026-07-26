@@ -17,10 +17,15 @@ param(
     [string]$Version,
     [string]$ReleaseVersion,
     [string]$Publisher = "CN=ezyImageViewer Dev",
+    # Store 제출은 Partner Center가 준 값으로 셋 다 덮어써야 함. 기본값은 개발 서명 전용.
+    [string]$IdentityName = "GRTech.ezyImageViewer",
+    [string]$PublisherDisplayName = "grtech-devpro",
     [string]$CertificateThumbprint,
     [switch]$CreateDevCertificate,
     [switch]$NoBuild,
-    [switch]$SkipSign
+    [switch]$SkipSign,
+    # Store 제출용. 업데이트 확인과 Store 밖 내려받기 링크를 뺀 빌드를 만든다.
+    [switch]$StoreChannel
 )
 
 Set-StrictMode -Version 2.0
@@ -36,6 +41,21 @@ function Assert-MsixVersion {
         if ([uint64]::Parse($part, [Globalization.CultureInfo]::InvariantCulture) -gt 65535) {
             throw "$Label contains a part outside the MSIX range 0..65535: '$Value'."
         }
+    }
+}
+
+function Assert-IdentityName {
+    param([string]$Value)
+    # MSIX 규칙: 3~50자, 영숫자·마침표·붙임표, 양 끝은 영숫자, 마침표 연속 금지.
+    if ($Value -cnotmatch '^[A-Za-z0-9][A-Za-z0-9.-]{1,48}[A-Za-z0-9]$' -or $Value.Contains('..')) {
+        throw "IdentityName is not a valid MSIX package name: '$Value'."
+    }
+}
+
+function Assert-PublisherDisplayName {
+    param([string]$Value)
+    if ([string]::IsNullOrWhiteSpace($Value) -or $Value.Length -gt 256 -or $Value.Contains('{{')) {
+        throw "PublisherDisplayName is empty, unresolved, or too long: '$Value'."
     }
 }
 
@@ -154,6 +174,12 @@ function Open-ExclusivePublishLock {
 
 Assert-MsixVersion $Version 'Version'
 Assert-Publisher $Publisher
+Assert-IdentityName $IdentityName
+Assert-PublisherDisplayName $PublisherDisplayName
+# Store는 네 번째 자리를 자기 몫으로 예약한다. 0이 아니면 제출 단계에서 거절당함.
+if ($StoreChannel -and $Version.Split('.')[3] -cne '0') {
+    throw "Store submissions require a zero revision: '$Version'."
+}
 if ([string]::IsNullOrWhiteSpace($ReleaseVersion)) {
     $ReleaseVersion = ($Version.Split('.')[0..2] -join '.')
 }
@@ -214,6 +240,7 @@ if (-not (Test-Path -LiteralPath $signtool)) {
 if (-not $NoBuild) {
     # Packaged=true면 비패키지 부트스트랩을 빼고 모든 프로젝트를 packaged bin/obj로 보냄.
     & dotnet build $appProj -c Release -p:Packaged=true -p:Platform=x64 `
+        "-p:StoreChannel=$($StoreChannel.IsPresent.ToString().ToLowerInvariant())" `
         "-p:FileVersion=$Version" "-p:InformationalVersion=$ReleaseVersion"
     if ($LASTEXITCODE -ne 0) { throw "dotnet build failed ($LASTEXITCODE)" }
 }
@@ -225,8 +252,11 @@ if (Test-Path $layout) { Remove-Item $layout -Recurse -Force }
 New-Item -ItemType Directory -Force $layout | Out-Null
 & robocopy $buildOut $layout /E /NFL /NDL /NJH /NJS /XD ref NativeAotProbe /XF *.pdb | Out-Null
 if ($LASTEXITCODE -ge 8) { throw "robocopy failed ($LASTEXITCODE)" }
+# 타일 로고는 Content로 빌드 출력에 들어오므로 robocopy가 이미 실어 왔다. 여기서 또 베끼면 PRI 색인본과 어긋난다.
 foreach ($assetName in @('Square44x44Logo.png', 'Square150x150Logo.png', 'StoreLogo.png')) {
-    Copy-Item (Join-Path $PSScriptRoot "Assets\$assetName") (Join-Path $layout 'Assets') -Force
+    if (-not (Test-Path (Join-Path $layout "Assets\$assetName"))) {
+        throw "Packaged build output is missing the tile logo: $assetName"
+    }
 }
 
 [xml]$manifest = Get-Content (Join-Path $PSScriptRoot 'AppxManifest.template.xml')
@@ -235,8 +265,15 @@ $identity = $manifest.SelectSingleNode(
 if ($null -eq $identity) {
     throw 'Main manifest Identity is missing.'
 }
+$identity.SetAttribute('Name', $IdentityName)
 $identity.SetAttribute('Version', $Version)
 $identity.SetAttribute('Publisher', $Publisher)
+$publisherDisplay = $manifest.SelectSingleNode(
+    "/*[local-name()='Package']/*[local-name()='Properties']/*[local-name()='PublisherDisplayName']")
+if ($null -eq $publisherDisplay) {
+    throw 'Main manifest PublisherDisplayName is missing.'
+}
+$publisherDisplay.InnerText = $PublisherDisplayName
 Save-Manifest $manifest (Join-Path $layout 'AppxManifest.xml')
 [void](Write-EzyPackageContentsManifest -Layout $layout)
 
@@ -284,6 +321,8 @@ $verifyArgs = @{
     MainPackage = $msix
     Version = $Version
     Publisher = $Publisher
+    IdentityName = $IdentityName
+    PublisherDisplayName = $PublisherDisplayName
     BuildToolsRoot = $btRoot
     RequireBuildOutputMatch = $true
 }
